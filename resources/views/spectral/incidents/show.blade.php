@@ -30,7 +30,7 @@
 
         <!-- Left 2 Cols: Incident Details & Evidence -->
         <div class="lg:col-span-2 space-y-6">
-            
+
             <!-- Core Details Card -->
             <div class="p-6 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-4 shadow-xl">
                 <div>

@@ -1,0 +1,509 @@
+/**
+ * ECTO//NET — Spectral Resource & Spirit Ward Tech GIS Stylesheet
+ * Scenario 3: Enterprise Geographic Supernatural Defense & Emergency Monitoring
+ * Primary Scope: San Francisco, Agusan del Sur, Philippines
+ */
+
+:root {
+    --ecto-bg-base: #0B0F14;
+    --ecto-bg-surface: #11161D;
+    --ecto-bg-panel: #151B23;
+    --ecto-bg-card: #1B222C;
+    --ecto-border: #2A3440;
+    --ecto-border-subtle: #1E2631;
+    
+    --ecto-accent: #8B5CF6;
+    --ecto-accent-hover: #7C3AED;
+    --ecto-accent-muted: rgba(139, 92, 246, 0.15);
+    
+    --ecto-amber: #D97706;
+    --ecto-amber-muted: rgba(217, 119, 6, 0.15);
+    
+    --ecto-success: #22C55E;
+    --ecto-warning: #EAB308;
+    --ecto-danger: #EF4444;
+    --ecto-info: #38BDF8;
+    
+    --ecto-text-main: #F3F4F6;
+    --ecto-text-secondary: #9CA3AF;
+    --ecto-text-muted: #64748B;
+}
+
+/* ── Reset & Baseline ────────────────────────────────────────────────────── */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--ecto-bg-base);
+    color: var(--ecto-text-main);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* ── Custom Scrollbars ───────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #2A3440;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #3B4856;
+}
+
+/* ── Map Container ───────────────────────────────────────────────────────── */
+#spectral-map {
+    width: 100%;
+    height: 100%;
+    background-color: #06090D;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    /* Bone hand pointer — skeletal SVG cursor */
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='%23F3F4F6' stroke='%23151B23' stroke-width='0.6'%3E%3Crect x='8' y='16' width='14' height='11' rx='2.5'/%3E%3Crect x='5' y='17' width='5' height='4' rx='2'/%3E%3Crect x='4' y='20' width='4' height='3' rx='1.5'/%3E%3Crect x='8.5' y='6' width='3.5' height='12' rx='1.75'/%3E%3Crect x='8.8' y='3.5' width='3' height='4' rx='1.5'/%3E%3Crect x='12.5' y='5' width='3.5' height='13' rx='1.75'/%3E%3Crect x='12.8' y='2.5' width='3' height='4' rx='1.5'/%3E%3Crect x='16.5' y='6.5' width='3' height='12' rx='1.5'/%3E%3Crect x='16.8' y='4' width='2.6' height='4' rx='1.3'/%3E%3Crect x='20' y='8' width='2.5' height='10' rx='1.25'/%3E%3Crect x='20.2' y='5.8' width='2.2' height='3.5' rx='1.1'/%3E%3Ccircle cx='10.2' cy='16' r='0.8' fill='%232A3440'/%3E%3Ccircle cx='14.2' cy='16' r='0.8' fill='%232A3440'/%3E%3Ccircle cx='18' cy='16' r='0.8' fill='%232A3440'/%3E%3Ccircle cx='21.2' cy='17' r='0.7' fill='%232A3440'/%3E%3C/g%3E%3C/svg%3E") 10 2, pointer;
+}
+
+/* ── Violet crosshair cursor during location-picker mode ─────────────────── */
+#spectral-map.picking-location,
+#spectral-map.picking-location .leaflet-interactive,
+#spectral-map.picking-location .leaflet-grab,
+#spectral-map.picking-location .leaflet-container {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%238B5CF6' stroke-width='1.5'/%3E%3Cline x1='16' y1='4' x2='16' y2='11' stroke='%238B5CF6' stroke-width='1.5'/%3E%3Cline x1='16' y1='21' x2='16' y2='28' stroke='%238B5CF6' stroke-width='1.5'/%3E%3Cline x1='4' y1='16' x2='11' y2='16' stroke='%238B5CF6' stroke-width='1.5'/%3E%3Cline x1='21' y1='16' x2='28' y2='16' stroke='%238B5CF6' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%238B5CF6'/%3E%3C/svg%3E") 16 16, crosshair !important;
+}
+
+/* ── Leaflet Dark Custom Popups ──────────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+    background-color: #151B23 !important;
+    color: #F3F4F6 !important;
+    border: 1px solid #2A3440 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    line-height: 1.4 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+.leaflet-popup-tip {
+    background-color: #151B23 !important;
+    border: 1px solid #2A3440 !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    color: #9CA3AF !important;
+    padding: 8px 8px 0 0 !important;
+    font-size: 16px !important;
+}
+.leaflet-container a.leaflet-popup-close-button:hover {
+    color: #FFFFFF !important;
+}
+
+/* ── Custom Leaflet Controls ─────────────────────────────────────────────── */
+.leaflet-control-zoom {
+    border: 1px solid var(--ecto-border) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+.leaflet-control-zoom a {
+    background-color: #151B23 !important;
+    color: #F3F4F6 !important;
+    border-bottom: 1px solid var(--ecto-border) !important;
+    transition: all 0.2s ease !important;
+}
+.leaflet-control-zoom a:hover {
+    background-color: #1B222C !important;
+    color: var(--ecto-accent) !important;
+}
+
+/* ── Custom GIS Marker Elements ──────────────────────────────────────────── */
+.gis-marker-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gis-marker-wrapper:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    z-index: 1000 !important;
+}
+
+/* 1. Incident Marker */
+.marker-incident {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    border: 2px solid #FFFFFF;
+    position: relative;
+}
+.marker-incident.critical {
+    background-color: #EF4444;
+}
+.marker-incident.high {
+    background-color: #F97316;
+}
+.marker-incident.medium {
+    background-color: #EAB308;
+}
+.marker-incident.low {
+    background-color: #22C55E;
+}
+
+.marker-incident-pulse {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    animation: marker-pulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    pointer-events: none;
+}
+.marker-incident.critical .marker-incident-pulse {
+    border: 2px solid rgba(239, 68, 68, 0.6);
+    background-color: rgba(239, 68, 68, 0.15);
+}
+.marker-incident.high .marker-incident-pulse {
+    border: 2px solid rgba(249, 115, 22, 0.6);
+    background-color: rgba(249, 115, 22, 0.15);
+}
+
+@keyframes marker-pulse {
+    0% { transform: scale(0.8); opacity: 0.9; }
+    70% { transform: scale(1.6); opacity: 0; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* 2. Ward Station Marker */
+.marker-ward {
+    width: 30px;
+    height: 30px;
+    background-color: #151B23;
+    border: 2px solid #8B5CF6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    color: #8B5CF6;
+    font-size: 14px;
+}
+.marker-ward.active {
+    border-color: #8B5CF6;
+    color: #8B5CF6;
+}
+.marker-ward.degraded {
+    border-color: #D97706;
+    color: #D97706;
+}
+.marker-ward.breached {
+    border-color: #EF4444;
+    color: #EF4444;
+}
+
+/* 3. Resource Marker */
+.marker-resource {
+    width: 24px;
+    height: 24px;
+    background-color: #151B23;
+    border: 2px solid #38BDF8;
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.marker-resource-inner {
+    transform: rotate(-45deg);
+    font-size: 11px;
+}
+
+/* 4. Picker Pin Marker */
+.marker-picker-pin {
+    width: 36px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+    animation: pin-drop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pin-drop {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 5. Anomaly Drop Marker (click-to-place ghost/anomaly pin) */
+.marker-anomaly-outer {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 38%, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.08) 100%);
+    border: 2px solid #8B5CF6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 14px 4px rgba(139, 92, 246, 0.45), 0 2px 8px rgba(0,0,0,0.6);
+    animation: anomaly-drop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), anomaly-glow 2.6s ease-in-out infinite 0.35s;
+    position: relative;
+}
+.marker-anomaly-outer::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(139, 92, 246, 0.35);
+    animation: anomaly-ring 2.6s ease-in-out infinite;
+}
+@keyframes anomaly-drop {
+    from { transform: scale(0.3) translateY(-16px); opacity: 0; }
+    to   { transform: scale(1) translateY(0);       opacity: 1; }
+}
+@keyframes anomaly-glow {
+    0%, 100% { box-shadow: 0 0 14px 4px rgba(139,92,246,0.45), 0 2px 8px rgba(0,0,0,0.6); }
+    50%       { box-shadow: 0 0 24px 8px rgba(139,92,246,0.70), 0 2px 8px rgba(0,0,0,0.6); }
+}
+@keyframes anomaly-ring {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50%       { transform: scale(1.4); opacity: 0; }
+}
+.marker-anomaly-inner {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #A78BFA;
+    box-shadow: 0 0 6px 2px rgba(167, 139, 250, 0.8);
+}
+
+/* 6. Street View Pegman Marker (on Satellite Map) */
+.marker-pegman {
+    width: 32px;
+    height: 42px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.marker-pegman:hover {
+    transform: scale(1.15);
+}
+.marker-pegman-head {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #FACC15;
+    border: 2px solid #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.7);
+}
+.marker-pegman-stem {
+    width: 2.5px;
+    height: 10px;
+    background: #FACC15;
+    box-shadow: 0 0 4px rgba(250, 204, 21, 0.5);
+}
+.marker-pegman-pulse {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    top: -4px;
+    border-radius: 50%;
+    border: 2px solid rgba(250, 204, 21, 0.6);
+    background: rgba(250, 204, 21, 0.15);
+    animation: pegman-pulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    pointer-events: none;
+}
+@keyframes pegman-pulse {
+    0% { transform: scale(0.6); opacity: 1; }
+    70% { transform: scale(1.6); opacity: 0; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* ── Tile Error Overlay ──────────────────────────────────────────────────── */
+#map-tile-error {
+    display: none;
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    padding: 6px 14px;
+    background: rgba(239,68,68,0.13);
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 8px;
+    color: #F87171;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    pointer-events: none;
+}
+#map-tile-error.visible { display: block; }
+
+/* ── Map Switcher Active Button ──────────────────────────────────────────── */
+.map-switcher-btn.active {
+    background-color: #1B222C;
+    color: #FFFFFF;
+    border: 1px solid rgba(139,92,246,0.5);
+}
+
+
+/* ── Role Switcher Button States ─────────────────────────────────────────── */
+.active-role-btn {
+    background-color: #8B5CF6 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 1px 4px rgba(139, 92, 246, 0.3);
+}
+
+/* ── Severity Badges ─────────────────────────────────────────────────────── */
+.badge-low {
+    background-color: rgba(34, 197, 94, 0.12);
+    color: #4ADE80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.badge-medium {
+    background-color: rgba(234, 179, 8, 0.12);
+    color: #FACC15;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.badge-high {
+    background-color: rgba(249, 115, 22, 0.12);
+    color: #FB923C;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+.badge-critical {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* ── Status Badges ───────────────────────────────────────────────────────── */
+.badge-pending {
+    background-color: rgba(156, 163, 175, 0.12);
+    color: #D1D5DB;
+    border: 1px solid rgba(156, 163, 175, 0.3);
+}
+.badge-investigating {
+    background-color: rgba(139, 92, 246, 0.12);
+    color: #C084FC;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+.badge-verified {
+    background-color: rgba(56, 189, 248, 0.12);
+    color: #38BDF8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.badge-resolved {
+    background-color: rgba(34, 197, 94, 0.12);
+    color: #4ADE80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.badge-escalated {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* ── Layer Toggles & Buttons ─────────────────────────────────────────────── */
+.layer-toggle-btn.active {
+    background-color: #1B222C;
+    border-color: #8B5CF6;
+    color: #FFFFFF;
+}
+.layer-toggle-btn.active .layer-dot {
+    background-color: #8B5CF6;
+}
+
+/* ── Form Inputs ─────────────────────────────────────────────────────────── */
+.ecto-input {
+    background-color: #0B0F14;
+    border: 1px solid #2A3440;
+    color: #F3F4F6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    transition: all 0.15s ease;
+    width: 100%;
+}
+.ecto-input:focus {
+    outline: none;
+    border-color: #8B5CF6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+.ecto-input::placeholder {
+    color: #64748B;
+}
+
+.ecto-select {
+    background-color: #0B0F14;
+    border: 1px solid #2A3440;
+    color: #F3F4F6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    transition: all 0.15s ease;
+    width: 100%;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+}
+.ecto-select:focus {
+    outline: none;
+    border-color: #8B5CF6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+/* ── Location Picker HUD Banner ──────────────────────────────────────────── */
+#location-picker-hud {
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#location-picker-hud.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* ── Modals & Drawers ────────────────────────────────────────────────────── */
+.ecto-modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    transition: opacity 0.2s ease;
+}
+.ecto-modal-content {
+    background-color: #151B23;
+    border: 1px solid #2A3440;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Responsive adjustments ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+}

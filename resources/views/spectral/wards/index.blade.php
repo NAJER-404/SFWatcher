@@ -8,7 +8,10 @@
     <!-- Header -->
     <div class="flex items-center justify-between pb-3 border-b border-[#2A3440]">
         <div>
-            <a href="{{ route('spectral.dashboard') }}" class="text-xs font-mono text-[#8B5CF6] hover:underline">&larr; Return to Map</a>
+            <a href="{{ route('spectral.dashboard') }}" class="text-xs font-mono text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                <span>Return to Map</span>
+            </a>
             <h1 class="text-xl font-bold text-white mt-1">Ward Stations</h1>
             <p class="text-xs text-[#9CA3AF]">San Francisco, Agusan del Sur</p>
         </div>

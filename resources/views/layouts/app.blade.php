@@ -56,12 +56,26 @@
     <!-- Top Application Bar -->
     @include('spectral.partials.header')
 
-    <!-- Flash Notifications -->
+    <!-- Flash Notifications (Auto-hides after 1 second) -->
     @if(session('success'))
-        <div class="fixed top-16 right-5 z-[9999] px-4 py-2.5 rounded-xl bg-[#1B222C] border border-[#22C55E] text-white text-xs font-bold shadow-2xl flex items-center gap-2 animate-bounce">
-            <span class="text-emerald-400">✓</span>
-            <span>{{ session('success') }}</span>
+        <div id="flash-success-toast" class="fixed top-16 right-5 z-[9999] px-4 py-2.5 rounded-xl bg-[#1B222C] border border-[#22C55E] text-white text-xs font-bold shadow-2xl flex items-center gap-2.5 transition-all duration-500 transform translate-y-0 opacity-100">
+            <div class="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="font-medium text-slate-100">{{ session('success') }}</span>
+            <button onclick="document.getElementById('flash-success-toast')?.remove()" class="ml-2 text-slate-400 hover:text-white text-sm font-bold leading-none">&times;</button>
         </div>
+        <script>
+            setTimeout(() => {
+                const toast = document.getElementById('flash-success-toast');
+                if (toast) {
+                    toast.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-12px)';
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 1000);
+        </script>
     @endif
 
     <!-- Main Viewport Body -->

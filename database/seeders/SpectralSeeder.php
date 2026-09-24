@@ -17,7 +17,16 @@ class SpectralSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Seed Users (Reporter and Investigator/Warden)
+        // 1. Seed Users (Admin, Investigator, Reporter)
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@ectonet.gov'],
+            [
+                'name' => 'Commander R. Vance',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+            ]
+        );
+
         $warden = User::firstOrCreate(
             ['email' => 'warden@ectonet.gov'],
             [
@@ -25,6 +34,20 @@ class SpectralSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => 'investigator',
             ]
+        );
+
+        $investigator = User::firstOrCreate(
+            ['email' => 'investigator@ectonet.gov'],
+            [
+                'name' => 'Lead Investigator S. Reyes',
+                'password' => Hash::make('password'),
+                'role' => 'investigator',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'responder@ectonet.gov'],
+            ['name' => 'Responder A. Santos', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'D', 'responder_status' => 'AVAILABLE']
         );
 
         $observer = User::firstOrCreate(

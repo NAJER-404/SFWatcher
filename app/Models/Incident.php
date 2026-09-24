@@ -22,12 +22,20 @@ class Incident extends Model
         'severity',
         'status',
         'notes',
+        'anomaly_hp', 'anomaly_max_hp', 'investigator_hp', 'investigator_max_hp',
+        'response_progress', 'response_investigator_id', 'response_started_at',
+        'response_deadline', 'response_status', 'support_requested_at',
+        'investigation_completed_at', 'investigation_result',
     ];
 
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
         'incident_date' => 'datetime',
+        'response_started_at' => 'datetime',
+        'response_deadline' => 'datetime',
+        'support_requested_at' => 'datetime',
+        'investigation_completed_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -38,6 +46,13 @@ class Incident extends Model
             if (empty($incident->incident_code)) {
                 $count = static::count() + 1;
                 $incident->incident_code = sprintf('SF-INC-%03d', $count);
+            }
+            if (empty($incident->anomaly_max_hp)) {
+                $maxHp = config('spectral_response.anomaly_hp.' . ($incident->severity ?? 'HIGH'), 100);
+                $incident->anomaly_max_hp = $maxHp;
+                if ($incident->anomaly_hp === null) {
+                    $incident->anomaly_hp = $maxHp;
+                }
             }
         });
     }
@@ -61,6 +76,13 @@ class Incident extends Model
     {
         return $this->hasMany(Investigation::class);
     }
+
+    public function responseInvestigator()
+    {
+        return $this->belongsTo(User::class, 'response_investigator_id');
+    }
+
+    public function responderAssignments() { return $this->hasMany(ResponderAssignment::class); }
 
     public function getSeverityColorAttribute(): string
     {

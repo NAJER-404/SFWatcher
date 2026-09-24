@@ -11,6 +11,8 @@ class IncidentEvidence extends Model
 
     protected $table = 'incident_evidence';
 
+    protected $appends = ['url'];
+
     protected $fillable = [
         'incident_id',
         'file_path',

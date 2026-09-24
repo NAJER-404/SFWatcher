@@ -15,10 +15,12 @@ class Investigation extends Model
         'notes',
         'investigation_date',
         'result',
+        'completed_at',
     ];
 
     protected $casts = [
         'investigation_date' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function incident()

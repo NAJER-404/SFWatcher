@@ -8,7 +8,10 @@
     <!-- Top Breadcrumb -->
     <div class="flex items-center justify-between pb-3 border-b border-[#2A3440]">
         <div class="flex items-center gap-2 text-xs font-mono">
-            <a href="{{ route('spectral.dashboard') }}" class="text-[#8B5CF6] hover:underline">&larr; Return to Map</a>
+            <a href="{{ route('spectral.dashboard') }}" class="text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                <span>Return to Map</span>
+            </a>
             <span class="text-slate-600">/</span>
             <span class="text-slate-400">Report Incident</span>
         </div>
@@ -87,13 +90,17 @@
                         <label class="block text-[10px] font-mono text-[#64748B] uppercase mb-1">Longitude</label>
                         <input type="number" step="0.000001" name="longitude" id="create-lng" value="125.9730" class="ecto-input font-mono" required>
                     </div>
+                <!-- Auto-Resolved Location (OpenStreetMap Nominatim) -->
+                <div class="space-y-1 pt-2 border-t border-[#1E2631]">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[10px] text-[#9CA3AF] font-mono flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]"></span>
+                            <span>Readable Location (Nominatim)</span>
+                        </label>
+                        <span id="create-geocode-status" class="text-[9px] font-mono text-emerald-400">Auto-detected</span>
+                    </div>
+                    <input type="text" name="resolved_location" id="create-resolved-location" class="ecto-input text-slate-200 text-xs" placeholder="Click map above to auto-detect address..." value="Brgy. Hubang, San Francisco, Agusan del Sur, Philippines">
                 </div>
-            </div>
-
-            <!-- Date & Time -->
-            <div class="space-y-1">
-                <label class="block text-slate-300 font-bold">Incident Observation Date & Time</label>
-                <input type="datetime-local" name="incident_date" value="{{ now()->format('Y-m-d\TH:i') }}" class="ecto-input font-mono" required>
             </div>
 
             <!-- Description -->
@@ -134,9 +141,11 @@
             attributionControl: false
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
-            maxZoom: 19
+        L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: 'Imagery &copy; Google',
+            maxZoom: 21,
+            subdomains: ['0','1','2','3'],
+            tileSize: 256
         }).addTo(map);
 
         let marker = L.marker([lat, lng], {
@@ -161,6 +170,30 @@
             document.getElementById('create-lat').value = newLat.toFixed(6);
             document.getElementById('create-lng').value = newLng.toFixed(6);
             document.getElementById('create-coord-readout').textContent = `${newLat.toFixed(5)}° N, ${newLng.toFixed(5)}° E`;
+
+            const geocodeStatus = document.getElementById('create-geocode-status');
+            const resolvedInput = document.getElementById('create-resolved-location');
+            if (geocodeStatus) {
+                geocodeStatus.textContent = 'Resolving via Nominatim...';
+                geocodeStatus.className = 'text-[9px] font-mono text-amber-400 animate-pulse';
+            }
+
+            fetch(`/api/spectral/reverse-geocode?lat=${newLat}&lng=${newLng}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.address) {
+                        if (resolvedInput) resolvedInput.value = data.address;
+                        if (geocodeStatus) {
+                            geocodeStatus.textContent = 'Auto-detected (Nominatim)';
+                            geocodeStatus.className = 'text-[9px] font-mono text-emerald-400';
+                        }
+                        if (data.barangay_id) {
+                            const select = document.getElementById('create-barangay');
+                            if (select) select.value = data.barangay_id;
+                        }
+                    }
+                })
+                .catch(err => console.warn('Nominatim error:', err));
         });
     });
 </script>

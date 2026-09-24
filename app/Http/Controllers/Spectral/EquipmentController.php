@@ -14,3 +14,5 @@ class EquipmentController extends Controller
         return view('spectral.equipment.index', compact('equipment'));
     }
 }
+
+

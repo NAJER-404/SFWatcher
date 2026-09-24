@@ -1,0 +1,408 @@
+<?php
+
+namespace App\Http\Controllers\Investigator;
+
+use App\Http\Controllers\Controller;
+use App\Models\Barangay;
+use App\Models\Incident;
+use App\Models\Investigation;
+use App\Models\Resource;
+use App\Models\WardStation;
+use App\Models\User;
+use App\Models\ResponderAssignment;
+use App\Services\IncidentResponseService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class InvestigatorDashboardController extends Controller
+{
+    /**
+     * Display the primary Investigator Dashboard.
+     */
+    public function index()
+    {
+        $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responseInvestigator', 'responderAssignments.responder'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $wardStations = WardStation::with('barangay')->get();
+        $resources    = Resource::with('barangay')->get();
+        $barangays    = Barangay::orderBy('name')->get();
+
+        // Real Database Statistics (no hardcoded numbers)
+        $stats = [
+            'active_incidents'    => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count(),
+            'pending_review'      => $incidents->where('status', 'PENDING')->count(),
+            'under_investigation' => $incidents->where('status', 'UNDER INVESTIGATION')->count(),
+            'high_severity'       => $incidents->whereIn('severity', ['HIGH', 'CRITICAL'])->count(),
+            'active_responses'    => $incidents->where('response_status', 'ACTIVE')->count(),
+            'resolved'            => $incidents->where('status', 'RESOLVED')->count(),
+        ];
+
+        // Investigation Queue: incidents requiring investigator attention
+        $queueIncidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responderAssignments.responder'])
+            ->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'ESCALATED'])
+            ->orderByRaw("CASE WHEN severity = 'CRITICAL' THEN 1 WHEN severity = 'HIGH' THEN 2 WHEN severity = 'MEDIUM' THEN 3 ELSE 4 END")
+            ->orderByDesc('incident_date')
+            ->take(8)
+            ->get();
+
+        return view('investigator.dashboard', compact(
+            'incidents',
+            'wardStations',
+            'resources',
+            'barangays',
+            'stats',
+            'queueIncidents'
+        ));
+    }
+
+    /**
+     * Dedicated Investigation Queue page.
+     */
+    public function queue(Request $request)
+    {
+        $query = Incident::with(['barangay', 'reporter', 'evidence', 'investigations'])
+            ->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'ESCALATED']);
+
+        if ($request->filled('severity') && $request->severity !== 'ALL') {
+            $query->where('severity', $request->severity);
+        }
+
+        if ($request->filled('status') && $request->status !== 'ALL') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('barangay_id')) {
+            $query->where('barangay_id', $request->barangay_id);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('incident_code', 'like', "%{$s}%")
+                  ->orWhere('title', 'like', "%{$s}%")
+                  ->orWhere('description', 'like', "%{$s}%");
+            });
+        }
+
+        $incidents = $query->orderByRaw("CASE WHEN severity = 'CRITICAL' THEN 1 WHEN severity = 'HIGH' THEN 2 WHEN severity = 'MEDIUM' THEN 3 ELSE 4 END")
+            ->orderByDesc('incident_date')
+            ->paginate(15);
+
+        $barangays = Barangay::orderBy('name')->get();
+
+        return view('investigator.incidents.queue', compact('incidents', 'barangays'));
+    }
+
+    /**
+     * All Incident Reports view for investigator.
+     */
+    public function incidents(Request $request)
+    {
+        $query = Incident::with(['barangay', 'reporter', 'evidence', 'investigations']);
+
+        if ($request->filled('status')) {
+            if ($request->status === 'ACTIVE') {
+                $query->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED']);
+            } elseif ($request->status !== 'ALL') {
+                $query->where('status', $request->status);
+            }
+        }
+
+        if ($request->filled('severity') && $request->severity !== 'ALL') {
+            $query->where('severity', $request->severity);
+        }
+
+        if ($request->filled('barangay_id')) {
+            $query->where('barangay_id', $request->barangay_id);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('incident_code', 'like', "%{$s}%")
+                  ->orWhere('title', 'like', "%{$s}%")
+                  ->orWhere('description', 'like', "%{$s}%");
+            });
+        }
+
+        $incidents = $query->orderByDesc('incident_date')->paginate(15);
+        $barangays = Barangay::orderBy('name')->get();
+
+        return view('investigator.incidents.index', compact('incidents', 'barangays'));
+    }
+
+    /**
+     * Detailed Incident Review view.
+     */
+    public function review($id)
+    {
+        $incident = Incident::with(['barangay', 'reporter', 'evidence', 'investigations.investigator', 'responderAssignments.responder'])
+            ->where('id', $id)
+            ->orWhere('incident_code', $id)
+            ->firstOrFail();
+
+        $availableResponders = User::where('role', 'responder')
+            ->orderByRaw("CASE WHEN responder_status = 'AVAILABLE' THEN 1 ELSE 2 END")
+            ->orderBy('responder_class')
+            ->get();
+        return view('investigator.incidents.review', compact('incident', 'availableResponders'));
+    }
+
+    /**
+     * Update incident status, severity, and record investigation note.
+     */
+    public function updateIncident(Request $request, $id)
+    {
+        $incident = Incident::where('id', $id)
+            ->orWhere('incident_code', $id)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'status'   => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED,ESCALATED',
+            'severity' => 'required|in:LOW,MEDIUM,HIGH,CRITICAL',
+            'notes'    => 'nullable|string',
+        ]);
+
+        // Guard: Cannot mark RESOLVED unless a responder has COMPLETED their assignment
+        if ($validated['status'] === 'RESOLVED') {
+            $hasCompletedAssignment = ResponderAssignment::where('incident_id', $incident->id)
+                ->where('status', 'COMPLETED')
+                ->exists();
+
+            if (! $hasCompletedAssignment) {
+                return back()->withErrors([
+                    'status' => 'Cannot mark as Resolved — the assigned responder has not completed their response yet.'
+                ]);
+            }
+        }
+
+        $oldStatus   = $incident->status;
+        $oldSeverity = $incident->severity;
+
+        $incident->status   = $validated['status'];
+        $incident->severity = $validated['severity'];
+
+        $noteText = !empty($validated['notes'])
+            ? trim($validated['notes'])
+            : "Status updated from {$oldStatus} to {$validated['status']}" . ($oldSeverity !== $validated['severity'] ? " (Severity changed from {$oldSeverity} to {$validated['severity']})" : "");
+
+        $incident->notes = $noteText;
+
+        $investigatorId = Auth::guard('investigator')->id()
+            ?? Auth::id()
+            ?? (User::where('role', 'investigator')->first()?->id);
+
+        // When status transitions to VERIFIED — auto-assign responder if none exists
+        if ($validated['status'] === 'VERIFIED') {
+            if (! $incident->investigation_result) {
+                $incident->investigation_result = 'CONFIRMED';
+            }
+            if (! $incident->investigation_completed_at) {
+                $incident->investigation_completed_at = now();
+            }
+
+            $existingAssignment = ResponderAssignment::where('incident_id', $incident->id)->first();
+            if (! $existingAssignment) {
+                $availableResponder = User::where('role', 'responder')
+                    ->where('responder_status', 'AVAILABLE')
+                    ->orderBy('responder_class')
+                    ->first();
+
+                ResponderAssignment::create([
+                    'incident_id'     => $incident->id,
+                    'investigator_id' => $investigatorId,
+                    'responder_id'    => $availableResponder?->id,
+                    'assigned_at'     => now(),
+                    'status'          => $availableResponder ? 'ASSIGNED' : 'WAITING',
+                ]);
+            }
+        }
+
+        $incident->save();
+
+        // Record in investigations history
+        Investigation::create([
+            'incident_id'        => $incident->id,
+            'investigator_id'    => $investigatorId,
+            'notes'              => $noteText,
+            'investigation_date' => now(),
+            'result'             => $validated['status'],
+            'completed_at'       => in_array($validated['status'], ['RESOLVED', 'VERIFIED']) ? now() : null,
+        ]);
+
+        $investigator = Auth::guard('investigator')->user() ?? Auth::user();
+        if ($investigator) {
+            $investigator->increment('investigations_completed');
+            $investigator->increment('xp', config('spectral_response.xp.investigation_completed', 15));
+        }
+
+        return redirect()->back()->with('success', "Incident {$incident->incident_code} successfully updated to {$incident->status}.");
+    }
+
+    public function assignResponder(Request $request, $id)
+    {
+        $incident = Incident::findOrFail($id);
+        $data = $request->validate(['responder_id' => 'required|exists:users,id']);
+        $responder = User::where('id', $data['responder_id'])->where('role', 'responder')->firstOrFail();
+
+        if (! $incident->investigation_completed_at) {
+            $incident->investigation_completed_at = now();
+        }
+        $incident->investigation_result = 'CONFIRMED';
+        $incident->status = 'VERIFIED';
+        $incident->save();
+
+        $investigatorId = Auth::guard('investigator')->id() ?? Auth::id() ?? (User::where('role', 'investigator')->first()?->id);
+
+        ResponderAssignment::updateOrCreate(
+            ['incident_id' => $incident->id],
+            [
+                'investigator_id' => $investigatorId,
+                'responder_id'    => $responder->id,
+                'assigned_at'     => now(),
+                'status'          => 'ASSIGNED',
+            ]
+        );
+
+        return back()->with('success', "Assignment created successfully. Responder {$responder->name} (Class {$responder->responder_class}) assigned to {$incident->incident_code}.");
+    }
+
+    /**
+     * Reject (delete) an incident — investigator confirmation required.
+     */
+    public function rejectIncident($id)
+    {
+        $incident = Incident::where('id', $id)
+            ->orWhere('incident_code', $id)
+            ->firstOrFail();
+
+        $code = $incident->incident_code;
+        $incident->delete();
+
+        return redirect()->route('investigator.queue')
+            ->with('success', "Incident {$code} has been rejected and removed from the system.");
+    }
+
+    public function startResponse(Request $request, $id, IncidentResponseService $responses)
+    {
+        $incident = Incident::findOrFail($id);
+        $responses->start($incident, Auth::guard('investigator')->user() ?? Auth::user());
+        return back()->with('success', "Response started for {$incident->incident_code}.");
+    }
+
+    public function updateResponse(Request $request, $id, IncidentResponseService $responses)
+    {
+        $validated = $request->validate([
+            'containment' => 'required|integer|min:0|max:100',
+            'condition_cost' => 'required|integer|min:0|max:100',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+        $incident = Incident::findOrFail($id);
+        $responses->progress($incident, Auth::guard('investigator')->user() ?? Auth::user(), $validated['containment'], $validated['condition_cost'], $validated['notes'] ?? '');
+        return back()->with('success', "Response update saved for {$incident->incident_code}.");
+    }
+
+    public function takeOverResponse(Request $request, $id, IncidentResponseService $responses)
+    {
+        $incident = Incident::findOrFail($id);
+        $responses->handover($incident, Auth::guard('investigator')->user() ?? Auth::user());
+        return back()->with('success', "You are now assigned to {$incident->incident_code}.");
+    }
+
+    /**
+     * Dedicated Investigator Map view.
+     */
+    public function map()
+    {
+        $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responderAssignments.responder'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $wardStations = WardStation::with('barangay')->get();
+        $resources    = Resource::with('barangay')->get();
+        $barangays    = Barangay::orderBy('name')->get();
+
+        return view('investigator.map', compact('incidents', 'wardStations', 'resources', 'barangays'));
+    }
+
+    /**
+     * Safe Zones response view.
+     */
+    public function safeZones()
+    {
+        $wardStations = WardStation::with('barangay')->where('status', 'active')->get();
+        $barangays    = Barangay::orderBy('name')->get();
+
+        return view('investigator.response.safe_zones', compact('wardStations', 'barangays'));
+    }
+
+    /**
+     * Responders roster view.
+     */
+    public function responders()
+    {
+        $classConfig = config('spectral_response.classes', [
+            'D' => ['responder_hp' => 100, 'effectiveness' => 10],
+            'C' => ['responder_hp' => 115, 'effectiveness' => 12],
+            'B' => ['responder_hp' => 130, 'effectiveness' => 15],
+            'A' => ['responder_hp' => 170, 'effectiveness' => 18],
+        ]);
+
+        $responders = User::where('role', 'responder')
+            ->with(['responderAssignments' => function ($q) {
+                $q->whereIn('status', ['ASSIGNED', 'IN_PROGRESS'])->with('incident');
+            }])
+            ->orderByRaw("CASE WHEN responder_status = 'AVAILABLE' THEN 1 WHEN responder_status = 'ON_DUTY' THEN 2 ELSE 3 END")
+            ->orderBy('responder_class')
+            ->get();
+
+        $stats = [
+            'total'     => $responders->count(),
+            'available' => $responders->where('responder_status', 'AVAILABLE')->count(),
+            'on_duty'   => $responders->where('responder_status', 'ON_DUTY')->count(),
+            'class_a'   => $responders->where('responder_class', 'A')->count(),
+            'class_b'   => $responders->where('responder_class', 'B')->count(),
+            'class_c'   => $responders->where('responder_class', 'C')->count(),
+            'class_d'   => $responders->where('responder_class', 'D')->count(),
+        ];
+
+        return view('investigator.response.responders', compact('responders', 'classConfig', 'stats'));
+    }
+
+    /**
+     * Ward Stations response view.
+     */
+    public function wards()
+    {
+        $wardStations = WardStation::with('barangay')->get();
+
+        return view('investigator.response.ward_stations', compact('wardStations'));
+    }
+
+    /**
+     * Resource Nodes response view.
+     */
+    public function resources()
+    {
+        $resources = Resource::with('barangay')->get();
+
+        return view('investigator.response.resources', compact('resources'));
+    }
+
+    /**
+     * Investigator Profile view.
+     */
+    public function profile()
+    {
+        $user = Auth::user();
+        $recentInvestigations = Investigation::with('incident')
+            ->where('investigator_id', $user->id)
+            ->orderByDesc('investigation_date')
+            ->take(10)
+            ->get();
+
+        return view('investigator.profile', compact('user', 'recentInvestigations'));
+    }
+}

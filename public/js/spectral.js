@@ -79,24 +79,45 @@ const SpectralData = {
     init() {
         if (window.INITIAL_SPECTRAL_STATE) {
             if (window.INITIAL_SPECTRAL_STATE.incidents && window.INITIAL_SPECTRAL_STATE.incidents.length > 0) {
-                this.incidents = window.INITIAL_SPECTRAL_STATE.incidents.map(inc => ({
-                    id: inc.incident_code || `SF-INC-${inc.id}`,
-                    db_id: inc.id,
-                    type: inc.incident_type,
-                    title: inc.title,
-                    description: inc.description,
-                    barangay: inc.barangay ? inc.barangay.name : 'Hubang',
-                    municipality: inc.barangay ? inc.barangay.municipality : 'San Francisco',
-                    province: inc.barangay ? inc.barangay.province : 'Agusan del Sur',
-                    latitude: parseFloat(inc.latitude),
-                    longitude: parseFloat(inc.longitude),
-                    severity: inc.severity,
-                    status: inc.status,
-                    reported_at: inc.incident_date || inc.created_at,
-                    reported_by: inc.reporter ? inc.reporter.name : 'Civilian Observer',
-                    evidence: (inc.evidence && inc.evidence.length > 0) ? (inc.evidence[0].file_path.startsWith('http') ? inc.evidence[0].file_path : '/storage/' + inc.evidence[0].file_path) : null,
-                    notes: inc.notes
-                }));
+                this.incidents = window.INITIAL_SPECTRAL_STATE.incidents.map(inc => {
+                    // Format date nicely: "April 13, 2026 · 11:13 AM"
+                    let reportedAt = inc.incident_date || inc.created_at;
+                    try {
+                        const d = new Date(reportedAt);
+                        reportedAt = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                            + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    } catch (_) {}
+
+                    return {
+                        id:            inc.incident_code || `SF-INC-${inc.id}`,
+                        incident_code: inc.incident_code || `SF-INC-${inc.id}`,  // Bug #6 fix
+                        db_id:         inc.id,
+                        type:          inc.incident_type,
+                        title:         inc.title,
+                        description:   inc.description,
+                        barangay:      inc.barangay ? inc.barangay.name : 'Hubang',
+                        municipality:  inc.barangay ? inc.barangay.municipality : 'San Francisco',
+                        province:      inc.barangay ? inc.barangay.province : 'Agusan del Sur',
+                        latitude:      parseFloat(inc.latitude),
+                        longitude:     parseFloat(inc.longitude),
+                        severity:      inc.severity,
+                        status:        inc.status,
+                        anomaly_hp:            inc.anomaly_hp,
+                        anomaly_max_hp:        inc.anomaly_max_hp,
+                        response_progress:     inc.response_progress,
+                        response_status:       inc.response_status,
+                        responder_assignments: inc.responder_assignments || [],
+                        reported_at:   reportedAt,       // Bug #5 fix — human-readable date
+                        reported_by:   inc.reporter ? inc.reporter.name : 'Civilian Observer',
+                        evidence:      (inc.evidence && inc.evidence.length > 0)
+                                          ? (inc.evidence[0].file_path.startsWith('http')
+                                              ? inc.evidence[0].file_path
+                                              : '/storage/' + inc.evidence[0].file_path)
+                                          : null,
+                        investigations: inc.investigations || [],  // Bug #7 fix
+                        notes:         inc.notes
+                    };
+                });
             }
             if (window.INITIAL_SPECTRAL_STATE.wards && window.INITIAL_SPECTRAL_STATE.wards.length > 0) {
                 this.wardStations = window.INITIAL_SPECTRAL_STATE.wards.map(w => ({
@@ -127,6 +148,14 @@ const SpectralData = {
                     longitude: parseFloat(r.longitude),
                     status: r.status,
                     icon: 'resource'
+                }));
+            }
+            if (window.INITIAL_SPECTRAL_STATE.barangays && window.INITIAL_SPECTRAL_STATE.barangays.length > 0) {
+                this.barangays = window.INITIAL_SPECTRAL_STATE.barangays.map(b => ({
+                    id: b.id,
+                    name: b.name,
+                    lat: parseFloat(b.latitude || b.lat),
+                    lng: parseFloat(b.longitude || b.lng)
                 }));
             }
         }
@@ -775,25 +804,53 @@ const SpectralMap = {
 
     // â”€â”€ Nominatim reverse geocode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async reverseGeocode(lat, lng) {
+        // 1. Try Laravel proxy to Nominatim (with proper User-Agent header and no CORS)
         try {
-            const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=17&addressdetails=1`;
-            const res = await fetch(url, {
-                headers: { 'Accept-Language': 'en', 'User-Agent': 'SpectraGIS/1.0' },
-                signal: AbortSignal.timeout(5000)
+            const res = await fetch(`/api/spectral/reverse-geocode?lat=${lat}&lng=${lng}`, {
+                headers: { 'Accept': 'application/json' },
+                signal: AbortSignal.timeout(6000)
             });
-            if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
-            const data = await res.json();
-            return {
-                display: data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-                village: data.address?.village || data.address?.suburb || data.address?.city_district || null,
-                city: data.address?.city || data.address?.town || data.address?.municipality || null,
-                county: data.address?.county || null,
-                ok: true
-            };
-        } catch (err) {
-            console.warn('[Spectra GIS] Reverse geocode failed:', err.message);
-            return { display: `${lat.toFixed(5)}Â° N, ${lng.toFixed(5)}Â° E`, ok: false };
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.address) {
+                    return data;
+                }
+            }
+        } catch (e) {
+            console.warn('[Spectra GIS] Internal reverse geocode failed, trying direct OSM:', e.message);
         }
+
+        // 2. Direct OpenStreetMap Nominatim fallback
+        try {
+            const osmUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=jsonv2&addressdetails=1`;
+            const res = await fetch(osmUrl, { signal: AbortSignal.timeout(5000) });
+            if (res.ok) {
+                const data = await res.json();
+                const addr = data.address || {};
+                const bName = addr.quarter || addr.suburb || addr.village || addr.neighbourhood || 'Hubang';
+                const town = addr.town || addr.city || addr.municipality || 'San Francisco';
+                const province = addr.state || 'Agusan del Sur';
+                const country = addr.country || 'Philippines';
+                const road = addr.road ? `${addr.road}, ` : '';
+                return {
+                    success: true,
+                    address: `${road}${bName}, ${town}, ${province}, ${country}`,
+                    barangay_name: bName,
+                    display: data.display_name
+                };
+            }
+        } catch (e) {
+            console.warn('[Spectra GIS] Direct Nominatim failed, using municipal calculation:', e.message);
+        }
+
+        // 3. Mathematical fallback using nearest barangay
+        const { barangay } = this.resolveNearestBarangay(lat, lng);
+        return {
+            success: true,
+            address: `Brgy. ${barangay.name}, San Francisco, Agusan del Sur, Philippines`,
+            barangay_name: barangay.name,
+            display: `Brgy. ${barangay.name}, San Francisco, Agusan del Sur, Philippines`
+        };
     },
 
     init() {
@@ -855,8 +912,6 @@ const SpectralMap = {
 
     renderAllLayers() {
         this.renderIncidents();
-        this.renderWards();
-        this.renderResources();
         this.renderSafeZones();
         this.updateStatsCounters();
     },
@@ -864,6 +919,7 @@ const SpectralMap = {
     renderIncidents() {
         if (!this.layerGroups.incidents) return;
         this.layerGroups.incidents.clearLayers();
+        this.incidentMarkers = {};
         if (!this.activeFilters.incidents) return;
 
         SpectralData.incidents.forEach(inc => {
@@ -891,99 +947,93 @@ const SpectralMap = {
 
             const marker = L.marker([inc.latitude, inc.longitude], { icon, zIndexOffset: 800 });
 
-            marker.bindPopup(`
-                <div style="padding: 12px 14px; min-width: 220px; font-family: 'Plus Jakarta Sans', sans-serif;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                        <span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:#8B5CF6;">${inc.id}</span>
-                        <span class="badge-${sevLower}" style="font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px;">${inc.severity}</span>
+            // ── Anomaly condition (HP / progress / status) — mirrors investigator dashboard ──
+            const defaultHpMap = { CRITICAL: 150, HIGH: 100, MEDIUM: 60, LOW: 30 };
+            const defaultHp = defaultHpMap[inc.severity] || 100;
+            const assignment = (inc.responder_assignments && inc.responder_assignments.length > 0)
+                ? inc.responder_assignments[inc.responder_assignments.length - 1]
+                : null;
+            const maxHp = assignment && assignment.anomaly_max_hp ? assignment.anomaly_max_hp : (inc.anomaly_max_hp || defaultHp);
+            const hp = assignment && assignment.anomaly_hp !== null && assignment.anomaly_hp !== undefined
+                ? assignment.anomaly_hp
+                : (inc.anomaly_hp !== null && inc.anomaly_hp !== undefined ? inc.anomaly_hp : maxHp);
+            const progress = assignment && assignment.response_progress !== undefined && assignment.response_progress !== null
+                ? assignment.response_progress
+                : (inc.response_progress || 0);
+            const pct = maxHp > 0 ? Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100))) : 100;
+            const barColor = pct <= 25 ? '#22C55E' : (pct <= 60 ? '#EAB308' : '#EF4444');
+
+            // Investigator-perspective status: Pending, Under Investigation, Verified, Resolved, Escalated
+            const statusLabel = (inc.status || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+
+            // HP/progress only revealed once the anomaly is verified — hidden while PENDING / unverified
+            const isVerified = ['VERIFIED', 'ESCALATED', 'RESOLVED'].includes(inc.status);
+
+            const conditionHtml = isVerified ? `
+                <div style="margin-top:8px; padding-top:8px; border-top:1px solid #2A3440; font-family:'JetBrains Mono',monospace;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                        <span style="font-size:10px; font-weight:700; color:#CBD5E1; text-transform:uppercase;">ANOMALY CONDITION</span>
+                        <span style="font-size:11px; font-weight:800; color:${barColor};">${hp} / ${maxHp} HP</span>
                     </div>
-                    <h4 style="font-size:12px; font-weight:800; color:#FFFFFF; line-height:1.3; margin-bottom:4px;">${inc.title}</h4>
+                    <div style="width:100%; height:6px; background:#11161D; border-radius:3px; overflow:hidden; border:1px solid #2A3440; margin-bottom:6px;">
+                        <div style="width:${pct}%; height:100%; background:${barColor}; transition:width 0.5s;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                        <span style="font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase;">RESPONSE PROGRESS</span>
+                        <span style="font-size:11px; font-weight:700; color:#10B981;">${progress}%</span>
+                    </div>
+                    <div style="width:100%; height:5px; background:#11161D; border-radius:3px; overflow:hidden; border:1px solid #2A3440; margin-bottom:6px;">
+                        <div style="width:${progress}%; height:100%; background:#10B981; transition:width 0.5s;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase;">STATUS</span>
+                        <span style="font-size:11px; font-weight:700; color:#A78BFA;">${statusLabel}</span>
+                    </div>
+                </div>` : `
+                <div style="margin-top:8px; padding-top:8px; border-top:1px solid #2A3440; font-family:'JetBrains Mono',monospace; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase;">STATUS</span>
+                    <span style="font-size:11px; font-weight:700; color:#EAB308;">${statusLabel}</span>
+                </div>`;
+
+            marker.bindPopup(`
+                <div style="padding: 12px 14px; min-width: 270px; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px; gap: 8px; padding-right: 24px;">
+                        <span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:#8B5CF6;">${inc.id}</span>
+                        <span class="badge-${sevLower}" style="font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; flex-shrink:0;">${inc.severity}</span>
+                    </div>
+                    <h4 style="font-size:12px; font-weight:800; color:#FFFFFF; line-height:1.3; margin-bottom:4px; padding-right: 12px;">${inc.title}</h4>
                     <p style="font-size:11px; color:#9CA3AF; margin-bottom:8px;">${inc.barangay}, ${inc.municipality}</p>
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid #2A3440;">
-                        <span style="font-size:10px; color:#64748B;">Status: <strong style="color:#D1D5DB;">${inc.status}</strong></span>
-                        <button onclick="SpectralUI.inspectIncident('${inc.id}')" style="background:#8B5CF6; color:#FFFFFF; border:none; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">INSPECT &rarr;</button>
+                    ${conditionHtml}
+                    <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; padding-top:8px; margin-top:8px; border-top:1px solid #2A3440;">
+                        <a href="/incidents/${inc.db_id || inc.id}" style="background:#8B5CF6; color:#FFFFFF; border:none; padding:6px 12px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:5px; text-decoration:none;" onmouseover="this.style.background='#7C3AED'" onmouseout="this.style.background='#8B5CF6'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <span>INSPECT</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </a>
                     </div>
                 </div>
             `);
 
-            marker.on('click', () => { SpectralUI.inspectIncident(inc.id); });
+            marker.on('click', () => {
+                if (SpectralMap.map && inc.latitude && inc.longitude) {
+                    const currentZoom = SpectralMap.map.getZoom();
+                    const targetZoom = Math.max(currentZoom, 17);
+                    SpectralMap.map.flyTo([inc.latitude, inc.longitude], targetZoom, { duration: 0.7 });
+                }
+                SpectralUI.inspectIncident(inc.id);
+            });
+            if (inc.db_id) this.incidentMarkers[inc.db_id] = marker;
+            if (inc.id) this.incidentMarkers[inc.id] = marker;
             this.layerGroups.incidents.addLayer(marker);
         });
     },
 
     renderWards() {
-        if (!this.layerGroups.wards) return;
-        this.layerGroups.wards.clearLayers();
-        if (!this.activeFilters.wards) return;
-
-        SpectralData.wardStations.forEach(ward => {
-            const iconHtml = `
-                <div class="gis-marker-wrapper" title="${ward.code}">
-                    <div class="marker-ward ${ward.status}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    </div>
-                </div>`;
-
-            const icon = L.divIcon({
-                className: '', html: iconHtml,
-                iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -18]
-            });
-
-            const marker = L.marker([ward.latitude, ward.longitude], { icon, zIndexOffset: 600 });
-            marker.bindPopup(`
-                <div style="padding: 12px 14px; min-width: 220px;">
-                    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:#8B5CF6; margin-bottom:2px;">${ward.id} &bull; ${ward.status.toUpperCase()}</div>
-                    <h4 style="font-size:12px; font-weight:800; color:#FFFFFF; margin-bottom:4px;">${ward.name}</h4>
-                    <p style="font-size:11px; color:#9CA3AF; margin-bottom:6px;">Brgy. ${ward.barangay} &bull; Shield: <strong>${ward.shield_level || 95}%</strong></p>
-                    <p style="font-size:10px; color:#64748B; font-family:'JetBrains Mono',monospace;">FREQ: ${ward.frequency}</p>
-                </div>
-            `);
-
-            const circle = L.circle([ward.latitude, ward.longitude], {
-                radius: ward.radius_meters || 1000,
-                color: ward.status === 'active' ? '#8B5CF6' : (ward.status === 'degraded' ? '#D97706' : '#EF4444'),
-                weight: 1,
-                fillColor: ward.status === 'active' ? '#8B5CF6' : (ward.status === 'degraded' ? '#D97706' : '#EF4444'),
-                fillOpacity: 0.06,
-                dashArray: '4, 6'
-            });
-
-            this.layerGroups.wards.addLayer(circle);
-            this.layerGroups.wards.addLayer(marker);
-        });
+        if (this.layerGroups.wards) this.layerGroups.wards.clearLayers();
     },
 
     renderResources() {
-        if (!this.layerGroups.resources) return;
-        this.layerGroups.resources.clearLayers();
-        if (!this.activeFilters.resources) return;
-
-        SpectralData.spectralResources.forEach(res => {
-            const iconHtml = `
-                <div class="gis-marker-wrapper" title="${res.name}">
-                    <div class="marker-resource">
-                        <div class="marker-resource-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-                        </div>
-                    </div>
-                </div>`;
-
-            const icon = L.divIcon({
-                className: '', html: iconHtml,
-                iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -14]
-            });
-
-            const marker = L.marker([res.latitude, res.longitude], { icon, zIndexOffset: 500 });
-            marker.bindPopup(`
-                <div style="padding: 10px 12px; min-width: 200px;">
-                    <span style="font-size:9px; font-family:'JetBrains Mono',monospace; font-weight:700; color:#38BDF8;">${res.type.toUpperCase()}</span>
-                    <h4 style="font-size:12px; font-weight:800; color:#FFFFFF; margin-bottom:2px;">${res.name}</h4>
-                    <p style="font-size:11px; color:#9CA3AF;">Yield: <strong>${res.yield_rate || 'Standard'}</strong> (${res.purity || '90%'} Purity)</p>
-                </div>
-            `);
-
-            this.layerGroups.resources.addLayer(marker);
-        });
+        if (this.layerGroups.resources) this.layerGroups.resources.clearLayers();
     },
 
     renderSafeZones() {
@@ -992,19 +1042,36 @@ const SpectralMap = {
         if (!this.activeFilters.safeZones) return;
 
         SpectralData.safeZones.forEach(sz => {
+            const safeRadius = Math.round((parseFloat(sz.radius) || 800) * 0.30);
             const circle = L.circle([sz.latitude, sz.longitude], {
-                radius: sz.radius,
+                radius: safeRadius,
                 color: '#22C55E', weight: 1.5,
                 fillColor: '#22C55E', fillOpacity: 0.12
             });
 
+            circle.bindTooltip(sz.name, {
+                permanent: true,
+                direction: 'center',
+                className: 'safe-zone-label'
+            });
+
             circle.bindPopup(`
-                <div style="padding: 10px 12px;">
-                    <span style="font-size:9px; font-weight:700; color:#22C55E; font-family:'JetBrains Mono',monospace;">CIVILIAN SANCTUARY</span>
-                    <h4 style="font-size:12px; font-weight:800; color:#FFFFFF; margin-bottom:2px;">${sz.name}</h4>
-                    <p style="font-size:11px; color:#9CA3AF;">Capacity: ${sz.capacity} civilians &bull; Barrier: ${sz.barrier_integrity}</p>
+                <div style="padding: 10px 12px; min-width: 220px; box-sizing: border-box;">
+                    <div style="margin-bottom: 2px; padding-right: 24px;">
+                        <span style="font-size:9px; font-weight:700; color:#22C55E; font-family:'JetBrains Mono',monospace;">SAFE WARD STATION</span>
+                    </div>
+                    <h4 style="font-size:12px; font-weight:800; color:#FFFFFF; margin-bottom:2px; padding-right: 12px;">${sz.name}</h4>
+                    <p style="font-size:11px; color:#9CA3AF;">Capacity: ${sz.capacity} civilians &bull; Status: Operational</p>
                 </div>
             `);
+
+            circle.on('click', () => {
+                if (SpectralMap.map && sz.latitude && sz.longitude) {
+                    const currentZoom = SpectralMap.map.getZoom();
+                    const targetZoom = Math.max(currentZoom, 17);
+                    SpectralMap.map.flyTo([sz.latitude, sz.longitude], targetZoom, { duration: 0.7 });
+                }
+            });
 
             this.layerGroups.safeZones.addLayer(circle);
         });
@@ -1037,138 +1104,109 @@ const SpectralMap = {
         if (modal) modal.classList.remove('hidden');
     },
 
+    focusOnInspected() {
+        const lat = SpectralUI._inspectedLat;
+        const lng = SpectralUI._inspectedLng;
+        if (lat && lng && this.map) {
+            const currentZoom = this.map.getZoom();
+            const targetZoom = Math.max(currentZoom, 17);
+            this.map.flyTo([lat, lng], targetZoom, { duration: 0.7 });
+        }
+    },
+
+    useMyLocation() {
+        if (!navigator.geolocation) {
+            SpectralUI.showToast('Geolocation not supported by this browser.');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                if (this.map) {
+                    this.map.setView([lat, lng], 15, { animate: true });
+                }
+                SpectralUI.showToast(`Located: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+            },
+            () => {
+                SpectralUI.showToast('Unable to retrieve your location.');
+            }
+        );
+    },
+
     // â”€â”€ Unified map click handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async handleMapClick(e) {
+        if (!this.isPickingLocation) {
+            // Normal map navigation: clicking the map does not drop annoying probes or popups
+            return;
+        }
+
         const { lat, lng } = e.latlng;
 
-        // Open and update Street View on the left side of the screen at clicked coordinates
-        this.openStreetView(lat, lng);
+        // Place or update location picker pin
+        if (this.pickerMarker) this.map.removeLayer(this.pickerMarker);
 
-        if (this.isPickingLocation) {
-            // --- PICKER MODE: set location for report form ---
-            if (this.pickerMarker) this.map.removeLayer(this.pickerMarker);
+        const pinHtml = `
+            <div class="marker-picker-pin animate-bounce">
+                <div style="width:28px;height:28px;background:#8B5CF6;border-radius:50%;border:2px solid #FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(139,92,246,0.6);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                </div>
+                <div style="width:2px;height:12px;background:#8B5CF6;margin:0 auto;"></div>
+            </div>`;
 
-            const pinHtml = `
-                <div class="marker-picker-pin">
-                    <div style="width:24px;height:24px;background:#8B5CF6;border-radius:50%;border:2px solid #FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.6);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    </div>
-                    <div style="width:2px;height:12px;background:#8B5CF6;margin:0 auto;"></div>
-                </div>`;
+        this.pickerMarker = L.marker([lat, lng], {
+            icon: L.divIcon({ className: '', html: pinHtml, iconSize: [36, 44], iconAnchor: [18, 40] })
+        }).addTo(this.map);
 
-            this.pickerMarker = L.marker([lat, lng], {
-                icon: L.divIcon({ className: '', html: pinHtml, iconSize: [36, 44], iconAnchor: [18, 36] })
-            }).addTo(this.map);
+        const { barangay } = this.resolveNearestBarangay(lat, lng);
 
-            const { barangay, distanceMeters } = this.resolveNearestBarangay(lat, lng);
+        const latInput        = document.getElementById('report-lat');
+        const lngInput        = document.getElementById('report-lng');
+        const barangaySelect  = document.getElementById('report-barangay');
+        const resolvedInput   = document.getElementById('report-resolved-location');
+        const geocodeStatus   = document.getElementById('report-geocode-status');
 
-            const latInput        = document.getElementById('report-lat');
-            const lngInput        = document.getElementById('report-lng');
-            const barangaySelect  = document.getElementById('report-barangay');
-            const coordDisplay    = document.getElementById('report-coord-display');
+        if (latInput) latInput.value = lat.toFixed(6);
+        if (lngInput) lngInput.value = lng.toFixed(6);
+        if (barangaySelect) barangaySelect.value = barangay.name;
 
-            if (latInput) latInput.value = lat.toFixed(6);
-            if (lngInput) lngInput.value = lng.toFixed(6);
-            if (barangaySelect) barangaySelect.value = barangay.name;
-            if (coordDisplay)   coordDisplay.textContent =
-                `${lat.toFixed(5)}Â° N, ${lng.toFixed(5)}Â° E (${barangay.name}, ~${distanceMeters}m away)`;
-
-            this.isPickingLocation = false;
-            const mapEl = document.getElementById('spectral-map');
-            const hudEl = document.getElementById('location-picker-hud');
-            if (mapEl) mapEl.classList.remove('picking-location');
-            if (hudEl) hudEl.classList.remove('visible');
-
-            const modal = document.getElementById('report-modal');
-            if (modal) modal.classList.remove('hidden');
-
-        } else {
-            // --- NORMAL MODE: drop anomaly probe marker at clicked point ---
-            if (this.anomalyMarker) {
-                this.map.removeLayer(this.anomalyMarker);
-                this.anomalyMarker = null;
-            }
-
-            const { barangay, distanceMeters } = this.resolveNearestBarangay(lat, lng);
-
-            // Temporary "loading" popup while geocoding
-            const anomalyHtml = `
-                <div class="gis-marker-wrapper" style="pointer-events:none;">
-                    <div class="marker-anomaly-outer">
-                        <div class="marker-anomaly-inner"></div>
-                    </div>
-                </div>`;
-
-            this.anomalyMarker = L.marker([lat, lng], {
-                icon: L.divIcon({ className: '', html: anomalyHtml, iconSize: [46, 46], iconAnchor: [23, 23], popupAnchor: [0, -26] }),
-                zIndexOffset: 1200
-            }).addTo(this.map);
-
-            // Show an immediate basic popup
-            const popupLoading = `
-                <div style="padding:12px 14px; min-width:230px; font-family:'Plus Jakarta Sans',sans-serif;">
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-                        <div style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 6px #8B5CF6;"></div>
-                        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#8B5CF6;letter-spacing:.06em;">ANOMALY PROBE</span>
-                    </div>
-                    <p style="font-size:11px;color:#D1D5DB;margin-bottom:4px;">
-                        <span style="font-family:'JetBrains Mono',monospace;">${lat.toFixed(5)}Â° N, ${lng.toFixed(5)}Â° E</span>
-                    </p>
-                    <p style="font-size:11px;color:#9CA3AF;margin-bottom:8px;">
-                        Nearest: <strong style="color:#A78BFA;">Brgy. ${barangay.name}</strong>
-                        <span style="font-size:10px;color:#64748B;"> (~${distanceMeters}m)</span>
-                    </p>
-                    <p style="font-size:10px;color:#64748B;font-family:'JetBrains Mono',monospace;">Resolving location...</p>
-                    <div style="display:flex;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid #2A3440;">
-                        <button onclick="SpectralUI.openReportModalAtPoint(${lat.toFixed(6)},${lng.toFixed(6)},\'${barangay.name}\')"
-                            style="flex:1;background:#8B5CF6;color:#fff;border:none;padding:5px 0;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">
-                            Report Incident Here
-                        </button>
-                        <button onclick="SpectralMap.clearAnomalyMarker()"
-                            style="background:#1B222C;color:#9CA3AF;border:1px solid #2A3440;padding:5px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">
-                            Clear
-                        </button>
-                    </div>
-                </div>`;
-
-            this.anomalyMarker.bindPopup(popupLoading, { maxWidth: 280 }).openPopup();
-
-            // Async: enrich popup with Nominatim data
-            this.reverseGeocode(lat, lng).then(geo => {
-                if (!this.anomalyMarker) return; // marker was cleared before geocode returned
-                const locationLine = geo.ok
-                    ? (geo.village ? `${geo.village}, ` : '') + (geo.city || geo.county || 'San Francisco, Agusan del Sur')
-                    : `${lat.toFixed(5)}Â° N, ${lng.toFixed(5)}Â° E`;
-
-                const popupEnriched = `
-                    <div style="padding:12px 14px; min-width:230px; font-family:'Plus Jakarta Sans',sans-serif;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-                            <div style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 6px #8B5CF6;animation:anomaly-glow 2.6s ease-in-out infinite;"></div>
-                            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#8B5CF6;letter-spacing:.06em;">ANOMALY PROBE</span>
-                        </div>
-                        <p style="font-size:11px;color:#D1D5DB;margin-bottom:2px;">
-                            <span style="font-family:'JetBrains Mono',monospace;">${lat.toFixed(5)}Â° N, ${lng.toFixed(5)}Â° E</span>
-                        </p>
-                        <p style="font-size:11px;color:#9CA3AF;margin-bottom:4px;">${locationLine}</p>
-                        <p style="font-size:11px;color:#9CA3AF;margin-bottom:8px;">
-                            Nearest ward: <strong style="color:#A78BFA;">Brgy. ${barangay.name}</strong>
-                            <span style="font-size:10px;color:#64748B;"> (~${distanceMeters}m)</span>
-                        </p>
-                        <div style="display:flex;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid #2A3440;">
-                            <button onclick="SpectralUI.openReportModalAtPoint(${lat.toFixed(6)},${lng.toFixed(6)},\'${barangay.name}\')"
-                                style="flex:1;background:#8B5CF6;color:#fff;border:none;padding:5px 0;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">
-                                Report Incident Here
-                            </button>
-                            <button onclick="SpectralMap.clearAnomalyMarker()"
-                                style="background:#1B222C;color:#9CA3AF;border:1px solid #2A3440;padding:5px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;">
-                                Clear
-                            </button>
-                        </div>
-                    </div>`;
-
-                this.anomalyMarker.setPopupContent(popupEnriched);
-            });
+        if (geocodeStatus) {
+            geocodeStatus.textContent = 'Resolving via Nominatim...';
+            geocodeStatus.className = 'text-[9px] font-mono text-amber-400 animate-pulse';
         }
+        if (resolvedInput) {
+            resolvedInput.value = `Resolving address for ${lat.toFixed(5)}, ${lng.toFixed(5)}...`;
+        }
+
+        // Deactivate picker mode and show report modal
+        this.isPickingLocation = false;
+        const mapEl = document.getElementById('spectral-map');
+        const hudEl = document.getElementById('location-picker-hud');
+        if (mapEl) mapEl.classList.remove('picking-location');
+        if (hudEl) hudEl.classList.remove('visible');
+
+        const modal = document.getElementById('report-modal');
+        if (modal) modal.classList.remove('hidden');
+
+        // Async: Nominatim reverse geocode
+        this.reverseGeocode(lat, lng).then(geo => {
+            if (resolvedInput) {
+                resolvedInput.value = geo.address || geo.display;
+            }
+            if (geocodeStatus) {
+                geocodeStatus.textContent = 'Auto-detected (Nominatim)';
+                geocodeStatus.className = 'text-[9px] font-mono text-emerald-400';
+            }
+            if (geo.barangay_name && barangaySelect) {
+                for (let i = 0; i < barangaySelect.options.length; i++) {
+                    const opt = barangaySelect.options[i];
+                    if (opt.value === geo.barangay_name || opt.text.includes(geo.barangay_name)) {
+                        barangaySelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        });
     },
 
     // ── Left-Side Street View Reconnaissance & 360 Engine ────────────────
@@ -1601,57 +1639,64 @@ const SpectralUI = {
 
     inspectIncident(incidentId) {
         this.selectedIncidentId = incidentId;
-        const inc = SpectralData.incidents.find(i => i.id === incidentId);
+        // Bug #1 fix: normalized data stores incident_code as `id`, also support db_id lookup
+        const inc = SpectralData.incidents.find(i =>
+            i.id === incidentId || i.incident_code === incidentId || i.db_id === incidentId
+        );
         if (!inc) return;
 
         const defaultOverview = document.getElementById('panel-default-overview');
-        const inspectorView = document.getElementById('panel-incident-inspector');
+        const inspectorView   = document.getElementById('panel-incident-inspector');
 
         if (defaultOverview) defaultOverview.classList.add('hidden');
-        if (inspectorView) inspectorView.classList.remove('hidden');
+        if (inspectorView)   inspectorView.classList.remove('hidden');
 
-        document.getElementById('insp-id').textContent = inc.id;
-        document.getElementById('insp-type').textContent = inc.type;
-        document.getElementById('insp-title').textContent = inc.title;
-        document.getElementById('insp-desc').textContent = inc.description;
+        // Store current incident coords for focusOnInspected and zoom in on map
+        this._inspectedLat = inc.latitude;
+        this._inspectedLng = inc.longitude;
+
+        if (SpectralMap.map && inc.latitude && inc.longitude) {
+            const currentZoom = SpectralMap.map.getZoom();
+            const targetZoom = Math.max(currentZoom, 17);
+            SpectralMap.map.flyTo([inc.latitude, inc.longitude], targetZoom, { duration: 0.7 });
+        }
+
+        document.getElementById('insp-id').textContent       = inc.incident_code || inc.id;
+        document.getElementById('insp-type').textContent     = inc.type;
+        document.getElementById('insp-title').textContent    = inc.title;
         document.getElementById('insp-location').textContent = `${inc.barangay}, ${inc.municipality}, ${inc.province}`;
-        document.getElementById('insp-coords').textContent = `${inc.latitude.toFixed(5)}Â° N, ${inc.longitude.toFixed(5)}Â° E`;
-        document.getElementById('insp-date').textContent = inc.reported_at;
+        document.getElementById('insp-coords').textContent   = `${parseFloat(inc.latitude).toFixed(6)}° N, ${parseFloat(inc.longitude).toFixed(6)}° E`;
+        document.getElementById('insp-date').textContent     = inc.reported_at;
         document.getElementById('insp-reporter').textContent = inc.reported_by;
 
-        const sevBadge = document.getElementById('insp-severity-badge');
+        const sevBadge  = document.getElementById('insp-severity-badge');
         const statBadge = document.getElementById('insp-status-badge');
 
         if (sevBadge) {
-            sevBadge.className = `badge-${inc.severity.toLowerCase()} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono`;
-            sevBadge.textContent = inc.severity;
+            sevBadge.className   = `inline-block badge-${inc.severity.toLowerCase()} text-[10px] font-bold px-2.5 py-1 rounded-md font-mono`;
+            sevBadge.textContent = `${inc.severity} SEVERITY`;
         }
 
         if (statBadge) {
-            statBadge.className = `badge-${this.getStatusBadgeClass(inc.status)} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono`;
+            statBadge.className   = `badge-${this.getStatusBadgeClass(inc.status)} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono`;
             statBadge.textContent = inc.status;
         }
 
-        const evidenceBox = document.getElementById('insp-evidence-box');
-        const evidenceImg = document.getElementById('insp-evidence-img');
-        if (evidenceBox && evidenceImg) {
-            if (inc.evidence) {
-                evidenceBox.classList.remove('hidden');
-                evidenceImg.src = inc.evidence;
-            } else {
-                evidenceBox.classList.add('hidden');
-            }
-        }
 
+
+        // Status Timeline
+        this._buildTimeline(inc);
+
+        // Investigator actions
         const investigatorSection = document.getElementById('insp-investigator-actions');
         if (investigatorSection) {
             if (this.currentRole === 'investigator') {
                 investigatorSection.classList.remove('hidden');
-                const statSel = document.getElementById('investigator-status-select');
-                const sevSel = document.getElementById('investigator-severity-select');
+                const statSel  = document.getElementById('investigator-status-select');
+                const sevSel   = document.getElementById('investigator-severity-select');
                 const notesInp = document.getElementById('investigator-notes-input');
-                if (statSel) statSel.value = inc.status;
-                if (sevSel) sevSel.value = inc.severity;
+                if (statSel)  statSel.value  = inc.status;
+                if (sevSel)   sevSel.value   = inc.severity;
                 if (notesInp) notesInp.value = inc.notes || '';
             } else {
                 investigatorSection.classList.add('hidden');
@@ -1659,13 +1704,57 @@ const SpectralUI = {
         }
     },
 
+    _buildTimeline(inc) {
+        const container = document.getElementById('insp-timeline');
+        if (!container) return;
+
+        const isReported = true;
+        const isInvestigating = ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED', 'ESCALATED'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
+        const isConfirmed = inc.investigation_result === 'CONFIRMED' || ['VERIFIED', 'RESOLVED'].includes(inc.status) || (inc.responder_assignments && inc.responder_assignments.length > 0);
+        const latestAssignment = (inc.responder_assignments && inc.responder_assignments.length > 0) ? inc.responder_assignments[inc.responder_assignments.length - 1] : null;
+        const isResponderAssigned = !!(latestAssignment && latestAssignment.responder_id);
+        const isUnderResponse = (latestAssignment && ['ACTIVE', 'COMPLETED', 'CRITICAL', 'SUPPORT_REQUIRED'].includes(latestAssignment.status)) || inc.status === 'RESOLVED';
+
+        container.innerHTML = `
+            <div class="space-y-2 text-xs pt-1 font-mono">
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full ${isReported ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
+                    <span class="${isReported ? 'text-white font-bold' : 'text-slate-500'}">Reported</span>
+                    <span class="text-[10px] text-slate-500 ml-auto">${inc.reported_at || ''}</span>
+                </div>
+                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full ${isInvestigating ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
+                    <span class="${isInvestigating ? 'text-white font-bold' : 'text-slate-500'}">Under Investigation</span>
+                </div>
+                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full ${isConfirmed ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
+                    <span class="${isConfirmed ? 'text-white font-bold' : 'text-slate-500'}">Confirmed</span>
+                </div>
+                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full ${isResponderAssigned ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
+                    <span class="${isResponderAssigned ? 'text-white font-bold' : 'text-slate-500'}">Responder Assigned</span>
+                </div>
+                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
+                <div class="flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full ${isUnderResponse ? 'bg-[#8B5CF6] ring-2 ring-[#8B5CF6]/30 animate-pulse' : 'bg-slate-600'}"></span>
+                    <span class="${isUnderResponse ? (inc.status === 'RESOLVED' ? 'text-emerald-400 font-bold' : 'text-[#A78BFA] font-bold') : 'text-slate-500'}">
+                        ${inc.status === 'RESOLVED' ? 'Neutralized / Resolved' : 'Under Response'}
+                    </span>
+                </div>
+            </div>
+        `;
+    },
+
     closeInspector() {
         this.selectedIncidentId = null;
         const defaultOverview = document.getElementById('panel-default-overview');
-        const inspectorView = document.getElementById('panel-incident-inspector');
+        const inspectorView   = document.getElementById('panel-incident-inspector');
 
         if (defaultOverview) defaultOverview.classList.remove('hidden');
-        if (inspectorView) inspectorView.classList.add('hidden');
+        if (inspectorView)   inspectorView.classList.add('hidden');
     },
 
     getStatusBadgeClass(status) {
@@ -1678,7 +1767,10 @@ const SpectralUI = {
 
     async saveInvestigatorChanges() {
         if (!this.selectedIncidentId) return;
-        const inc = SpectralData.incidents.find(i => i.id === this.selectedIncidentId);
+        // Bug #2 fix: mirror the same triple-key lookup
+        const inc = SpectralData.incidents.find(i =>
+            i.id === this.selectedIncidentId || i.incident_code === this.selectedIncidentId || i.db_id === this.selectedIncidentId
+        );
         if (!inc) return;
 
         const newStatus = document.getElementById('investigator-status-select').value;
@@ -1712,17 +1804,13 @@ const SpectralUI = {
         }
 
         SpectralMap.renderIncidents();
-        this.inspectIncident(inc.id);
+        this.inspectIncident(this.selectedIncidentId); // Bug #3 fix: use stored selectedIncidentId
         this.showToast(`Incident ${inc.id} updated to ${newStatus}`);
     },
 
     openReportModal() {
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.remove('hidden');
-        const dateInput = document.getElementById('report-datetime');
-        if (dateInput && !dateInput.value) {
-            dateInput.value = new Date().toISOString().slice(0, 16);
-        }
     },
 
     closeReportModal() {
@@ -1757,37 +1845,51 @@ const SpectralUI = {
     async submitReport(e) {
         e.preventDefault();
 
-        const type = document.getElementById('report-type').value;
-        const title = document.getElementById('report-title').value;
+        const type        = document.getElementById('report-type').value;
+        const title       = document.getElementById('report-title').value;
         const barangayName = document.getElementById('report-barangay').value || 'Hubang';
-        const lat = parseFloat(document.getElementById('report-lat').value) || 8.5310;
-        const lng = parseFloat(document.getElementById('report-lng').value) || 125.9730;
-        const severity = document.getElementById('report-severity').value;
+        const lat         = parseFloat(document.getElementById('report-lat').value) || 8.5310;
+        const lng         = parseFloat(document.getElementById('report-lng').value) || 125.9730;
+        const severity    = document.getElementById('report-severity').value;
         const description = document.getElementById('report-desc').value;
-        const datetime = document.getElementById('report-datetime').value || new Date().toISOString().slice(0, 16);
-        const fileInput = document.getElementById('report-evidence-file');
-        const previewImg = document.getElementById('report-evidence-preview');
+        // Bug #4 fix: removed dead report-resolved-location reference (element was deleted)
+        const nowIso      = new Date().toISOString();
+        // Bug #8 fix: use real logged-in user name injected by server
+        const authUserName = window.INITIAL_SPECTRAL_STATE?.auth_user || 'Citizen Field Reporter';
+        const fileInput   = document.getElementById('report-evidence-file');
+        const previewImg  = document.getElementById('report-evidence-preview');
 
+        // Generate incident code based on existing count
         const nextNum = SpectralData.incidents.length + 1;
         const newCode = `SF-INC-${String(nextNum).padStart(3, '0')}`;
+
+        // Format date for display
+        let formattedDate = nowIso;
+        try {
+            const d = new Date(nowIso);
+            formattedDate = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        } catch (_) {}
 
         const newIncident = {
             id: newCode,
             db_id: null,
             type: type,
-            title: title,
-            description: description,
-            barangay: barangayName,
-            municipality: "San Francisco",
-            province: "Agusan del Sur",
-            latitude: lat,
-            longitude: lng,
-            severity: severity,
-            status: "PENDING",
-            reported_at: datetime.replace('T', ' '),
-            reported_by: this.currentRole === 'investigator' ? "Warden Dagohoy" : "Citizen Field Reporter",
-            evidence: previewImg && previewImg.src && !previewImg.src.includes('data:,') ? previewImg.src : null,
-            notes: "Initial field filing recorded."
+            incident_code: newCode,
+            title:         title,
+            description:   description,
+            barangay:      barangayName,
+            municipality:  'San Francisco',
+            province:      'Agusan del Sur',
+            latitude:      lat,
+            longitude:     lng,
+            severity:      severity,
+            status:        'PENDING',
+            reported_at:   formattedDate,
+            reported_by:   authUserName, // Bug #8 fix — real user name
+            evidence:      previewImg && previewImg.src && !previewImg.src.includes('data:,') ? previewImg.src : null,
+            investigations: [],
+            notes:         null
         };
 
         // Post to Laravel API
@@ -1799,13 +1901,17 @@ const SpectralUI = {
             formData.append('description', description);
             formData.append('latitude', lat);
             formData.append('longitude', lng);
-            formData.append('incident_date', datetime);
+            formData.append('incident_date', nowIso);
             formData.append('severity', severity);
+            // Send barangay_id from the selected option's data-id
+            const barangaySelect = document.getElementById('report-barangay');
+            const barangayId = barangaySelect?.options[barangaySelect.selectedIndex]?.dataset?.id;
+            if (barangayId) formData.append('barangay_id', barangayId);
             if (fileInput && fileInput.files[0]) {
                 formData.append('evidence', fileInput.files[0]);
             }
 
-            const res = await fetch('/api/spectral/incidents', {
+            const res = await fetch('/incidents', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': token,
@@ -1820,16 +1926,29 @@ const SpectralUI = {
                     newIncident.db_id = json.data.id;
                     newIncident.id = json.data.incident_code || newCode;
                 }
+            } else {
+                const errorData = await res.json().catch(() => ({}));
+                console.error('Failed to submit incident:', errorData);
+                this.showToast('Submission error. Please ensure all required fields are filled.');
+                return;
             }
         } catch (err) {
-            console.warn('API post fallback to local state:', err);
+            console.error('API post error:', err);
+            this.showToast('Network error while reporting incident.');
+            return;
         }
-
-        SpectralData.incidents.unshift(newIncident);
 
         document.getElementById('report-form').reset();
         this.removeEvidencePreview();
         this.closeReportModal();
+
+        // If on the My Reports page, reload so the new report is shown immediately
+        if (window.location.pathname.includes('my-reports')) {
+            window.location.reload();
+            return;
+        }
+
+        SpectralData.incidents.unshift(newIncident);
 
         SpectralMap.renderIncidents();
         SpectralMap.updateStatsCounters();
@@ -1850,7 +1969,7 @@ const SpectralUI = {
             document.body.appendChild(toast);
         }
 
-        toast.innerHTML = `<span style="color:#22C55E;font-weight:bold;">âœ“</span><span>${message}</span>`;
+        toast.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg><span>${message}</span>`;
         toast.style.opacity = '1';
         toast.style.transform = 'translateY(0)';
 
@@ -1860,26 +1979,49 @@ const SpectralUI = {
         }, 3500);
     },
 
-    // Pre-fills report form with anomaly probe coordinates then opens the modal
+    // Pre-fills report form with coordinates and reverse geocodes then opens the modal
     openReportModalAtPoint(lat, lng, barangayName) {
         SpectralMap.clearAnomalyMarker();
 
         const latInput       = document.getElementById('report-lat');
         const lngInput       = document.getElementById('report-lng');
         const barangaySelect = document.getElementById('report-barangay');
-        const coordDisplay   = document.getElementById('report-coord-display');
-        const dateInput      = document.getElementById('report-datetime');
+        const resolvedInput  = document.getElementById('report-resolved-location');
+        const geocodeStatus  = document.getElementById('report-geocode-status');
 
         if (latInput)       latInput.value = parseFloat(lat).toFixed(6);
         if (lngInput)       lngInput.value = parseFloat(lng).toFixed(6);
         if (barangaySelect) barangaySelect.value = barangayName;
-        if (coordDisplay)   coordDisplay.textContent =
-            `${parseFloat(lat).toFixed(5)}° N, ${parseFloat(lng).toFixed(5)}° E (${barangayName})`;
-        if (dateInput && !dateInput.value)
-            dateInput.value = new Date().toISOString().slice(0, 16);
+
+        if (geocodeStatus) {
+            geocodeStatus.textContent = 'Resolving via Nominatim...';
+            geocodeStatus.className = 'text-[9px] font-mono text-amber-400 animate-pulse';
+        }
+        if (resolvedInput) {
+            resolvedInput.value = `Resolving address for ${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}...`;
+        }
 
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.remove('hidden');
+
+        SpectralMap.reverseGeocode(parseFloat(lat), parseFloat(lng)).then(geo => {
+            if (resolvedInput) {
+                resolvedInput.value = geo.address || geo.display;
+            }
+            if (geocodeStatus) {
+                geocodeStatus.textContent = 'Auto-detected (Nominatim)';
+                geocodeStatus.className = 'text-[9px] font-mono text-emerald-400';
+            }
+            if (geo.barangay_name && barangaySelect) {
+                for (let i = 0; i < barangaySelect.options.length; i++) {
+                    const opt = barangaySelect.options[i];
+                    if (opt.value === geo.barangay_name || opt.text.includes(geo.barangay_name)) {
+                        barangaySelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        });
     },
 
     bindEvents() {
@@ -1896,6 +2038,9 @@ const SpectralUI = {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // 4. INITIALIZE ON DOM READY
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+window.SpectralMap = SpectralMap;
+window.SpectralUI  = SpectralUI;
+
 document.addEventListener('DOMContentLoaded', () => {
     SpectralUI.init();
     SpectralMap.init();

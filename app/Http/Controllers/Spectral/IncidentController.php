@@ -7,16 +7,17 @@ use App\Models\Barangay;
 use App\Models\Incident;
 use App\Models\IncidentEvidence;
 use App\Models\Investigation;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class IncidentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Incident::with(['barangay', 'reporter', 'evidence'])
-            ->orderByDesc('incident_date');
+        $userId = Auth::id();
+
+        $query = Incident::with(['barangay', 'reporter', 'evidence']);
 
         if ($request->filled('severity') && $request->severity !== 'ALL') {
             $query->where('severity', $request->severity);
@@ -30,10 +31,32 @@ class IncidentController extends Controller
             $query->where('barangay_id', $request->barangay_id);
         }
 
-        $incidents = $query->paginate(15);
+        $query->orderByRaw("CASE 
+            WHEN status = 'PENDING' THEN 1 
+            WHEN status = 'UNDER INVESTIGATION' THEN 2 
+            WHEN status = 'VERIFIED' THEN 3 
+            WHEN status = 'ESCALATED' THEN 4 
+            WHEN status = 'RESOLVED' THEN 5 
+            ELSE 99 END ASC")
+            ->orderByDesc('created_at');
+
+        $incidents = $query->paginate(15)->withQueryString();
         $barangays = Barangay::orderBy('name')->get();
 
-        return view('spectral.incidents.index', compact('incidents', 'barangays'));
+        $allIncidents     = Incident::all();
+        $myIncidentsCount = $userId ? $allIncidents->where('reported_by', $userId)->count() : 0;
+
+        $stats = [
+            'total_incidents'    => $allIncidents->count(),
+            'active_incidents'   => $allIncidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count(),
+            'investigating'      => $allIncidents->where('status', 'UNDER INVESTIGATION')->count(),
+            'critical_incidents' => $allIncidents->where('severity', 'CRITICAL')->count(),
+            'pending'            => $allIncidents->where('status', 'PENDING')->count(),
+            'resolved'           => $allIncidents->where('status', 'RESOLVED')->count(),
+            'my_reports'         => $myIncidentsCount,
+        ];
+
+        return view('spectral.incidents.index', compact('incidents', 'barangays', 'stats'));
     }
 
     public function create()
@@ -51,27 +74,24 @@ class IncidentController extends Controller
             'barangay_id'   => 'nullable|exists:barangays,id',
             'latitude'      => 'required|numeric|between:-90,90',
             'longitude'     => 'required|numeric|between:-180,180',
-            'incident_date' => 'required|date',
+            'incident_date' => 'nullable|date',
             'severity'      => 'required|in:LOW,MEDIUM,HIGH,CRITICAL',
             'evidence'      => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240', // max 10MB
         ]);
-
-        $user = User::first() ?? User::create([
-            'name' => 'Field Scout',
-            'email' => 'scout@ectonet.gov',
-            'password' => bcrypt('password'),
-            'role' => 'reporter',
-        ]);
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        if (!$userId) {
+            abort(401, 'Unauthenticated.');
+        }
 
         $incident = Incident::create([
-            'reported_by'   => $user->id,
+            'reported_by'   => $userId,
             'barangay_id'   => $validated['barangay_id'] ?? null,
             'incident_type' => $validated['incident_type'],
             'title'         => $validated['title'],
             'description'   => $validated['description'],
             'latitude'      => $validated['latitude'],
             'longitude'     => $validated['longitude'],
-            'incident_date' => $validated['incident_date'],
+            'incident_date' => $validated['incident_date'] ?? now(),
             'severity'      => $validated['severity'],
             'status'        => 'PENDING',
         ]);
@@ -84,7 +104,7 @@ class IncidentController extends Controller
                 'file_name'    => $request->file('evidence')->getClientOriginalName(),
                 'file_type'    => $request->file('evidence')->getMimeType(),
                 'description'  => 'Initial field evidence upload',
-                'uploaded_by'  => $user->id,
+                'uploaded_by'  => $userId,
             ]);
         }
 
@@ -102,14 +122,25 @@ class IncidentController extends Controller
 
     public function show($id)
     {
-        $incident = Incident::with(['barangay', 'reporter', 'evidence', 'investigations.investigator'])
-            ->findOrFail($id);
+        $incident = Incident::with(['barangay', 'reporter', 'evidence', 'investigations.investigator', 'responderAssignments.responder'])
+            ->where(function ($q) use ($id) {
+                if (is_numeric($id)) {
+                    $q->where('id', (int) $id)->orWhere('incident_code', $id);
+                } else {
+                    $q->where('incident_code', $id);
+                }
+            })
+            ->firstOrFail();
 
         return view('spectral.incidents.show', compact('incident'));
     }
 
     public function updateStatus(Request $request, $id)
     {
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isReporter()) {
+            abort(403, 'You are not authorized to update incident status.');
+        }
+
         $incident = Incident::findOrFail($id);
 
         $validated = $request->validate([
@@ -127,12 +158,12 @@ class IncidentController extends Controller
         }
         $incident->save();
 
-        $warden = User::where('role', 'investigator')->first() ?? User::first();
+        $investigatorId = \Illuminate\Support\Facades\Auth::id();
 
         // Record investigation action
         Investigation::create([
             'incident_id'        => $incident->id,
-            'investigator_id'    => $warden->id,
+            'investigator_id'    => $investigatorId,
             'notes'              => $validated['notes'] ?? 'Updated incident status to ' . $validated['status'],
             'investigation_date' => now(),
             'result'             => $validated['status'],
@@ -147,5 +178,46 @@ class IncidentController extends Controller
         }
 
         return redirect()->back()->with('success', 'Investigation status updated for ' . $incident->incident_code);
+    }
+
+    public function destroy($id)
+    {
+        $incident = Incident::with(['evidence', 'investigations', 'responderAssignments'])->findOrFail($id);
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($incident->reported_by !== $user->id && !$user->isAdmin()) {
+            abort(403, 'You are not authorized to delete this incident report.');
+        }
+
+        // Delete evidence files from storage
+        foreach ($incident->evidence as $evidence) {
+            if ($evidence->file_path && !str_starts_with($evidence->file_path, 'http')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($evidence->file_path);
+            }
+            $evidence->delete();
+        }
+
+        $incident->investigations()->delete();
+        $incident->responderAssignments()->delete();
+
+        // Clean from session read notifications if present
+        $readNotifs = session('read_notifications', []);
+        if (($key = array_search($incident->id, $readNotifs)) !== false) {
+            unset($readNotifs[$key]);
+            session(['read_notifications' => array_values($readNotifs)]);
+        }
+
+        $code = $incident->incident_code;
+        $incident->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Incident {$code} has been permanently deleted from the system and GIS map.",
+            ]);
+        }
+
+        return redirect()->route('spectral.my-reports')
+            ->with('success', "Incident {$code} was permanently deleted from the system and GIS map.");
     }
 }

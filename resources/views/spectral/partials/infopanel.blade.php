@@ -1,8 +1,8 @@
 <aside id="spectral-infopanel" class="w-full md:w-80 lg:w-96 bg-[#151B23] border-l border-[#2A3440] flex flex-col h-[45vh] md:h-full flex-shrink-0 z-20 select-none overflow-hidden transition-all duration-300">
-    
+
     <!-- MODE A: DEFAULT OVERVIEW PANEL -->
     <div id="panel-default-overview" class="flex-1 flex flex-col overflow-y-auto p-4 space-y-4">
-        
+
         <!-- Header -->
         <div class="border-b border-[#2A3440] pb-3">
             <div class="flex items-center justify-between">
@@ -16,112 +16,111 @@
         <div class="grid grid-cols-2 gap-2">
             <div class="p-3 rounded-lg bg-[#1B222C] border border-[#2A3440] flex flex-col justify-between">
                 <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Active Incidents</span>
-                <p id="stat-active-incidents" class="text-2xl font-bold text-[#EF4444] font-mono mt-1">{{ sprintf('%02d', $stats['active_incidents'] ?? 7) }}</p>
+                <p id="stat-active-incidents" class="text-2xl font-bold text-[#EF4444] font-mono mt-1">{{ sprintf('%02d', $stats['active_incidents'] ?? 0) }}</p>
             </div>
             <div class="p-3 rounded-lg bg-[#1B222C] border border-[#2A3440] flex flex-col justify-between">
                 <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Under Review</span>
-                <p id="stat-investigating" class="text-2xl font-bold text-[#8B5CF6] font-mono mt-1">{{ sprintf('%02d', $stats['investigating'] ?? 3) }}</p>
+                <p id="stat-investigating" class="text-2xl font-bold text-[#8B5CF6] font-mono mt-1">{{ sprintf('%02d', $stats['investigating'] ?? 0) }}</p>
             </div>
             <div class="p-3 rounded-lg bg-[#1B222C] border border-[#2A3440] flex flex-col justify-between">
-                <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Ward Stations</span>
-                <p id="stat-ward-stations" class="text-2xl font-bold text-[#FACC15] font-mono mt-1">{{ sprintf('%02d', $stats['ward_stations'] ?? 5) }}</p>
+                <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Safe Ward Stations</span>
+                <p class="text-2xl font-bold text-[#22C55E] font-mono mt-1">02</p>
             </div>
             <div class="p-3 rounded-lg bg-[#1B222C] border border-[#2A3440] flex flex-col justify-between">
-                <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Resources</span>
-                <p id="stat-resources" class="text-2xl font-bold text-[#38BDF8] font-mono mt-1">{{ sprintf('%02d', $stats['resources'] ?? 4) }}</p>
+                <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Resolved</span>
+                <p class="text-2xl font-bold text-[#38BDF8] font-mono mt-1">{{ sprintf('%02d', $stats['resolved'] ?? 0) }}</p>
             </div>
         </div>
 
-        <!-- Sector Details -->
-        <div class="p-3 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-2">
-            <div class="flex items-start justify-between">
-                <div>
-                    <h4 class="text-xs font-bold text-white">San Francisco Hub</h4>
-                    <p class="text-[11px] text-[#9CA3AF]">Province of Agusan del Sur</p>
-                    <p class="text-[10px] text-[#64748B] font-mono mt-0.5">8.5100° N, 125.9750° E</p>
-                </div>
-                <button onclick="SpectralMap.jumpTo('san_francisco')" class="px-2.5 py-1 bg-[#1B222C] hover:bg-[#222B38] text-[#8B5CF6] font-semibold text-[11px] rounded-md border border-[#2A3440] transition">
-                    Center
-                </button>
-            </div>
-        </div>
-
-        <!-- Ward Station Status -->
+        <!-- Safe Ward Stations Status -->
         <div class="p-3 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-2 text-xs">
-            <p class="text-[10px] font-mono font-bold text-[#64748B] uppercase tracking-wider">Ward Status</p>
+            <p class="text-[10px] font-mono font-bold text-[#64748B] uppercase tracking-wider">Safe Ward Stations</p>
             <div class="space-y-1.5 font-mono text-[11px]">
                 <div class="flex justify-between text-slate-300">
-                    <span>Hubang Station:</span>
-                    <span class="text-emerald-400 font-semibold">96%</span>
+                    <span class="truncate pr-2">SF Gymnasium Sanctuary:</span>
+                    <span class="text-emerald-400 font-semibold flex-shrink-0">Active</span>
                 </div>
                 <div class="flex justify-between text-slate-300">
-                    <span>Poblacion Station:</span>
-                    <span class="text-emerald-400 font-semibold">92%</span>
-                </div>
-                <div class="flex justify-between text-slate-300">
-                    <span>Karaus Station:</span>
-                    <span class="text-amber-400 font-semibold">64%</span>
+                    <span class="truncate pr-2">Hubang Transport Haven:</span>
+                    <span class="text-emerald-400 font-semibold flex-shrink-0">Active</span>
                 </div>
             </div>
-        </div>
-
-        <!-- Hint -->
-        <div class="p-3 rounded-lg bg-[#1B222C]/40 border border-[#2A3440]/40 text-center">
-            <p class="text-[11px] text-[#9CA3AF]">Click any marker on the map to view details.</p>
         </div>
 
     </div>
 
     <!-- MODE B: DETAILED INCIDENT INSPECTOR PANEL -->
     <div id="panel-incident-inspector" class="hidden flex-1 flex flex-col overflow-y-auto p-4 space-y-4">
-        
+
         <!-- Top Bar with Back Button -->
         <div class="flex items-center justify-between border-b border-[#2A3440] pb-3">
-            <button onclick="SpectralUI.closeInspector()" class="text-xs text-[#9CA3AF] hover:text-white flex items-center gap-1 font-semibold">
-                &larr; Overview
+            <button onclick="SpectralUI.closeInspector()" class="text-xs text-[#9CA3AF] hover:text-white inline-flex items-center gap-1.5 font-semibold transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                <span>Incident Details</span>
             </button>
             <span id="insp-id" class="text-xs font-mono font-bold text-[#8B5CF6]">SF-INC-001</span>
         </div>
 
-        <!-- Incident Type & Status Badges -->
+        <!-- Incident Title & Status Badges -->
         <div class="space-y-2">
             <div class="flex items-center justify-between">
                 <span id="insp-type" class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Incident</span>
-                <div class="flex items-center gap-1.5">
-                    <span id="insp-severity-badge" class="badge-high text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">HIGH</span>
-                    <span id="insp-status-badge" class="badge-investigating text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">PENDING</span>
-                </div>
+                <span id="insp-status-badge" class="badge-investigating text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">PENDING</span>
             </div>
             <h3 id="insp-title" class="text-sm font-bold text-white leading-snug">Incident Subject Title</h3>
-            <p id="insp-desc" class="text-xs text-[#9CA3AF] leading-relaxed">Description.</p>
+            <!-- Severity badge below title -->
+            <span id="insp-severity-badge" class="inline-block badge-high text-[10px] font-bold px-2.5 py-1 rounded-md font-mono">HIGH SEVERITY</span>
         </div>
 
         <!-- Location Block -->
-        <div class="p-3 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-1 text-xs">
-            <p class="text-[10px] font-mono font-bold text-[#64748B] uppercase">Location</p>
+        <div class="p-3 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-1.5 text-xs">
+            <p class="text-[9px] font-mono font-bold text-[#64748B] uppercase tracking-wider inline-flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-[#8B5CF6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>Location</span>
+            </p>
             <p id="insp-location" class="font-semibold text-slate-200">Hubang, San Francisco, Agusan del Sur</p>
             <p id="insp-coords" class="text-[11px] font-mono text-[#8B5CF6]">8.5318° N, 125.9725° E</p>
+            <button id="insp-focus-map-btn" onclick="SpectralMap.focusOnInspected()" class="mt-1 px-2.5 py-1 bg-[#1B222C] hover:bg-[#222B38] border border-[#2A3440] text-slate-300 hover:text-white rounded text-[10px] font-semibold transition flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Focus on Map
+            </button>
         </div>
 
-        <!-- Metadata Block -->
+        <!-- Reported & Reported By -->
         <div class="grid grid-cols-2 gap-2 text-xs">
             <div class="p-2.5 rounded-lg bg-[#11161D] border border-[#2A3440]">
-                <p class="text-[9px] font-mono text-[#64748B] uppercase">Date &amp; Time</p>
-                <p id="insp-date" class="text-[11px] font-mono text-slate-300 font-semibold mt-0.5">2026-09-05 14:22</p>
+                <p class="text-[9px] font-mono text-[#64748B] uppercase inline-flex items-center gap-1.5 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-[#8B5CF6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Reported</span>
+                </p>
+                <p id="insp-date" class="text-[11px] font-mono text-slate-300 font-semibold">—</p>
             </div>
             <div class="p-2.5 rounded-lg bg-[#11161D] border border-[#2A3440]">
-                <p class="text-[9px] font-mono text-[#64748B] uppercase">Reported By</p>
-                <p id="insp-reporter" class="text-[11px] text-slate-300 font-semibold truncate mt-0.5">K. Morales</p>
+                <p class="text-[9px] font-mono text-[#64748B] uppercase inline-flex items-center gap-1.5 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-[#8B5CF6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Reported By</span>
+                </p>
+                <p id="insp-reporter" class="text-[11px] text-slate-300 font-semibold truncate">—</p>
             </div>
         </div>
 
-        <!-- Evidence Photo Block -->
-        <div id="insp-evidence-box" class="space-y-1.5">
-            <p class="text-[10px] font-mono font-bold text-[#64748B] uppercase">Evidence Photo</p>
-            <div class="rounded-lg overflow-hidden border border-[#2A3440] bg-[#11161D] aspect-video relative group">
-                <img id="insp-evidence-img" src="" alt="Evidence" class="w-full h-full object-cover">
+
+        <!-- Status Timeline (Stage Progression) -->
+        <div class="p-3.5 rounded-xl bg-[#11161D] border border-[#2A3440] space-y-2 font-mono">
+            <div class="flex items-center justify-between border-b border-[#1E2631] pb-2">
+                <h3 class="text-[11px] font-bold uppercase tracking-wider text-white">STATUS TIMELINE</h3>
+                <span class="text-[9px] text-[#64748B]">STAGE PROGRESSION</span>
+            </div>
+            <div id="insp-timeline" class="space-y-1">
+                <!-- Timeline items injected by JS -->
+                <div class="text-[10px] text-[#64748B] italic">Loading timeline...</div>
             </div>
         </div>
+
+        <!-- Footer hint -->
+        <p class="text-[9px] text-[#475569] leading-relaxed border-t border-[#2A3440] pt-3">
+            Severity indicates how serious the incident is. Status shows the current stage of investigation.
+        </p>
 
         <!-- Investigator Actions (Administrator Mode) -->
         <div id="insp-investigator-actions" class="hidden p-3.5 rounded-lg bg-[#1B222C] border border-[#8B5CF6]/30 space-y-3">

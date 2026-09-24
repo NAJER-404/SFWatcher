@@ -12,6 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prependToGroup('web', \App\Http\Middleware\ConfigureSessionCookie::class);
+
+        $middleware->alias([
+            'investigator' => \App\Http\Middleware\EnsureInvestigator::class,
+            'admin'        => \App\Http\Middleware\EnsureAdmin::class,
+            'responder'    => \App\Http\Middleware\EnsureResponder::class,
+        ]);
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);

@@ -35,8 +35,7 @@ class IncidentController extends Controller
             WHEN status = 'PENDING' THEN 1 
             WHEN status = 'UNDER INVESTIGATION' THEN 2 
             WHEN status = 'VERIFIED' THEN 3 
-            WHEN status = 'ESCALATED' THEN 4 
-            WHEN status = 'RESOLVED' THEN 5 
+            WHEN status = 'RESOLVED' THEN 4 
             ELSE 99 END ASC")
             ->orderByDesc('created_at');
 
@@ -48,7 +47,7 @@ class IncidentController extends Controller
 
         $stats = [
             'total_incidents'    => $allIncidents->count(),
-            'active_incidents'   => $allIncidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count(),
+            'active_incidents'   => $allIncidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
             'investigating'      => $allIncidents->where('status', 'UNDER INVESTIGATION')->count(),
             'critical_incidents' => $allIncidents->where('severity', 'CRITICAL')->count(),
             'pending'            => $allIncidents->where('status', 'PENDING')->count(),
@@ -144,10 +143,15 @@ class IncidentController extends Controller
         $incident = Incident::findOrFail($id);
 
         $validated = $request->validate([
-            'status'   => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED,ESCALATED',
+            'status'   => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED',
             'severity' => 'nullable|in:LOW,MEDIUM,HIGH,CRITICAL',
             'notes'    => 'nullable|string',
         ]);
+
+        // Guard: do nothing if the status is unchanged (prevents re-verifying/re-submitting same status)
+        if ($incident->status === $validated['status']) {
+            return redirect()->back()->with('success', 'No change — incident is already ' . $incident->status . '.');
+        }
 
         $incident->status = $validated['status'];
         if (!empty($validated['severity'])) {

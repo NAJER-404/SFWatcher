@@ -80,7 +80,6 @@
                             'RESOLVED'           => 'bg-emerald-400',
                             'VERIFIED'           => 'bg-blue-400',
                             'UNDER INVESTIGATION'=> 'bg-amber-400',
-                            'ESCALATED'          => 'bg-red-500',
                             default              => 'bg-slate-400',
                         };
                     @endphp
@@ -105,8 +104,7 @@
                                     <span class="text-[10px] font-mono font-bold text-[#8B5CF6]">{{ $notif['incident_code'] }}</span>
                                     <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded
                                         {{ $notif['status'] === 'RESOLVED' ? 'bg-emerald-500/15 text-emerald-400' :
-                                           ($notif['status'] === 'ESCALATED' ? 'bg-red-500/15 text-red-400' :
-                                           ($notif['status'] === 'VERIFIED' ? 'bg-blue-500/15 text-blue-400' : 'bg-amber-500/15 text-amber-400')) }}">
+                                           ($notif['status'] === 'VERIFIED' ? 'bg-blue-500/15 text-blue-400' : 'bg-amber-500/15 text-amber-400') }}">
                                         {{ $notif['status'] }}
                                     </span>
                                 </div>
@@ -150,7 +148,8 @@
         </div>
         @endauth
 
-        <!-- Quick Report Incident Button -->
+        <!-- Quick Report Incident Button — shown on the Dashboard only (hidden on My Reports, Incident Reports, etc.) -->
+        @if(request()->routeIs('spectral.dashboard') || request()->routeIs('spectral.index'))
         <button type="button" onclick="SpectralUI.openReportModal()" class="px-3 py-1.5 bg-[#8B5CF6] hover:bg-[#7C3AED] active:scale-95 text-white font-semibold text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-sm shadow-[#8B5CF6]/20">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -158,6 +157,7 @@
             </svg>
             <span class="hidden sm:inline">Report Incident</span>
         </button>
+        @endif
 
         <!-- User Profile -->
         @auth

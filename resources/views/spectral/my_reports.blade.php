@@ -17,7 +17,7 @@
             <div class="hidden sm:flex items-center gap-2">
                 @php
                     $pendingCount  = $incidents->whereIn('status', ['PENDING'])->count();
-                    $activeCount   = $incidents->whereIn('status', ['UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count();
+                    $activeCount   = $incidents->whereIn('status', ['UNDER INVESTIGATION', 'VERIFIED'])->count();
                     $resolvedCount = $incidents->where('status', 'RESOLVED')->count();
                 @endphp
                 @if($pendingCount > 0)
@@ -46,7 +46,6 @@
                     'PENDING'             => 'Pending',
                     'UNDER INVESTIGATION' => 'Under Investigation',
                     'VERIFIED'            => 'Verified',
-                    'ESCALATED'           => 'Escalated',
                     'RESOLVED'            => 'Resolved',
                 ];
             @endphp
@@ -90,7 +89,7 @@
             $hpTextColor    = $cardPct <= 25 ? 'text-emerald-400' : ($cardPct <= 60 ? 'text-yellow-400' : 'text-rose-400');
 
             // Only show anomaly condition for these statuses
-            $showAnomaly = in_array($inc->status, ['VERIFIED', 'RESOLVED', 'ESCALATED']);
+            $showAnomaly = in_array($inc->status, ['VERIFIED', 'RESOLVED']);
 
             // Severity styling
             $sevClass = match($inc->severity) {
@@ -104,7 +103,6 @@
             $statusClass = match($inc->status) {
                 'RESOLVED'            => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
                 'PENDING'             => 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
-                'ESCALATED'           => 'bg-red-500/10 text-red-400 border-red-500/30',
                 'VERIFIED'            => 'bg-blue-500/10 text-blue-400 border-blue-500/30',
                 'UNDER INVESTIGATION' => 'bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/30',
                 default               => 'bg-[#1E2631] text-[#9CA3AF] border-[#2A3440]',
@@ -231,7 +229,7 @@
                 </div>
             </div>
 
-            {{-- ── Anomaly Condition (VERIFIED / RESOLVED / ESCALATED only) ── --}}
+            {{-- ── Anomaly Condition (VERIFIED / RESOLVED only) ── --}}
             @if($showAnomaly)
             <div class="border-t border-[#1E2631] px-4 py-3 bg-[#0A0E14] space-y-3">
                 <p class="text-[9px] font-mono font-bold text-[#64748B] uppercase tracking-widest">Anomaly Condition</p>

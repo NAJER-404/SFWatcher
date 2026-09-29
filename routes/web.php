@@ -59,6 +59,8 @@ Route::middleware(['investigator'])->prefix('investigator')->name('investigator.
     Route::get('/incidents/{id}/review', [InvestigatorDashboardController::class, 'review'])->name('incidents.review');
     Route::put('/incidents/{id}',        [InvestigatorDashboardController::class, 'updateIncident'])->name('incidents.update');
     Route::post('/incidents/{id}/assign-responder', [InvestigatorDashboardController::class, 'assignResponder'])->name('incidents.assign-responder');
+    Route::post('/incidents/{id}/assign-responder-ajax', [InvestigatorDashboardController::class, 'assignResponderAjax'])->name('incidents.assign-responder-ajax');
+    Route::get('/incidents/{id}/eligible-responders', [InvestigatorDashboardController::class, 'eligibleResponders'])->name('incidents.eligible-responders');
     Route::delete('/incidents/{id}/reject',         [InvestigatorDashboardController::class, 'rejectIncident'])->name('incidents.reject');
 
     Route::get('/map',                   [InvestigatorDashboardController::class, 'map'])->name('map');
@@ -82,6 +84,7 @@ Route::middleware('responder')->prefix('responder')->name('responder.')->group(f
     Route::post('/assignments/{assignment}/complete', [ResponderDashboardController::class, 'complete'])->name('assignments.complete');
     Route::post('/assignments/{assignment}/request-support', [ResponderDashboardController::class, 'requestSupport'])->name('assignments.request-support');
     Route::put('/assignments/{assignment}/progress', [ResponderDashboardController::class, 'progress'])->name('assignments.progress');
+    Route::match(['get', 'post'], '/assignments/{assignment}/sync', [ResponderDashboardController::class, 'sync'])->name('assignments.sync');
 });
 
 // ─── Protected Spectral Routes (Auth Required) ───────────────────────────

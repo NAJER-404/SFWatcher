@@ -1,0 +1,102 @@
+{
+    "users": {
+        "mysql": 12,
+        "pg": 12,
+        "status": "MATCH"
+    },
+    "barangays": {
+        "mysql": 27,
+        "pg": 27,
+        "status": "MATCH"
+    },
+    "incidents": {
+        "mysql": 12,
+        "pg": 12,
+        "status": "MATCH"
+    },
+    "ward_stations": {
+        "mysql": 5,
+        "pg": 5,
+        "status": "MATCH"
+    },
+    "resources": {
+        "mysql": 4,
+        "pg": 4,
+        "status": "MATCH"
+    },
+    "incident_evidence": {
+        "mysql": 21,
+        "pg": 21,
+        "status": "MATCH"
+    },
+    "investigations": {
+        "mysql": 52,
+        "pg": 52,
+        "status": "MATCH"
+    },
+    "responder_assignments": {
+        "mysql": 6,
+        "pg": 6,
+        "status": "MATCH"
+    },
+    "equipment": {
+        "mysql": 5,
+        "pg": 5,
+        "status": "MATCH"
+    },
+    "promotion_histories": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "libraries": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "students": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "failed_jobs": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "jobs": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "job_batches": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "cache": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "cache_locks": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "password_reset_tokens": {
+        "mysql": 0,
+        "pg": 0,
+        "status": "OK (empty)"
+    },
+    "sessions": {
+        "mysql": 2,
+        "pg": 2,
+        "status": "MATCH"
+    },
+    "migrations": {
+        "mysql": 16,
+        "pg": 16,
+        "status": "MATCH"
+    }
+}

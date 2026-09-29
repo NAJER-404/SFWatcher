@@ -81,10 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const m = L.marker([inc.latitude, inc.longitude], { icon });
-        const isVerified = inc.status === 'VERIFIED' || inc.status === 'ESCALATED' || inc.status === 'RESOLVED' || inc.response_status === 'ACTIVE' || (inc.investigation_result === 'CONFIRMED');
+        const isVerified = inc.status === 'VERIFIED' || inc.status === 'RESOLVED' || inc.response_status === 'ACTIVE' || (inc.investigation_result === 'CONFIRMED');
 
-        const defaultHpMap = { CRITICAL: 150, HIGH: 100, MEDIUM: 60, LOW: 30 };
-        const defaultHp = defaultHpMap[inc.severity] || 100;
+        const defaultHpMap = { CRITICAL: 150, HIGH: 110, MEDIUM: 80, LOW: 50 };
+        const defaultHp = defaultHpMap[inc.severity] || 80;
         const assignment = inc.responder_assignments && inc.responder_assignments.length > 0
             ? inc.responder_assignments[0]
             : null;

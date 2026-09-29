@@ -198,7 +198,7 @@ class SpectralApiController extends Controller
         }
 
         $validated = $request->validate([
-            'status'   => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED,ESCALATED',
+            'status'   => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED',
             'severity' => 'nullable|in:LOW,MEDIUM,HIGH,CRITICAL',
             'notes'    => 'nullable|string',
         ]);
@@ -266,7 +266,7 @@ class SpectralApiController extends Controller
             'success' => true,
             'stats'   => [
                 'total_incidents'    => $incidents->count(),
-                'active_incidents'   => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count(),
+                'active_incidents'   => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
                 'investigating'      => $incidents->where('status', 'UNDER INVESTIGATION')->count(),
                 'critical_incidents' => $incidents->where('severity', 'CRITICAL')->count(),
                 'ward_stations'      => WardStation::count(),

@@ -49,16 +49,7 @@
             </a>
 
             <!-- Map -->
-            <a href="{{ route('investigator.map') }}"
-               class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg {{ request()->routeIs('investigator.map') ? 'bg-[#1B222C] text-white border border-[#2A3440]' : 'text-slate-300 hover:bg-[#1B222C] hover:text-white' }} transition">
-                <span class="flex items-center gap-2.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#8B5CF6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
-                        <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
-                    </svg>
-                    <span>Map</span>
-                </span>
-            </a>
+
         </div>
 
         <!-- RESPONSE -->

@@ -44,9 +44,8 @@
         <div class="p-5 rounded-xl bg-[#151B23] border border-[#2A3440] space-y-2">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#64748B]">ANOMALY CONDITION</span>
-                <span class="text-[10px] font-mono text-rose-400 font-bold">{{ $assignment->incident->severity }} THREAT</span>
             </div>
-            <p class="text-2xl font-extrabold font-mono text-rose-400">
+            <p id="anomaly-hp-display" class="text-2xl font-extrabold font-mono text-rose-400">
                 HP: {{ $displayAnomalyHp }} / {{ $displayAnomalyMax }}
             </p>
             <!-- Progress Bar -->
@@ -54,7 +53,7 @@
                 @php
                     $anomalyPct = $displayAnomalyMax > 0 ? max(0, min(100, round(($displayAnomalyHp / $displayAnomalyMax) * 100))) : 0;
                 @endphp
-                <div class="bg-rose-500 h-full transition-all duration-500" style="width: {{ $anomalyPct }}%;"></div>
+                <div id="anomaly-hp-bar" class="bg-rose-500 h-full transition-all duration-300" style="width: {{ $anomalyPct }}%;"></div>
             </div>
             <span class="text-[10px] font-mono text-slate-500">Spectral disturbance integrity</span>
         </div>
@@ -65,7 +64,7 @@
                 <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#64748B]">RESPONDER CONDITION</span>
                 <span class="text-[10px] font-mono text-emerald-400 font-bold">CLASS {{ $assignment->responder->responder_class ?? 'D' }}</span>
             </div>
-            <p class="text-2xl font-extrabold font-mono text-emerald-400">
+            <p id="responder-hp-display" class="text-2xl font-extrabold font-mono text-emerald-400">
                 HP: {{ $displayResponderHp }} / {{ $displayResponderMax }}
             </p>
             <!-- Progress Bar -->
@@ -73,7 +72,7 @@
                 @php
                     $respPct = $displayResponderMax > 0 ? max(0, min(100, round(($displayResponderHp / $displayResponderMax) * 100))) : 0;
                 @endphp
-                <div class="bg-emerald-500 h-full transition-all duration-500" style="width: {{ $respPct }}%;"></div>
+                <div id="responder-hp-bar" class="bg-emerald-500 h-full transition-all duration-300" style="width: {{ $respPct }}%;"></div>
             </div>
             <span class="text-[10px] font-mono text-slate-500">Tactical shielding stability</span>
         </div>
@@ -84,12 +83,12 @@
                 <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#64748B]">RESPONSE PROGRESS</span>
                 <span class="text-[10px] font-mono text-[#8B5CF6] font-bold">CONTAINMENT</span>
             </div>
-            <p class="text-2xl font-extrabold font-mono text-white">
+            <p id="response-progress-display" class="text-2xl font-extrabold font-mono text-white">
                 {{ $assignment->response_progress ?? 0 }}%
             </p>
             <!-- Progress Bar -->
             <div class="w-full bg-[#11161D] h-2 rounded-full overflow-hidden border border-[#2A3440]">
-                <div class="bg-[#8B5CF6] h-full transition-all duration-500" style="width: {{ $assignment->response_progress ?? 0 }}%;"></div>
+                <div id="response-progress-bar" class="bg-[#8B5CF6] h-full transition-all duration-300" style="width: {{ $assignment->response_progress ?? 0 }}%;"></div>
             </div>
             <span class="text-[10px] font-mono text-slate-500">Neutralization completion rate</span>
         </div>
@@ -161,51 +160,38 @@
             </div>
         @elseif($assignment->status === 'ACTIVE')
             <div class="space-y-4">
-                <!-- Direct Action Buttons: Complete Response & Request Support -->
+                <div class="p-4 rounded-xl bg-[#11161D] border border-[#2A3440] space-y-3 font-mono">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#1E2631] pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                            </span>
+                            <span class="text-xs font-bold text-white uppercase tracking-wider">LIVE TACTICAL COMBAT ENGAGED</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                        <div class="p-2.5 rounded-lg bg-[#151B23] border border-[#2A3440]">
+                            <span class="block text-[10px] text-[#64748B] uppercase">TACTICAL STATUS</span>
+                            <span id="tactical-status-text" class="text-emerald-400 font-bold">ACTIVE NEUTRALIZATION</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-[#151B23] border border-[#2A3440]">
+                            <span class="block text-[10px] text-[#64748B] uppercase">DEFENSE OUTCOME</span>
+                            <span class="text-cyan-400 font-bold">RESPONDER FAVORED (SECURE)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button: Complete Response only -->
                 <div class="flex flex-wrap items-center gap-3">
-                    <form method="POST" action="{{ route('responder.assignments.complete', $assignment) }}">
+                    <form method="POST" action="{{ route('responder.assignments.complete', $assignment) }}" id="form-complete-response">
                         @csrf
-                        <button type="submit" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-emerald-600/30">
+                        <button type="submit" id="btn-complete-response" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-emerald-600/30">
                             COMPLETE RESPONSE
                         </button>
                     </form>
-
-                    <form method="POST" action="{{ route('responder.assignments.request-support', $assignment) }}">
-                        @csrf
-                        <button type="submit" class="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-rose-600/30">
-                            REQUEST SUPPORT
-                        </button>
-                    </form>
                 </div>
-
-                <!-- Containment Monitoring Increment Update -->
-                <form method="POST" action="{{ route('responder.assignments.progress', $assignment) }}" class="p-4 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-3">
-                    @csrf
-                    @method('PUT')
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-mono font-bold text-slate-300 uppercase">Step Containment Adjustment</span>
-                        <span class="text-[10px] text-slate-500 font-mono">Effectiveness: {{ $assignment->responder->responder_class ?? 'D' }}</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div>
-                            <label class="block text-[10px] font-mono text-[#64748B] uppercase mb-1">Containment Applied (HP Reduction)</label>
-                            <input type="number" name="containment" min="1" max="{{ $displayAnomalyHp }}" value="{{ min(25, $displayAnomalyHp) }}" class="ecto-input font-mono" required>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-mono text-[#64748B] uppercase mb-1">Condition Cost (Responder HP)</label>
-                            <input type="number" name="condition_cost" min="0" max="{{ $displayResponderHp }}" value="0" class="ecto-input font-mono" required>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-mono text-[#64748B] uppercase mb-1">Monitoring Update Log</label>
-                        <textarea name="notes" rows="2" class="ecto-input" placeholder="Enter stabilization log or tactical remarks..."></textarea>
-                    </div>
-                    <div class="flex justify-end">
-                        <button type="submit" class="px-4 py-2 bg-[#1B222C] hover:bg-[#222B38] text-white border border-[#2A3440] hover:border-[#8B5CF6] font-bold text-xs rounded-lg transition font-mono">
-                            RECORD PROGRESS UPDATE
-                        </button>
-                    </div>
-                </form>
             </div>
         @elseif($assignment->status === 'COMPLETED')
             <div class="p-4 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-xs space-y-1 font-mono">
@@ -384,33 +370,139 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // Dynamic countdown timer when response is ACTIVE
     const isResponseActive = {{ $assignment->status === 'ACTIVE' ? 'true' : 'false' }};
-    const deadlineIso = '{{ $assignment->response_deadline ? $assignment->response_deadline->toISOString() : "" }}';
+    if (!isResponseActive) return;
 
-    if (isResponseActive && deadlineIso) {
-        const deadline = new Date(deadlineIso).getTime();
+    const anomalyMaxHp = {{ $displayAnomalyMax }};
+    const anomalyDps = {{ $dps ?? 0.25 }};
+    const responderMaxHp = {{ $displayResponderMax }};
+    const responderDps = {{ $responderDps ?? 0.05 }};
+    const startMs = new Date('{{ $assignment->response_started_at ? $assignment->response_started_at->toISOString() : now()->toISOString() }}').getTime();
+    const deadlineMs = new Date('{{ $assignment->response_deadline ? $assignment->response_deadline->toISOString() : now()->addSeconds(300)->toISOString() }}').getTime();
+    const totalDurationSec = {{ config("spectral_response.duration_seconds." . strtoupper($incident->severity), 300) }};
+    const finalExpectedHp = Math.max(0, responderMaxHp - anomalyMaxHp);
 
-        const timerInterval = setInterval(() => {
-            const now = new Date().getTime();
-            const distance = deadline - now;
+    const anomalyDisplay = document.getElementById('anomaly-hp-display');
+    const anomalyBar = document.getElementById('anomaly-hp-bar');
+    const responderDisplay = document.getElementById('responder-hp-display');
+    const responderBar = document.getElementById('responder-hp-bar');
+    const progressDisplay = document.getElementById('response-progress-display');
+    const progressBar = document.getElementById('response-progress-bar');
+    const countdownDisplay = document.getElementById('countdown-display');
+    const countdownBar = document.getElementById('countdown-bar');
+    const tacticalText = document.getElementById('tactical-status-text');
 
-            if (distance <= 0) {
-                clearInterval(timerInterval);
-                const display = document.getElementById('countdown-display');
-                if (display) display.textContent = '00:00';
-                return;
+    let completedTriggered = false;
+
+    function updateRealtime() {
+        const now = Date.now();
+        const elapsedSec = Math.max(0, (now - startMs) / 1000);
+        const remainingMs = Math.max(0, deadlineMs - now);
+
+        // Calculate Anomaly HP reduction in real time
+        const curAnomaly = Math.max(0, anomalyMaxHp - (elapsedSec * anomalyDps));
+        const anomalyPct = Math.max(0, Math.min(100, (curAnomaly / anomalyMaxHp) * 100));
+
+        // Calculate Responder HP reduction in real time:
+        // Takes damage per second so that at 0 Anomaly HP, exactly (ResponderMax - AnomalyMax) HP remains
+        const curResponder = Math.max(finalExpectedHp, responderMaxHp - (elapsedSec * responderDps));
+        const responderPct = Math.max(0, Math.min(100, (curResponder / responderMaxHp) * 100));
+
+        // Calculate Response Progress %
+        const progressPct = Math.min(100, Math.round(((anomalyMaxHp - curAnomaly) / anomalyMaxHp) * 100));
+
+        // Update DOM elements without page refresh
+        if (anomalyDisplay) {
+            anomalyDisplay.textContent = `HP: ${Math.ceil(curAnomaly)} / ${anomalyMaxHp}`;
+        }
+        if (anomalyBar) {
+            anomalyBar.style.width = `${anomalyPct}%`;
+        }
+
+        if (responderDisplay) {
+            responderDisplay.textContent = `HP: ${Math.ceil(curResponder)} / ${responderMaxHp}`;
+        }
+        if (responderBar) {
+            responderBar.style.width = `${responderPct}%`;
+        }
+
+        if (progressDisplay) {
+            progressDisplay.textContent = `${progressPct}%`;
+        }
+        if (progressBar) {
+            progressBar.style.width = `${progressPct}%`;
+        }
+
+        // Operational Countdown
+        const remainingTotalSec = Math.floor(remainingMs / 1000);
+        const minutes = Math.floor(remainingTotalSec / 60);
+        const seconds = remainingTotalSec % 60;
+        if (countdownDisplay) {
+            countdownDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+        if (countdownBar) {
+            const timePct = Math.max(0, Math.min(100, (remainingTotalSec / totalDurationSec) * 100));
+            countdownBar.style.width = `${timePct}%`;
+        }
+
+        // Auto-complete when Anomaly HP hits 0
+        if ((curAnomaly <= 0 || progressPct >= 100) && !completedTriggered) {
+            completedTriggered = true;
+            if (anomalyDisplay) anomalyDisplay.textContent = `HP: 0 / ${anomalyMaxHp}`;
+            if (anomalyBar) anomalyBar.style.width = '0%';
+            if (progressDisplay) progressDisplay.textContent = '100%';
+            if (progressBar) progressBar.style.width = '100%';
+            if (countdownDisplay) countdownDisplay.textContent = '00:00';
+            if (tacticalText) {
+                tacticalText.textContent = 'CONTAINMENT COMPLETE — RESOLVING';
+                tacticalText.className = 'text-cyan-400 font-bold';
             }
 
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            const display = document.getElementById('countdown-display');
-            if (display) {
-                display.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }
-        }, 1000);
+            setTimeout(() => {
+                const completeForm = document.getElementById('form-complete-response');
+                if (completeForm) {
+                    completeForm.submit();
+                } else {
+                    window.location.reload();
+                }
+            }, 800);
+        }
     }
+
+    // Tick every 500ms for immediate, smooth live updates
+    const liveInterval = setInterval(() => {
+        updateRealtime();
+        if (completedTriggered) {
+            clearInterval(liveInterval);
+        }
+    }, 500);
+
+    // Initial immediate tick
+    updateRealtime();
+
+    // Background server synchronization every 5 seconds
+    const syncInterval = setInterval(() => {
+        if (completedTriggered) {
+            clearInterval(syncInterval);
+            return;
+        }
+
+        fetch('{{ route("responder.assignments.sync", $assignment) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.is_completed) {
+                window.location.reload();
+            }
+        })
+        .catch(() => {});
+    }, 5000);
 });
 </script>
 @endpush

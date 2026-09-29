@@ -11,8 +11,8 @@ class IncidentResponseService
 {
     public function start(Incident $incident, User $investigator): Incident
     {
-        if (! in_array($incident->status, ['VERIFIED', 'ESCALATED'], true)) {
-            throw ValidationException::withMessages(['response' => 'Only verified or escalated incidents can enter response.']);
+        if (! in_array($incident->status, ['VERIFIED'], true)) {
+            throw ValidationException::withMessages(['response' => 'Only verified incidents can enter response.']);
         }
 
         $class = config('spectral_response.classes.'.$investigator->responder_class, config('spectral_response.classes.D'));
@@ -50,7 +50,7 @@ class IncidentResponseService
 
         if ($incident->investigator_hp === 0) {
             $incident->response_status = 'SUPPORT_REQUIRED';
-            $incident->status = 'ESCALATED';
+            $incident->status = 'UNDER INVESTIGATION';
             $incident->support_requested_at = now();
             $this->log($incident, $investigator, $notes ?: 'Responder condition critical. Support or handover required; anomaly remains active.', 'SUPPORT_REQUIRED');
         } elseif ($incident->anomaly_hp === 0) {

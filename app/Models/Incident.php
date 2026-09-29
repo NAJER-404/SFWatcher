@@ -20,6 +20,7 @@ class Incident extends Model
         'longitude',
         'incident_date',
         'severity',
+        'required_responder_class',
         'status',
         'notes',
         'anomaly_hp', 'anomaly_max_hp', 'investigator_hp', 'investigator_max_hp',
@@ -48,11 +49,16 @@ class Incident extends Model
                 $incident->incident_code = sprintf('SF-INC-%03d', $count);
             }
             if (empty($incident->anomaly_max_hp)) {
-                $maxHp = config('spectral_response.anomaly_hp.' . ($incident->severity ?? 'HIGH'), 100);
+                $sev = strtoupper($incident->severity ?? 'MEDIUM');
+                $maxHp = config("spectral_response.anomaly_hp.{$sev}", 80);
                 $incident->anomaly_max_hp = $maxHp;
                 if ($incident->anomaly_hp === null) {
                     $incident->anomaly_hp = $maxHp;
                 }
+            }
+            if (empty($incident->required_responder_class)) {
+                $sev = strtoupper($incident->severity ?? 'MEDIUM');
+                $incident->required_responder_class = config("spectral_response.required_minimum_class.{$sev}", 'D');
             }
         });
     }
@@ -86,7 +92,7 @@ class Incident extends Model
 
     public function getSeverityColorAttribute(): string
     {
-        return match ($this->severity) {
+        return match (strtoupper($this->severity ?? '')) {
             'LOW' => '#22C55E',
             'MEDIUM' => '#EAB308',
             'HIGH' => '#F97316',
@@ -102,7 +108,6 @@ class Incident extends Model
             'UNDER INVESTIGATION' => 'badge-investigating',
             'VERIFIED' => 'badge-verified',
             'RESOLVED' => 'badge-resolved',
-            'ESCALATED' => 'badge-escalated',
             default => 'badge-pending',
         };
     }

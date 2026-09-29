@@ -6,7 +6,7 @@
 @include('spectral.partials.sidebar')
 <main class="flex-1 h-full overflow-y-auto bg-[#0B0F14] p-6">
     <div class="max-w-7xl mx-auto space-y-6">
-        
+
         <!-- Top Navigation & Actions -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2A3440]">
             <div>
@@ -22,10 +22,7 @@
                 <p class="text-xs text-[#9CA3AF]">San Francisco, Agusan del Sur</p>
             </div>
 
-            <a href="{{ route('spectral.incidents.create') }}" class="px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-[#8B5CF6]/20 transition">
-                <span>+</span>
-                <span>Report Incident</span>
-            </a>
+
         </div>
 
         <!-- Filter Form -->
@@ -49,7 +46,6 @@
                     <option value="UNDER INVESTIGATION" {{ request('status') == 'UNDER INVESTIGATION' ? 'selected' : '' }}>UNDER INVESTIGATION</option>
                     <option value="VERIFIED" {{ request('status') == 'VERIFIED' ? 'selected' : '' }}>VERIFIED</option>
                     <option value="RESOLVED" {{ request('status') == 'RESOLVED' ? 'selected' : '' }}>RESOLVED</option>
-                    <option value="ESCALATED" {{ request('status') == 'ESCALATED' ? 'selected' : '' }}>ESCALATED</option>
                 </select>
             </div>
 

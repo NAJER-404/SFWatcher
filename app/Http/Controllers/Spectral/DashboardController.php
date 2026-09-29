@@ -61,7 +61,7 @@ class DashboardController extends Controller
 
         $stats = [
             'total_incidents'    => $incidents->count(),
-            'active_incidents'   => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count(),
+            'active_incidents'   => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
             'investigating'      => $incidents->where('status', 'UNDER INVESTIGATION')->count(),
             'critical_incidents' => $incidents->where('severity', 'CRITICAL')->count(),
             'ward_stations'      => $wardStations->count(),
@@ -85,8 +85,7 @@ class DashboardController extends Controller
             'PENDING'             => 1,
             'UNDER INVESTIGATION' => 2,
             'VERIFIED'            => 3,
-            'ESCALATED'           => 4,
-            'RESOLVED'            => 5,
+            'RESOLVED'            => 4,
         ];
 
         $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations.investigator', 'responderAssignments'])
@@ -134,7 +133,7 @@ class DashboardController extends Controller
 
         $stats = [
             'total_incidents'    => $allIncidents->count(),
-            'active_incidents'   => $allIncidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count(),
+            'active_incidents'   => $allIncidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
             'investigating'      => $allIncidents->where('status', 'UNDER INVESTIGATION')->count(),
             'critical_incidents' => $allIncidents->where('severity', 'CRITICAL')->count(),
             'pending'            => $allIncidents->where('status', 'PENDING')->count(),

@@ -81,8 +81,8 @@
                 $latestAssignment = $incident->responderAssignments->sortByDesc('assigned_at')->first();
             @endphp
 
-            {{-- ANOMALY CONDITION: Only show for VERIFIED / ESCALATED / RESOLVED --}}
-            @if(in_array($incident->status, ['VERIFIED', 'ESCALATED', 'RESOLVED']))
+            {{-- ANOMALY CONDITION: Only show for VERIFIED / RESOLVED --}}
+            @if(in_array($incident->status, ['VERIFIED', 'RESOLVED']))
             @php
                 $anomalyMaxVal = $latestAssignment?->anomaly_max_hp ?: ($incident->anomaly_max_hp ?: config('spectral_response.anomaly_hp.' . $incident->severity, 100));
                 $anomalyHpVal  = $latestAssignment?->anomaly_hp !== null ? $latestAssignment->anomaly_hp : ($incident->anomaly_hp !== null ? $incident->anomaly_hp : $anomalyMaxVal);
@@ -103,8 +103,7 @@
                     <h3 class="text-xs font-bold uppercase tracking-wider text-white">ANOMALY CONDITION</h3>
                     <span class="px-2.5 py-0.5 rounded text-[10px] font-bold
                         {{ $incident->status === 'RESOLVED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                           ($incident->status === 'ESCALATED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                           'bg-blue-500/20 text-blue-400 border border-blue-500/30') }}">
+                           'bg-blue-500/20 text-blue-400 border border-blue-500/30' }}">
                         {{ $incident->status }}
                     </span>
                 </div>
@@ -189,7 +188,7 @@
             <!-- STATUS TIMELINE -->
             @php
                 $isReported = true;
-                $isInvestigating = in_array($incident->status, ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED', 'ESCALATED']) || $incident->investigations->isNotEmpty();
+                $isInvestigating = in_array($incident->status, ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED']) || $incident->investigations->isNotEmpty();
                 $isConfirmed = $incident->investigation_result === 'CONFIRMED' || in_array($incident->status, ['VERIFIED', 'RESOLVED']) || $latestAssignment !== null;
                 $isResponderAssigned = $latestAssignment && $latestAssignment->responder_id;
                 $isUnderResponse = ($latestAssignment && in_array($latestAssignment->status, ['ACTIVE', 'COMPLETED', 'CRITICAL', 'SUPPORT_REQUIRED'])) || $incident->status === 'RESOLVED';
@@ -340,7 +339,6 @@
                             <option value="UNDER INVESTIGATION" {{ $incident->status === 'UNDER INVESTIGATION' ? 'selected' : '' }}>UNDER INVESTIGATION</option>
                             <option value="VERIFIED" {{ $incident->status === 'VERIFIED' ? 'selected' : '' }}>VERIFIED</option>
                             <option value="RESOLVED" {{ $incident->status === 'RESOLVED' ? 'selected' : '' }}>RESOLVED</option>
-                            <option value="ESCALATED" {{ $incident->status === 'ESCALATED' ? 'selected' : '' }}>ESCALATED</option>
                         </select>
                     </div>
 

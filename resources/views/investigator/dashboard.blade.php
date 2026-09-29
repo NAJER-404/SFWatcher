@@ -194,7 +194,6 @@
                                 <option value="UNDER INVESTIGATION">Under Investigation</option>
                                 <option value="VERIFIED">Verified</option>
                                 <option value="RESOLVED">Resolved</option>
-                                <option value="ESCALATED">Escalated</option>
                             </select>
                         </div>
                         <div>
@@ -344,10 +343,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const incidentMarkers = {};
 
     function buildIncidentPopup(inc) {
-        const isVerified = inc.status === 'VERIFIED' || inc.status === 'ESCALATED' || inc.status === 'RESOLVED' || inc.response_status === 'ACTIVE' || (inc.investigation_result === 'CONFIRMED');
+        const isVerified = inc.status === 'VERIFIED' || inc.status === 'RESOLVED' || inc.response_status === 'ACTIVE' || (inc.investigation_result === 'CONFIRMED');
 
-        const defaultHpMap = { CRITICAL: 150, HIGH: 100, MEDIUM: 60, LOW: 30 };
-        const defaultHp = defaultHpMap[inc.severity] || 100;
+        const defaultHpMap = { CRITICAL: 150, HIGH: 110, MEDIUM: 80, LOW: 50 };
+        const defaultHp = defaultHpMap[inc.severity] || 80;
         const assignment = inc.responder_assignments && inc.responder_assignments.length > 0
             ? inc.responder_assignments[0]
             : null;
@@ -473,8 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'PENDING':              'bg-amber-500/20 text-amber-400 border border-amber-500/40',
         'UNDER INVESTIGATION':  'bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/40',
         'VERIFIED':             'bg-[#8B5CF6]/20 text-[#A78BFA] border border-[#8B5CF6]/40',
-        'RESOLVED':             'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40',
-        'ESCALATED':            'bg-red-950/90 text-red-300 border border-red-800/70'
+        'RESOLVED':             'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
     };
 
     // Helper: produce "March 4, 2026 · 5:21 PM" from an ISO / datetime string

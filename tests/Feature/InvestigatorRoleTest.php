@@ -234,4 +234,155 @@ class InvestigatorRoleTest extends TestCase
         $response->assertDontSee('XP');
         $response->assertDontSee('EXP');
     }
+
+    public function test_audit_trail_is_capped_at_six_records(): void
+    {
+        $incident = Incident::first();
+
+        // Perform 8 status updates
+        for ($i = 1; $i <= 8; $i++) {
+            $this->actingAs($this->investigator, 'investigator')->put("/investigator/incidents/{$incident->id}", [
+                'status'   => 'UNDER INVESTIGATION',
+                'severity' => 'MEDIUM',
+                'notes'    => "Audit note #{$i}",
+            ]);
+        }
+
+        $count = Investigation::where('incident_id', $incident->id)->count();
+        $this->assertLessThanOrEqual(6, $count);
+        $this->assertEquals(6, $count);
+    }
+
+    public function test_anomaly_hp_and_required_class_are_auto_determined_from_severity(): void
+    {
+        $incident = Incident::where('status', 'PENDING')->first() ?? Incident::first();
+
+        // Update to HIGH severity
+        $this->actingAs($this->investigator, 'investigator')->put("/investigator/incidents/{$incident->id}", [
+            'status'   => 'VERIFIED',
+            'severity' => 'HIGH',
+            'notes'    => 'Severe rift detected.',
+        ]);
+
+        $incident->refresh();
+        $this->assertEquals('HIGH', $incident->severity);
+        $this->assertEquals(110, $incident->anomaly_max_hp);
+        $this->assertEquals(110, $incident->anomaly_hp);
+        $this->assertEquals('C', $incident->required_responder_class);
+
+        // Update to CRITICAL severity
+        $this->actingAs($this->investigator, 'investigator')->put("/investigator/incidents/{$incident->id}", [
+            'status'   => 'VERIFIED',
+            'severity' => 'CRITICAL',
+            'notes'    => 'Escalating to Class A authority.',
+        ]);
+
+        $incident->refresh();
+        $this->assertEquals('CRITICAL', $incident->severity);
+        $this->assertEquals(150, $incident->anomaly_max_hp);
+        $this->assertEquals('A', $incident->required_responder_class);
+    }
+
+    public function test_ineligible_responder_class_is_rejected_server_side(): void
+    {
+        $incident = Incident::first();
+        $incident->severity = 'CRITICAL'; // Requires Class A only
+        $incident->save();
+
+        // SpectralSeeder creates a Class D responder
+        $classDResponder = User::where('role', 'responder')->where('responder_class', 'D')->first();
+        $this->assertNotNull($classDResponder);
+
+        $response = $this->actingAs($this->investigator, 'investigator')->post("/investigator/incidents/{$incident->id}/assign-responder", [
+            'responder_id' => $classDResponder->id,
+        ]);
+
+        $response->assertSessionHasErrors('responder_id');
+
+        // Now create a Class A responder and test success
+        $classAResponder = User::factory()->create([
+            'role' => 'responder',
+            'responder_class' => 'A',
+            'responder_status' => 'AVAILABLE',
+        ]);
+
+        $responseSuccess = $this->actingAs($this->investigator, 'investigator')->post("/investigator/incidents/{$incident->id}/assign-responder", [
+            'responder_id' => $classAResponder->id,
+        ]);
+
+        $responseSuccess->assertSessionHasNoErrors();
+        $responseSuccess->assertRedirect();
+    }
+
+    public function test_eligible_responders_ajax_endpoint_returns_json_and_filters_class_a_for_critical(): void
+    {
+        $incident = Incident::first();
+        $this->assertNotNull($incident);
+
+        $incident->severity = 'CRITICAL';
+        $incident->anomaly_max_hp = 150;
+        $incident->anomaly_hp = 150;
+        $incident->required_responder_class = 'A';
+        $incident->save();
+
+        // AJAX request: returns eligible responders based on CRITICAL severity (Class A only, 150 HP)
+        $res = $this->actingAs($this->investigator, 'investigator')
+            ->getJson("/investigator/incidents/{$incident->id}/eligible-responders");
+
+        $res->assertOk();
+        $res->assertJson([
+            'severity'        => 'CRITICAL',
+            'anomalyMaxHp'    => 150,
+            'eligibleClasses' => ['A'],
+        ]);
+
+        foreach ($res->json('responders') as $resp) {
+            $this->assertSame('A', $resp['responder_class']);
+        }
+    }
+
+    public function test_assign_responder_ajax_assigns_responder_and_rejects_ineligible_for_critical(): void
+    {
+        $incident = Incident::first();
+        $incident->severity = 'CRITICAL';
+        $incident->anomaly_max_hp = 150;
+        $incident->save();
+
+        $classDResponder = User::where('role', 'responder')->where('responder_class', 'D')->firstOrFail();
+
+        // Class D should be rejected for CRITICAL
+        $resReject = $this->actingAs($this->investigator, 'investigator')->postJson("/investigator/incidents/{$incident->id}/assign-responder-ajax", [
+            'responder_id' => $classDResponder->id,
+        ]);
+        $resReject->assertStatus(422);
+
+        // Class A should be accepted
+        $classAResponder = User::where('role', 'responder')->where('responder_class', 'A')->first();
+        if (!$classAResponder) {
+            $classAResponder = User::factory()->create([
+                'role' => 'responder',
+                'responder_class' => 'A',
+                'responder_status' => 'AVAILABLE',
+            ]);
+        }
+
+        $resAccept = $this->actingAs($this->investigator, 'investigator')->postJson("/investigator/incidents/{$incident->id}/assign-responder-ajax", [
+            'responder_id' => $classAResponder->id,
+        ]);
+
+        $resAccept->assertOk();
+        $resAccept->assertJson([
+            'success'        => true,
+            'responderId'    => $classAResponder->id,
+            'responderName'  => $classAResponder->name,
+            'responderClass' => 'A',
+        ]);
+
+        $this->assertDatabaseHas('responder_assignments', [
+            'incident_id'  => $incident->id,
+            'responder_id' => $classAResponder->id,
+            'status'       => 'ASSIGNED',
+        ]);
+    }
 }
+

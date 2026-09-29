@@ -42,7 +42,6 @@
                 <option value="UNDER INVESTIGATION" {{ request('status') === 'UNDER INVESTIGATION' ? 'selected' : '' }}>UNDER INVESTIGATION</option>
                 <option value="VERIFIED" {{ request('status') === 'VERIFIED' ? 'selected' : '' }}>VERIFIED</option>
                 <option value="RESOLVED" {{ request('status') === 'RESOLVED' ? 'selected' : '' }}>RESOLVED</option>
-                <option value="ESCALATED" {{ request('status') === 'ESCALATED' ? 'selected' : '' }}>ESCALATED</option>
             </select>
         </div>
 

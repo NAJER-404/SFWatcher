@@ -36,8 +36,9 @@ class ResponderResponseService
         }
 
         $class = config('spectral_response.classes.' . ($responder->responder_class ?? 'D'), config('spectral_response.classes.D'));
-        $maxAnomaly = config('spectral_response.anomaly_hp.' . $assignment->incident->severity, 100);
-        $minutes = (int) ceil(config('spectral_response.duration_minutes.' . $assignment->incident->severity, 15) * ($class['duration_multiplier'] ?? 1.0));
+        $severity = strtoupper($assignment->incident->severity);
+        $maxAnomaly = config('spectral_response.anomaly_hp.' . $severity, 80);
+        $durationSeconds = config('spectral_response.duration_seconds.' . $severity, 300);
 
         $assignment->update([
             'status'               => 'ACTIVE',
@@ -47,12 +48,60 @@ class ResponderResponseService
             'responder_hp'         => $class['responder_hp'] ?? 100,
             'responder_max_hp'     => $class['responder_hp'] ?? 100,
             'response_progress'    => 0,
-            'response_deadline'    => now()->addMinutes($minutes),
+            'response_deadline'    => now()->addSeconds($durationSeconds),
         ]);
 
         $assignment->incident->update([
             'status'          => 'UNDER INVESTIGATION',
             'response_status' => 'ACTIVE',
+        ]);
+
+        return $assignment;
+    }
+
+    public function syncRealtime(ResponderAssignment $assignment): ResponderAssignment
+    {
+        if ($assignment->status !== 'ACTIVE' || ! $assignment->response_started_at) {
+            return $assignment;
+        }
+
+        $severity = strtoupper($assignment->incident->severity);
+        $responder = $assignment->responder;
+        $responderClass = $responder?->responder_class ?? 'D';
+
+        $maxAnomaly = $assignment->anomaly_max_hp ?: config("spectral_response.anomaly_hp.{$severity}", 80);
+        $maxResponder = $assignment->responder_max_hp ?: (config("spectral_response.classes.{$responderClass}.responder_hp") ?? 100);
+
+        $elapsed = max(0, abs((int) now()->diffInSeconds($assignment->response_started_at, false)));
+
+        $dps = config("spectral_response.dps.{$severity}", 0.25);
+        $damageDealt = $elapsed * $dps;
+        $currentAnomalyHp = max(0, (int) round($maxAnomaly - $damageDealt));
+
+        // Responder takes damage per second matching the containment combat DPS,
+        // so at full containment the remaining responder HP is exactly (ResponderMax - AnomalyMax).
+        $finalExpectedHp = max(0, $maxResponder - $maxAnomaly);
+        $currentResponderHp = max($finalExpectedHp, (int) round($maxResponder - $damageDealt));
+
+        $progress = min(100, (int) round((1 - ($currentAnomalyHp / max(1, $maxAnomaly))) * 100));
+
+        if ($currentAnomalyHp <= 0 || $progress >= 100) {
+            if ($responder) {
+                $assignment->responder_hp = $finalExpectedHp;
+                $assignment->save();
+                return $this->complete($assignment, $responder, 'Anomaly neutralized via real-time tactical containment.');
+            }
+        }
+
+        $assignment->update([
+            'anomaly_hp'        => $currentAnomalyHp,
+            'responder_hp'      => $currentResponderHp,
+            'response_progress' => $progress,
+        ]);
+
+        $assignment->incident->update([
+            'anomaly_hp'        => $currentAnomalyHp,
+            'response_progress' => $progress,
         ]);
 
         return $assignment;
@@ -75,7 +124,7 @@ class ResponderResponseService
             $assignment->result = 'RESPONDER_CRITICAL';
             $responder->update(['responder_status' => 'CRITICAL']);
             $assignment->incident->update([
-                'status'               => 'ESCALATED',
+                'status'               => 'UNDER INVESTIGATION',
                 'response_status'      => 'CRITICAL',
                 'support_requested_at' => now(),
                 'anomaly_hp'           => $assignment->anomaly_hp,
@@ -112,7 +161,13 @@ class ResponderResponseService
             throw ValidationException::withMessages(['assignment' => 'Only an active response can be completed.']);
         }
 
+        $severity = strtoupper($assignment->incident->severity);
+        $responderClass = $responder->responder_class ?? 'D';
+        $maxAnomaly = $assignment->anomaly_max_hp ?: config("spectral_response.anomaly_hp.{$severity}", 80);
+        $maxResponder = $assignment->responder_max_hp ?: (config("spectral_response.classes.{$responderClass}.responder_hp") ?? 100);
+
         $assignment->anomaly_hp = 0;
+        $assignment->responder_hp = max(0, $maxResponder - $maxAnomaly);
         $assignment->response_progress = 100;
         $assignment->status = 'COMPLETED';
         $assignment->result = 'NEUTRALIZED';
@@ -148,7 +203,7 @@ class ResponderResponseService
 
         $responder->update(['responder_status' => 'CRITICAL']);
         $assignment->incident->update([
-            'status'               => 'ESCALATED',
+            'status'               => 'UNDER INVESTIGATION',
             'response_status'      => 'CRITICAL',
             'support_requested_at' => now(),
             'anomaly_hp'           => $assignment->anomaly_hp,

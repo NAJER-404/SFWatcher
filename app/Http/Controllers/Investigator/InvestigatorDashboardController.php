@@ -31,7 +31,7 @@ class InvestigatorDashboardController extends Controller
 
         // Real Database Statistics (no hardcoded numbers)
         $stats = [
-            'active_incidents'    => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED'])->count(),
+            'active_incidents'    => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
             'pending_review'      => $incidents->where('status', 'PENDING')->count(),
             'under_investigation' => $incidents->where('status', 'UNDER INVESTIGATION')->count(),
             'high_severity'       => $incidents->whereIn('severity', ['HIGH', 'CRITICAL'])->count(),
@@ -41,7 +41,7 @@ class InvestigatorDashboardController extends Controller
 
         // Investigation Queue: incidents requiring investigator attention
         $queueIncidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responderAssignments.responder'])
-            ->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'ESCALATED'])
+            ->whereIn('status', ['PENDING', 'UNDER INVESTIGATION'])
             ->orderByRaw("CASE WHEN severity = 'CRITICAL' THEN 1 WHEN severity = 'HIGH' THEN 2 WHEN severity = 'MEDIUM' THEN 3 ELSE 4 END")
             ->orderByDesc('incident_date')
             ->take(8)
@@ -63,7 +63,7 @@ class InvestigatorDashboardController extends Controller
     public function queue(Request $request)
     {
         $query = Incident::with(['barangay', 'reporter', 'evidence', 'investigations'])
-            ->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'ESCALATED']);
+            ->whereIn('status', ['PENDING', 'UNDER INVESTIGATION']);
 
         if ($request->filled('severity') && $request->severity !== 'ALL') {
             $query->where('severity', $request->severity);
@@ -104,7 +104,7 @@ class InvestigatorDashboardController extends Controller
 
         if ($request->filled('status')) {
             if ($request->status === 'ACTIVE') {
-                $query->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'ESCALATED']);
+                $query->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED']);
             } elseif ($request->status !== 'ALL') {
                 $query->where('status', $request->status);
             }
@@ -143,11 +143,19 @@ class InvestigatorDashboardController extends Controller
             ->orWhere('incident_code', $id)
             ->firstOrFail();
 
+        $sev = strtoupper($incident->severity ?? 'MEDIUM');
+        $eligibleClasses = config("spectral_response.severity_eligibility.{$sev}", ['D', 'C', 'B', 'A']);
+
+        // Eligible responders for this incident's severity
         $availableResponders = User::where('role', 'responder')
+            ->whereIn('responder_class', $eligibleClasses)
             ->orderByRaw("CASE WHEN responder_status = 'AVAILABLE' THEN 1 ELSE 2 END")
             ->orderBy('responder_class')
             ->get();
-        return view('investigator.incidents.review', compact('incident', 'availableResponders'));
+
+        $allResponders = User::where('role', 'responder')->get();
+
+        return view('investigator.incidents.review', compact('incident', 'availableResponders', 'allResponders', 'eligibleClasses'));
     }
 
     /**
@@ -160,9 +168,10 @@ class InvestigatorDashboardController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'status'   => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED,ESCALATED',
-            'severity' => 'required|in:LOW,MEDIUM,HIGH,CRITICAL',
-            'notes'    => 'nullable|string',
+            'status'       => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED',
+            'severity'     => 'required|in:LOW,MEDIUM,HIGH,CRITICAL',
+            'notes'        => 'nullable|string',
+            'responder_id' => 'nullable|exists:users,id',
         ]);
 
         // Guard: Cannot mark RESOLVED unless a responder has COMPLETED their assignment
@@ -181,12 +190,22 @@ class InvestigatorDashboardController extends Controller
         $oldStatus   = $incident->status;
         $oldSeverity = $incident->severity;
 
+        $newSeverity = strtoupper($validated['severity']);
         $incident->status   = $validated['status'];
-        $incident->severity = $validated['severity'];
+        $incident->severity = $newSeverity;
+
+        // Auto-determine Anomaly HP and Required Class from severity
+        $anomalyMaxHp = config("spectral_response.anomaly_hp.{$newSeverity}", 80);
+        $incident->anomaly_max_hp = $anomalyMaxHp;
+        if ($incident->anomaly_hp === null || $oldSeverity !== $newSeverity) {
+            $incident->anomaly_hp = $anomalyMaxHp;
+        }
+
+        $incident->required_responder_class = config("spectral_response.required_minimum_class.{$newSeverity}", 'D');
 
         $noteText = !empty($validated['notes'])
             ? trim($validated['notes'])
-            : "Status updated from {$oldStatus} to {$validated['status']}" . ($oldSeverity !== $validated['severity'] ? " (Severity changed from {$oldSeverity} to {$validated['severity']})" : "");
+            : "Status updated from {$oldStatus} to {$validated['status']}" . ($oldSeverity !== $newSeverity ? " (Severity set to {$newSeverity} [Anomaly HP: {$anomalyMaxHp}])" : "");
 
         $incident->notes = $noteText;
 
@@ -194,7 +213,25 @@ class InvestigatorDashboardController extends Controller
             ?? Auth::id()
             ?? (User::where('role', 'investigator')->first()?->id);
 
-        // When status transitions to VERIFIED — auto-assign responder if none exists
+        // When explicit responder_id is provided, create or update assignment
+        if (!empty($validated['responder_id'])) {
+            $explicitResponder = User::where('id', $validated['responder_id'])->where('role', 'responder')->first();
+            if ($explicitResponder) {
+                ResponderAssignment::updateOrCreate(
+                    ['incident_id' => $incident->id],
+                    [
+                        'investigator_id' => $investigatorId,
+                        'responder_id'    => $explicitResponder->id,
+                        'assigned_at'     => now(),
+                        'status'          => 'ASSIGNED',
+                        'anomaly_hp'      => $incident->anomaly_hp,
+                        'anomaly_max_hp'  => $incident->anomaly_max_hp,
+                    ]
+                );
+            }
+        }
+
+        // When status transitions to VERIFIED — auto-assign responder if none exists and an eligible one is available
         if ($validated['status'] === 'VERIFIED') {
             if (! $incident->investigation_result) {
                 $incident->investigation_result = 'CONFIRMED';
@@ -205,9 +242,11 @@ class InvestigatorDashboardController extends Controller
 
             $existingAssignment = ResponderAssignment::where('incident_id', $incident->id)->first();
             if (! $existingAssignment) {
+                $eligibleClasses = config("spectral_response.severity_eligibility.{$newSeverity}", ['D', 'C', 'B', 'A']);
                 $availableResponder = User::where('role', 'responder')
                     ->where('responder_status', 'AVAILABLE')
-                    ->orderBy('responder_class')
+                    ->whereIn('responder_class', $eligibleClasses)
+                    ->orderBy('id')
                     ->first();
 
                 ResponderAssignment::create([
@@ -216,6 +255,8 @@ class InvestigatorDashboardController extends Controller
                     'responder_id'    => $availableResponder?->id,
                     'assigned_at'     => now(),
                     'status'          => $availableResponder ? 'ASSIGNED' : 'WAITING',
+                    'anomaly_hp'      => $incident->anomaly_hp,
+                    'anomaly_max_hp'  => $incident->anomaly_max_hp,
                 ]);
             }
         }
@@ -232,6 +273,18 @@ class InvestigatorDashboardController extends Controller
             'completed_at'       => in_array($validated['status'], ['RESOLVED', 'VERIFIED']) ? now() : null,
         ]);
 
+        // Audit Trail Cap: keep only 6 newest records per incident, delete older ones
+        $excessIds = Investigation::where('incident_id', $incident->id)
+            ->orderByDesc('investigation_date')
+            ->orderByDesc('id')
+            ->skip(6)
+            ->take(100)
+            ->pluck('id');
+
+        if ($excessIds->isNotEmpty()) {
+            Investigation::whereIn('id', $excessIds)->delete();
+        }
+
         $investigator = Auth::guard('investigator')->user() ?? Auth::user();
         if ($investigator) {
             $investigator->increment('investigations_completed');
@@ -246,6 +299,16 @@ class InvestigatorDashboardController extends Controller
         $incident = Incident::findOrFail($id);
         $data = $request->validate(['responder_id' => 'required|exists:users,id']);
         $responder = User::where('id', $data['responder_id'])->where('role', 'responder')->firstOrFail();
+
+        // Server-side validation: Responder class must be eligible for the incident's severity
+        $sev = strtoupper($incident->severity ?? 'MEDIUM');
+        $eligibleClasses = config("spectral_response.severity_eligibility.{$sev}", ['D', 'C', 'B', 'A']);
+
+        if (!in_array($responder->responder_class, $eligibleClasses)) {
+            return back()->withErrors([
+                'responder_id' => "Responder {$responder->name} (Class {$responder->responder_class}) is not eligible for {$sev} severity anomaly (Requires Class " . implode('/', $eligibleClasses) . ")."
+            ]);
+        }
 
         if (! $incident->investigation_completed_at) {
             $incident->investigation_completed_at = now();
@@ -263,10 +326,121 @@ class InvestigatorDashboardController extends Controller
                 'responder_id'    => $responder->id,
                 'assigned_at'     => now(),
                 'status'          => 'ASSIGNED',
+                'anomaly_hp'      => $incident->anomaly_hp,
+                'anomaly_max_hp'  => $incident->anomaly_max_hp,
             ]
         );
 
         return back()->with('success', "Assignment created successfully. Responder {$responder->name} (Class {$responder->responder_class}) assigned to {$incident->incident_code}.");
+    }
+
+    /**
+     * Return eligible responders for an incident as JSON (for AJAX modal).
+     */
+    public function eligibleResponders($id)
+    {
+        $incident = Incident::findOrFail($id);
+        $sev = strtoupper($incident->severity ?? 'MEDIUM');
+        $eligibleClasses = config("spectral_response.severity_eligibility.{$sev}", ['D', 'C', 'B', 'A']);
+
+        $classHpMap = [
+            'D' => 100,
+            'C' => 120,
+            'B' => 145,
+            'A' => 170,
+        ];
+
+        $responders = User::where('role', 'responder')
+            ->whereIn('responder_class', $eligibleClasses)
+            ->orderByRaw("CASE WHEN responder_status = 'AVAILABLE' THEN 1 ELSE 2 END")
+            ->orderBy('responder_class')
+            ->get(['id', 'name', 'responder_class', 'responder_status'])
+            ->map(function ($resp) use ($classHpMap) {
+                return [
+                    'id'               => $resp->id,
+                    'name'             => $resp->name,
+                    'responder_class'  => $resp->responder_class,
+                    'responder_status' => $resp->responder_status,
+                    'hp'               => $classHpMap[$resp->responder_class] ?? 100,
+                ];
+            });
+
+        $latestAssignment = ResponderAssignment::where('incident_id', $incident->id)->first();
+
+        return response()->json([
+            'responders'         => $responders,
+            'eligibleClasses'    => $eligibleClasses,
+            'severity'           => $sev,
+            'anomalyMaxHp'       => $incident->anomaly_max_hp ?? config("spectral_response.anomaly_hp.{$sev}", 80),
+            'currentResponderId' => $latestAssignment?->responder_id,
+        ]);
+    }
+
+    /**
+     * AJAX endpoint: assign a responder and set incident status.
+     * Returns JSON for client-side UI update (no page reload).
+     */
+    public function assignResponderAjax(Request $request, $id)
+    {
+        $incident = Incident::findOrFail($id);
+        $data = $request->validate([
+            'responder_id' => 'required|exists:users,id',
+            'workflow'     => 'nullable|string',
+        ]);
+
+        $responder = User::where('id', $data['responder_id'])->where('role', 'responder')->firstOrFail();
+
+        // Server-side class eligibility check
+        $sev = strtoupper($incident->severity ?? 'MEDIUM');
+        $eligibleClasses = config("spectral_response.severity_eligibility.{$sev}", ['D', 'C', 'B', 'A']);
+
+        if (!in_array($responder->responder_class, $eligibleClasses)) {
+            return response()->json([
+                'error' => "Responder {$responder->name} (Class {$responder->responder_class}) is not eligible for {$sev} severity (Requires Class " . implode('/', $eligibleClasses) . ")."
+            ], 422);
+        }
+
+        $investigatorId = Auth::guard('investigator')->id()
+            ?? Auth::id()
+            ?? (User::where('role', 'investigator')->first()?->id);
+
+        if (!$incident->investigation_completed_at) {
+            $incident->investigation_completed_at = now();
+        }
+        $incident->investigation_result = 'CONFIRMED';
+        $incident->save();
+
+        // Create / update the responder assignment
+        ResponderAssignment::updateOrCreate(
+            ['incident_id' => $incident->id],
+            [
+                'investigator_id' => $investigatorId,
+                'responder_id'    => $responder->id,
+                'assigned_at'     => now(),
+                'status'          => 'ASSIGNED',
+                'anomaly_hp'      => $incident->anomaly_hp,
+                'anomaly_max_hp'  => $incident->anomaly_max_hp,
+            ]
+        );
+
+        // Audit trail
+        Investigation::create([
+            'incident_id'        => $incident->id,
+            'investigator_id'    => $investigatorId,
+            'notes'              => "Responder {$responder->name} (Class {$responder->responder_class}) assigned.",
+            'investigation_date' => now(),
+            'result'             => 'ASSIGNED',
+            'completed_at'       => now(),
+        ]);
+
+        return response()->json([
+            'success'        => true,
+            'status'         => $incident->status,
+            'responderId'    => $responder->id,
+            'responderName'  => $responder->name,
+            'responderClass' => $responder->responder_class,
+            'message'        => "{$responder->name} (Class {$responder->responder_class}) assigned successfully.",
+        ]);
     }
 
     /**

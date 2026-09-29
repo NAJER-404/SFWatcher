@@ -59,10 +59,16 @@ class ResponderDashboardController extends Controller
         ));
     }
 
-    public function show(ResponderAssignment $assignment)
+    public function show(ResponderAssignment $assignment, ?ResponderResponseService $service = null)
     {
         $user = Auth::guard('responder')->user() ?? Auth::user();
         abort_unless($assignment->responder_id === $user->id, 403, 'Unauthorized access to assignment.');
+
+        if ($assignment->status === 'ACTIVE') {
+            $service = $service ?? app(ResponderResponseService::class);
+            $service->syncRealtime($assignment);
+            $assignment->refresh();
+        }
 
         $assignment->load([
             'incident.barangay',
@@ -91,7 +97,8 @@ class ResponderDashboardController extends Controller
 
         // Calculate display values for HP and time
         $classConfig = config('spectral_response.classes.' . ($user->responder_class ?? 'D'), config('spectral_response.classes.D'));
-        $displayAnomalyMax = $assignment->anomaly_max_hp ?: config('spectral_response.anomaly_hp.' . $incident->severity, 100);
+        $severity = strtoupper($incident->severity);
+        $displayAnomalyMax = $assignment->anomaly_max_hp ?: config('spectral_response.anomaly_hp.' . $severity, 100);
         $displayAnomalyHp = $assignment->anomaly_hp !== null ? $assignment->anomaly_hp : $displayAnomalyMax;
 
         $displayResponderMax = $assignment->responder_max_hp ?: ($classConfig['responder_hp'] ?? 100);
@@ -104,12 +111,16 @@ class ResponderDashboardController extends Controller
             $remainingMinutes = intdiv($diff, 60);
             $remainingSeconds = $diff % 60;
         } else {
-            $minutes = (int) ceil(config('spectral_response.duration_minutes.' . $incident->severity, 15) * ($classConfig['duration_multiplier'] ?? 1.0));
-            $remainingMinutes = $minutes;
-            $remainingSeconds = 0;
+            $totalSeconds = config('spectral_response.duration_seconds.' . $severity, 300);
+            $remainingMinutes = intdiv($totalSeconds, 60);
+            $remainingSeconds = $totalSeconds % 60;
         }
 
         $timeDisplay = sprintf('%02d:%02d', $remainingMinutes, $remainingSeconds);
+
+        // DPS metrics for real-time frontend (responder condition decreases per second at combat DPS)
+        $dps = config("spectral_response.dps.{$severity}", 0.25);
+        $responderDps = $dps;
 
         return view('responder.show', compact(
             'assignment',
@@ -121,8 +132,37 @@ class ResponderDashboardController extends Controller
             'displayAnomalyMax',
             'displayResponderHp',
             'displayResponderMax',
-            'timeDisplay'
+            'timeDisplay',
+            'dps',
+            'responderDps'
         ));
+    }
+
+    public function sync(ResponderAssignment $assignment, ResponderResponseService $service)
+    {
+        $user = Auth::guard('responder')->user() ?? Auth::user();
+        abort_unless($assignment->responder_id === $user->id, 403, 'Unauthorized access to assignment.');
+
+        if ($assignment->status === 'ACTIVE') {
+            $service->syncRealtime($assignment);
+            $assignment->refresh();
+        }
+
+        $remainingSeconds = 0;
+        if ($assignment->status === 'ACTIVE' && $assignment->response_deadline) {
+            $remainingSeconds = max(0, now()->diffInSeconds($assignment->response_deadline, false));
+        }
+
+        return response()->json([
+            'status'                 => $assignment->status,
+            'anomaly_hp'             => $assignment->anomaly_hp,
+            'anomaly_max_hp'         => $assignment->anomaly_max_hp,
+            'responder_hp'           => $assignment->responder_hp,
+            'responder_max_hp'       => $assignment->responder_max_hp,
+            'response_progress'      => $assignment->response_progress,
+            'time_remaining_seconds' => $remainingSeconds,
+            'is_completed'           => $assignment->status === 'COMPLETED',
+        ]);
     }
 
     public function showByIncident($incidentId)

@@ -34,7 +34,7 @@ class EndToEndWorkflowTest extends TestCase
             'latitude'      => 8.5310,
             'longitude'     => 125.9730,
             'incident_date' => now()->toDateTimeString(),
-            'severity'      => 'HIGH',
+            'severity'      => 'MEDIUM',
         ]);
 
         $reportResponse->assertRedirect();
@@ -51,7 +51,7 @@ class EndToEndWorkflowTest extends TestCase
         // 3. INVESTIGATOR INVESTIGATES, MARKS COMPLETE, SETS RESULT = CONFIRMED
         $investigateResponse = $this->actingAs($investigator, 'investigator')->put("/investigator/incidents/{$incident->id}", [
             'status'                 => 'VERIFIED',
-            'severity'               => 'HIGH',
+            'severity'               => 'MEDIUM',
             'notes'                  => 'Field inspection confirmed active apparition anomaly.',
             'investigation_result'   => 'CONFIRMED',
             'complete_investigation' => 1,

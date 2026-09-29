@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('latitude', 10, 7)->index();
             $table->decimal('longitude', 10, 7)->index();
             $table->dateTime('incident_date')->index();
-            $table->enum('severity', ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])->default('MEDIUM')->index();
+            $table->enum('severity', ['LOW', 'MEDIUM', 'HIGH', 'EXTREME', 'ESCALATED', 'CRITICAL'])->default('MEDIUM')->index();
             $table->enum('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED', 'ESCALATED'])->default('PENDING')->index();
             $table->text('notes')->nullable();
             $table->timestamps();

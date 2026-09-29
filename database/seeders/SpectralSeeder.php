@@ -45,9 +45,44 @@ class SpectralSeeder extends Seeder
             ]
         );
 
+        // Class D Responders (seeded FIRST — required for EndToEndWorkflowTest)
         User::firstOrCreate(
             ['email' => 'responder@ectonet.gov'],
             ['name' => 'Responder A. Santos', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'D', 'responder_status' => 'AVAILABLE']
+        );
+        User::firstOrCreate(
+            ['email' => 'domingo.r@ectonet.gov'],
+            ['name' => 'Ramon Domingo', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'D', 'responder_status' => 'AVAILABLE']
+        );
+
+        // Class C Responders
+        User::firstOrCreate(
+            ['email' => 'salazar.m@ectonet.gov'],
+            ['name' => 'Maria Salazar', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'C', 'responder_status' => 'AVAILABLE']
+        );
+        User::firstOrCreate(
+            ['email' => 'tuazon.j@ectonet.gov'],
+            ['name' => 'Jose Tuazon', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'C', 'responder_status' => 'AVAILABLE']
+        );
+
+        // Class B Responders
+        User::firstOrCreate(
+            ['email' => 'cruz.m@ectonet.gov'],
+            ['name' => 'Marc Cruz', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'B', 'responder_status' => 'AVAILABLE']
+        );
+        User::firstOrCreate(
+            ['email' => 'mendoza.l@ectonet.gov'],
+            ['name' => 'Liza Mendoza', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'B', 'responder_status' => 'AVAILABLE']
+        );
+
+        // Class A Responders
+        User::firstOrCreate(
+            ['email' => 'plaza.j@ectonet.gov'],
+            ['name' => 'John Plaza', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'A', 'responder_status' => 'AVAILABLE']
+        );
+        User::firstOrCreate(
+            ['email' => 'ramos.c@ectonet.gov'],
+            ['name' => 'Clara Ramos', 'password' => Hash::make('password'), 'role' => 'responder', 'responder_class' => 'A', 'responder_status' => 'AVAILABLE']
         );
 
         $observer = User::firstOrCreate(
@@ -200,7 +235,7 @@ class SpectralSeeder extends Seeder
                 'longitude'     => 125.9120,
                 'incident_date' => now()->subHours(1),
                 'severity'      => 'HIGH',
-                'status'        => 'ESCALATED',
+                'status'        => 'VERIFIED',
                 'notes'         => 'Surveillance drone dispatched for spectral signature scanning.',
                 'evidence_url'  => 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
             ],

@@ -1,0 +1,3317 @@
+{
+    "barangays": {
+        "count": "27",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "municipality",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": "San Francisco",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "province",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": "Agusan del Sur",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "latitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "longitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "barangays",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "27",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "barangays",
+                "Non_unique": "1",
+                "Key_name": "barangays_name_index",
+                "Seq_in_index": "1",
+                "Column_name": "name",
+                "Collation": "A",
+                "Cardinality": "27",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "cache": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "key",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "value",
+                "Type": "mediumtext",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "expiration",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "cache",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "key",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "cache",
+                "Non_unique": "1",
+                "Key_name": "cache_expiration_index",
+                "Seq_in_index": "1",
+                "Column_name": "expiration",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "cache_locks": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "key",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "owner",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "expiration",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "cache_locks",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "key",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "cache_locks",
+                "Non_unique": "1",
+                "Key_name": "cache_locks_expiration_index",
+                "Seq_in_index": "1",
+                "Column_name": "expiration",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "equipment": {
+        "count": "5",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "description",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "category",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "price",
+                "Type": "decimal(10,2)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0.00",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "stock",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "status",
+                "Type": "enum('in_stock','low_stock','out_of_stock','restricted')",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": "in_stock",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "image",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "equipment",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "equipment",
+                "Non_unique": "1",
+                "Key_name": "equipment_category_index",
+                "Seq_in_index": "1",
+                "Column_name": "category",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "equipment",
+                "Non_unique": "1",
+                "Key_name": "equipment_status_index",
+                "Seq_in_index": "1",
+                "Column_name": "status",
+                "Collation": "A",
+                "Cardinality": "2",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "failed_jobs": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "uuid",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "UNI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "connection",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "queue",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "payload",
+                "Type": "longtext",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "exception",
+                "Type": "longtext",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "failed_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "current_timestamp()",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "failed_jobs",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "failed_jobs",
+                "Non_unique": "0",
+                "Key_name": "failed_jobs_uuid_unique",
+                "Seq_in_index": "1",
+                "Column_name": "uuid",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "incident_evidence": {
+        "count": "21",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "incident_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "file_path",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "file_name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "file_type",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "description",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "uploaded_by",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "incident_evidence",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "19",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incident_evidence",
+                "Non_unique": "1",
+                "Key_name": "incident_evidence_incident_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "incident_id",
+                "Collation": "A",
+                "Cardinality": "19",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incident_evidence",
+                "Non_unique": "1",
+                "Key_name": "incident_evidence_uploaded_by_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "uploaded_by",
+                "Collation": "A",
+                "Cardinality": "6",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": [
+            {
+                "COLUMN_NAME": "incident_id",
+                "REFERENCED_TABLE_NAME": "incidents",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "CASCADE"
+            },
+            {
+                "COLUMN_NAME": "uploaded_by",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "SET NULL"
+            }
+        ]
+    },
+    "incidents": {
+        "count": "12",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "incident_code",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "UNI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "reported_by",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "barangay_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "incident_type",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "title",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "description",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "latitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "longitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "incident_date",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "severity",
+                "Type": "enum('LOW','MEDIUM','HIGH','CRITICAL')",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": "MEDIUM",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "status",
+                "Type": "enum('PENDING','UNDER INVESTIGATION','VERIFIED','RESOLVED','ESCALATED')",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": "PENDING",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "notes",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigation_completed_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigation_result",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "anomaly_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "anomaly_max_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigator_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigator_max_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_progress",
+                "Type": "tinyint(3) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_investigator_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_started_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_deadline",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_status",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "support_requested_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "incidents",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "0",
+                "Key_name": "incidents_incident_code_unique",
+                "Seq_in_index": "1",
+                "Column_name": "incident_code",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_reported_by_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "reported_by",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_barangay_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "barangay_id",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_incident_type_index",
+                "Seq_in_index": "1",
+                "Column_name": "incident_type",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_latitude_index",
+                "Seq_in_index": "1",
+                "Column_name": "latitude",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_longitude_index",
+                "Seq_in_index": "1",
+                "Column_name": "longitude",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_incident_date_index",
+                "Seq_in_index": "1",
+                "Column_name": "incident_date",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_severity_index",
+                "Seq_in_index": "1",
+                "Column_name": "severity",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_status_index",
+                "Seq_in_index": "1",
+                "Column_name": "status",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_response_investigator_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "response_investigator_id",
+                "Collation": "A",
+                "Cardinality": "2",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "incidents",
+                "Non_unique": "1",
+                "Key_name": "incidents_response_status_index",
+                "Seq_in_index": "1",
+                "Column_name": "response_status",
+                "Collation": "A",
+                "Cardinality": "6",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": [
+            {
+                "COLUMN_NAME": "barangay_id",
+                "REFERENCED_TABLE_NAME": "barangays",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "SET NULL"
+            },
+            {
+                "COLUMN_NAME": "reported_by",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "SET NULL"
+            },
+            {
+                "COLUMN_NAME": "response_investigator_id",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "SET NULL"
+            }
+        ]
+    },
+    "investigations": {
+        "count": "52",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "incident_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigator_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "notes",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigation_date",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "result",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "completed_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "investigations",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "38",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "investigations",
+                "Non_unique": "1",
+                "Key_name": "investigations_incident_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "incident_id",
+                "Collation": "A",
+                "Cardinality": "19",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "investigations",
+                "Non_unique": "1",
+                "Key_name": "investigations_investigator_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "investigator_id",
+                "Collation": "A",
+                "Cardinality": "2",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "investigations",
+                "Non_unique": "1",
+                "Key_name": "investigations_investigation_date_index",
+                "Seq_in_index": "1",
+                "Column_name": "investigation_date",
+                "Collation": "A",
+                "Cardinality": "38",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": [
+            {
+                "COLUMN_NAME": "incident_id",
+                "REFERENCED_TABLE_NAME": "incidents",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "CASCADE"
+            },
+            {
+                "COLUMN_NAME": "investigator_id",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "CASCADE"
+            }
+        ]
+    },
+    "job_batches": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "total_jobs",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "pending_jobs",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "failed_jobs",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "failed_job_ids",
+                "Type": "longtext",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "options",
+                "Type": "mediumtext",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "cancelled_at",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "finished_at",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "job_batches",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "jobs": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "queue",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "payload",
+                "Type": "longtext",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "attempts",
+                "Type": "tinyint(3) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "reserved_at",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "available_at",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "jobs",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "jobs",
+                "Non_unique": "1",
+                "Key_name": "jobs_queue_index",
+                "Seq_in_index": "1",
+                "Column_name": "queue",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "libraries": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "Title",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "Author",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "Genre",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "Quantity",
+                "Type": "double",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "Price",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "libraries",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "migrations": {
+        "count": "16",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "migration",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "batch",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "migrations",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "13",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "password_reset_tokens": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "email",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "token",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "password_reset_tokens",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "email",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "promotion_histories": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "user_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "promoted_by",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "from_class",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "to_class",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "xp_at_promotion",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "promotion_histories",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "promotion_histories",
+                "Non_unique": "1",
+                "Key_name": "promotion_histories_user_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "user_id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "promotion_histories",
+                "Non_unique": "1",
+                "Key_name": "promotion_histories_promoted_by_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "promoted_by",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": [
+            {
+                "COLUMN_NAME": "promoted_by",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "SET NULL"
+            },
+            {
+                "COLUMN_NAME": "user_id",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "CASCADE"
+            }
+        ]
+    },
+    "resources": {
+        "count": "4",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "resource_type",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "quantity",
+                "Type": "decimal(10,2)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0.00",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "unit",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": "units",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "purity",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": "90%",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "yield_rate",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "barangay_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "latitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "longitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "status",
+                "Type": "enum('available','depleted','restricted')",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": "available",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "resources",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "4",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "resources",
+                "Non_unique": "1",
+                "Key_name": "resources_barangay_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "barangay_id",
+                "Collation": "A",
+                "Cardinality": "4",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "resources",
+                "Non_unique": "1",
+                "Key_name": "resources_resource_type_index",
+                "Seq_in_index": "1",
+                "Column_name": "resource_type",
+                "Collation": "A",
+                "Cardinality": "4",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "resources",
+                "Non_unique": "1",
+                "Key_name": "resources_latitude_index",
+                "Seq_in_index": "1",
+                "Column_name": "latitude",
+                "Collation": "A",
+                "Cardinality": "4",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "resources",
+                "Non_unique": "1",
+                "Key_name": "resources_longitude_index",
+                "Seq_in_index": "1",
+                "Column_name": "longitude",
+                "Collation": "A",
+                "Cardinality": "4",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "resources",
+                "Non_unique": "1",
+                "Key_name": "resources_status_index",
+                "Seq_in_index": "1",
+                "Column_name": "status",
+                "Collation": "A",
+                "Cardinality": "2",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": [
+            {
+                "COLUMN_NAME": "barangay_id",
+                "REFERENCED_TABLE_NAME": "barangays",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "SET NULL"
+            }
+        ]
+    },
+    "responder_assignments": {
+        "count": "6",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "incident_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigator_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "responder_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "assigned_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "accepted_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_started_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_completed_at",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "status",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": "ASSIGNED",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "anomaly_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "anomaly_max_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "responder_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "responder_max_hp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_progress",
+                "Type": "tinyint(3) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "response_deadline",
+                "Type": "datetime",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "result",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "notes",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "responder_assignments",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "6",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "responder_assignments",
+                "Non_unique": "1",
+                "Key_name": "responder_assignments_incident_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "incident_id",
+                "Collation": "A",
+                "Cardinality": "6",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "responder_assignments",
+                "Non_unique": "1",
+                "Key_name": "responder_assignments_investigator_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "investigator_id",
+                "Collation": "A",
+                "Cardinality": "6",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "responder_assignments",
+                "Non_unique": "1",
+                "Key_name": "responder_assignments_responder_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "responder_id",
+                "Collation": "A",
+                "Cardinality": "6",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "responder_assignments",
+                "Non_unique": "1",
+                "Key_name": "responder_assignments_status_index",
+                "Seq_in_index": "1",
+                "Column_name": "status",
+                "Collation": "A",
+                "Cardinality": "6",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": [
+            {
+                "COLUMN_NAME": "incident_id",
+                "REFERENCED_TABLE_NAME": "incidents",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "CASCADE"
+            },
+            {
+                "COLUMN_NAME": "investigator_id",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "RESTRICT"
+            },
+            {
+                "COLUMN_NAME": "responder_id",
+                "REFERENCED_TABLE_NAME": "users",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "RESTRICT"
+            }
+        ]
+    },
+    "sessions": {
+        "count": "2",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "user_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "ip_address",
+                "Type": "varchar(45)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "user_agent",
+                "Type": "text",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "payload",
+                "Type": "longtext",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "last_activity",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "sessions",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "sessions",
+                "Non_unique": "1",
+                "Key_name": "sessions_user_id_index",
+                "Seq_in_index": "1",
+                "Column_name": "user_id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "sessions",
+                "Non_unique": "1",
+                "Key_name": "sessions_last_activity_index",
+                "Seq_in_index": "1",
+                "Column_name": "last_activity",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "students": {
+        "count": "0",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "student_id",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "UNI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "first_name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "last_name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "course",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "year_level",
+                "Type": "int(11)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "students",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "students",
+                "Non_unique": "0",
+                "Key_name": "students_student_id_unique",
+                "Seq_in_index": "1",
+                "Column_name": "student_id",
+                "Collation": "A",
+                "Cardinality": "0",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "users": {
+        "count": "12",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "email",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "UNI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "role",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": "reporter",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "responder_class",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": "D",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "responder_status",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": "AVAILABLE",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "xp",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "successful_responses",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "investigations_completed",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "google_id",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "UNI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "email_verified_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "password",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "remember_token",
+                "Type": "varchar(100)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "users",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "users",
+                "Non_unique": "0",
+                "Key_name": "users_email_unique",
+                "Seq_in_index": "1",
+                "Column_name": "email",
+                "Collation": "A",
+                "Cardinality": "12",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "users",
+                "Non_unique": "0",
+                "Key_name": "users_google_id_unique",
+                "Seq_in_index": "1",
+                "Column_name": "google_id",
+                "Collation": "A",
+                "Cardinality": "2",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": []
+    },
+    "ward_stations": {
+        "count": "5",
+        "columns": [
+            {
+                "Field": "id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "code",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "UNI",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "name",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "barangay_id",
+                "Type": "bigint(20) unsigned",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "latitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "longitude",
+                "Type": "decimal(10,7)",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "status",
+                "Type": "enum('active','degraded','breached')",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": "active",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "shield_level",
+                "Type": "tinyint(3) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "100",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "energy_level",
+                "Type": "tinyint(3) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "100",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "frequency",
+                "Type": "varchar(255)",
+                "Collation": "utf8mb4_unicode_ci",
+                "Null": "NO",
+                "Key": "",
+                "Default": "432.8 THz",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "radius_meters",
+                "Type": "int(10) unsigned",
+                "Collation": null,
+                "Null": "NO",
+                "Key": "",
+                "Default": "1000",
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "last_recalibrated",
+                "Type": "date",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "created_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            },
+            {
+                "Field": "updated_at",
+                "Type": "timestamp",
+                "Collation": null,
+                "Null": "YES",
+                "Key": "",
+                "Default": null,
+                "Extra": "",
+                "Privileges": "select,insert,update,references",
+                "Comment": ""
+            }
+        ],
+        "indexes": [
+            {
+                "Table": "ward_stations",
+                "Non_unique": "0",
+                "Key_name": "PRIMARY",
+                "Seq_in_index": "1",
+                "Column_name": "id",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "ward_stations",
+                "Non_unique": "0",
+                "Key_name": "ward_stations_code_unique",
+                "Seq_in_index": "1",
+                "Column_name": "code",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "ward_stations",
+                "Non_unique": "1",
+                "Key_name": "ward_stations_barangay_id_foreign",
+                "Seq_in_index": "1",
+                "Column_name": "barangay_id",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "YES",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "ward_stations",
+                "Non_unique": "1",
+                "Key_name": "ward_stations_latitude_index",
+                "Seq_in_index": "1",
+                "Column_name": "latitude",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "ward_stations",
+                "Non_unique": "1",
+                "Key_name": "ward_stations_longitude_index",
+                "Seq_in_index": "1",
+                "Column_name": "longitude",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            },
+            {
+                "Table": "ward_stations",
+                "Non_unique": "1",
+                "Key_name": "ward_stations_status_index",
+                "Seq_in_index": "1",
+                "Column_name": "status",
+                "Collation": "A",
+                "Cardinality": "5",
+                "Sub_part": null,
+                "Packed": null,
+                "Null": "",
+                "Index_type": "BTREE",
+                "Comment": "",
+                "Index_comment": ""
+            }
+        ],
+        "foreign_keys": [
+            {
+                "COLUMN_NAME": "barangay_id",
+                "REFERENCED_TABLE_NAME": "barangays",
+                "REFERENCED_COLUMN_NAME": "id",
+                "UPDATE_RULE": "RESTRICT",
+                "DELETE_RULE": "SET NULL"
+            }
+        ]
+    }
+}

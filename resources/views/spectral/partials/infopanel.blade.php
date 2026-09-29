@@ -134,7 +134,6 @@
                     <option value="UNDER INVESTIGATION">UNDER INVESTIGATION</option>
                     <option value="VERIFIED">VERIFIED</option>
                     <option value="RESOLVED">RESOLVED</option>
-                    <option value="ESCALATED">ESCALATED</option>
                 </select>
             </div>
 

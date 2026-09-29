@@ -967,7 +967,7 @@ const SpectralMap = {
             const statusLabel = (inc.status || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 
             // HP/progress only revealed once the anomaly is verified — hidden while PENDING / unverified
-            const isVerified = ['VERIFIED', 'ESCALATED', 'RESOLVED'].includes(inc.status);
+            const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status);
 
             const conditionHtml = isVerified ? `
                 <div style="margin-top:8px; padding-top:8px; border-top:1px solid #2A3440; font-family:'JetBrains Mono',monospace;">
@@ -1709,7 +1709,7 @@ const SpectralUI = {
         if (!container) return;
 
         const isReported = true;
-        const isInvestigating = ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED', 'ESCALATED'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
+        const isInvestigating = ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
         const isConfirmed = inc.investigation_result === 'CONFIRMED' || ['VERIFIED', 'RESOLVED'].includes(inc.status) || (inc.responder_assignments && inc.responder_assignments.length > 0);
         const latestAssignment = (inc.responder_assignments && inc.responder_assignments.length > 0) ? inc.responder_assignments[inc.responder_assignments.length - 1] : null;
         const isResponderAssigned = !!(latestAssignment && latestAssignment.responder_id);
@@ -1762,7 +1762,7 @@ const SpectralUI = {
              : status === 'UNDER INVESTIGATION' ? 'investigating'
              : status === 'VERIFIED' ? 'verified'
              : status === 'RESOLVED' ? 'resolved'
-             : 'escalated';
+             : 'pending';
     },
 
     async saveInvestigatorChanges() {

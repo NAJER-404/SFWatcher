@@ -13,6 +13,11 @@ class EnsureAdmin
     {
         $user = Auth::guard('admin')->user();
 
+        if (! $user && Auth::guard('web')->check() && Auth::guard('web')->user()->isAdmin()) {
+            $user = Auth::guard('web')->user();
+            Auth::guard('admin')->setUser($user);
+        }
+
         if (! $user) {
             return redirect()->route('admin.login');
         }

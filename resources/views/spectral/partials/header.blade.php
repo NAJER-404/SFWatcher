@@ -1,6 +1,16 @@
-<header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-4 flex items-center justify-between flex-shrink-0 z-30 select-none">
-    <!-- Left: Brand & Logo -->
-    <div class="flex items-center">
+<header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-3 sm:px-4 flex items-center justify-between flex-shrink-0 z-30 select-none">
+    <!-- Left: Hamburger (mobile) + Brand & Logo -->
+    <div class="flex items-center gap-2">
+        <!-- Mobile hamburger -->
+        <button type="button"
+                id="mobile-menu-toggle"
+                onclick="SpectralSidebar.openMobile()"
+                class="flex md:hidden w-8 h-8 items-center justify-center rounded-lg bg-[#1B222C] border border-[#2A3440] text-[#9CA3AF] hover:text-white hover:border-[#8B5CF6]/50 transition-all"
+                aria-label="Open menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
         <a href="{{ route('spectral.dashboard') }}" class="flex items-center gap-[5px] hover:opacity-90 transition">
             <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra" class="h-9 w-9 object-contain">
             <span class="text-xl font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SFWatch</span>
@@ -47,7 +57,7 @@
 
             <!-- Notification Dropdown -->
             <div id="notif-dropdown"
-                class="hidden absolute right-0 top-10 w-80 sm:w-96 rounded-xl bg-[#151B23] border border-[#2A3440] shadow-2xl shadow-black/60 z-[200] overflow-hidden"
+                class="hidden fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-10 sm:w-96 rounded-xl bg-[#151B23] border border-[#2A3440] shadow-2xl shadow-black/60 z-[200] overflow-hidden"
             >
                 <!-- Header -->
                 <div class="flex items-center justify-between px-4 py-3 border-b border-[#2A3440] bg-[#11161D]">
@@ -76,23 +86,28 @@
                     @forelse($notifications as $notif)
                     @php
                         $isRead = !empty($notif['is_read']);
+                        $isRejected = ($notif['status'] ?? '') === 'REJECTED';
                         $dotColor = match($notif['status']) {
                             'RESOLVED'           => 'bg-emerald-400',
                             'VERIFIED'           => 'bg-blue-400',
                             'UNDER INVESTIGATION'=> 'bg-amber-400',
+                            'REJECTED'           => 'bg-rose-500',
                             default              => 'bg-slate-400',
                         };
+                        $notifUrl = str_starts_with((string)$notif['incident_id'], 'rej_')
+                            ? '#'
+                            : route('spectral.incidents.show', $notif['incident_id']);
                     @endphp
-                    <a href="{{ route('spectral.incidents.show', $notif['incident_id']) }}"
+                    <a href="{{ $notifUrl }}"
                        data-incident-id="{{ $notif['incident_id'] }}"
                        data-read="{{ $isRead ? '1' : '0' }}"
-                       onclick="SpectralNotif.markAsRead({{ $notif['incident_id'] }}, event)"
+                       onclick="SpectralNotif.markAsRead('{{ $notif['incident_id'] }}', event)"
                        class="notif-item flex items-start gap-3 px-4 py-3 hover:bg-[#1B222C] transition group {{ $isRead ? 'opacity-55 bg-[#0e1318]/50' : '' }}">
 
                         <!-- Status dot / read indicator -->
                         <div class="mt-0.5 flex-shrink-0 notif-dot-wrap">
                             @if(!$isRead)
-                            <span class="notif-dot w-2 h-2 rounded-full {{ $dotColor }} block mt-1 ring-2 ring-emerald-500/20"></span>
+                            <span class="notif-dot w-2 h-2 rounded-full {{ $dotColor }} block mt-1 ring-2 {{ $isRejected ? 'ring-rose-500/20' : 'ring-emerald-500/20' }}"></span>
                             @else
                             <span class="notif-dot w-2 h-2 rounded-full bg-slate-600 block mt-1"></span>
                             @endif
@@ -104,7 +119,8 @@
                                     <span class="text-[10px] font-mono font-bold text-[#8B5CF6]">{{ $notif['incident_code'] }}</span>
                                     <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded
                                         {{ $notif['status'] === 'RESOLVED' ? 'bg-emerald-500/15 text-emerald-400' :
-                                           ($notif['status'] === 'VERIFIED' ? 'bg-blue-500/15 text-blue-400' : 'bg-amber-500/15 text-amber-400') }}">
+                                           ($notif['status'] === 'VERIFIED' ? 'bg-blue-500/15 text-blue-400' :
+                                           ($notif['status'] === 'REJECTED' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' : 'bg-amber-500/15 text-amber-400')) }}">
                                         {{ $notif['status'] }}
                                     </span>
                                 </div>

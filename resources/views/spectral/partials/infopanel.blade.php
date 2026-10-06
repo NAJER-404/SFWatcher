@@ -1,7 +1,19 @@
-<aside id="spectral-infopanel" class="w-full md:w-80 lg:w-96 bg-[#151B23] border-l border-[#2A3440] flex flex-col h-[45vh] md:h-full flex-shrink-0 z-20 select-none overflow-hidden transition-all duration-300">
+<aside id="spectral-infopanel" class="w-full md:w-80 lg:w-96 bg-[#151B23] border-t md:border-t-0 md:border-l border-[#2A3440] flex flex-col h-10 md:h-full flex-shrink-0 z-20 select-none overflow-hidden transition-all duration-300">
+
+    <!-- Mobile Drawer Drag Handle / Toggle Header (Mobile only) -->
+    <div onclick="SpectralUI.toggleMobileInfoPanel()" class="flex md:hidden items-center justify-between px-3.5 py-2 bg-[#11161D] border-b border-[#2A3440] cursor-pointer active:bg-[#1B222C] transition select-none flex-shrink-0 h-10">
+        <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse flex-shrink-0"></span>
+            <span id="mobile-infopanel-title" class="text-[11px] font-mono font-bold text-slate-200 truncate">System Summary</span>
+        </div>
+        <div class="flex items-center gap-1.5 flex-shrink-0 text-slate-400">
+            <span id="mobile-infopanel-hint" class="text-[10px] font-mono">Expand</span>
+            <svg id="mobile-infopanel-icon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+    </div>
 
     <!-- MODE A: DEFAULT OVERVIEW PANEL -->
-    <div id="panel-default-overview" class="flex-1 flex flex-col overflow-y-auto p-4 space-y-4">
+    <div id="panel-default-overview" class="flex-1 flex flex-col overflow-y-auto p-4 space-y-4 min-h-0">
 
         <!-- Header -->
         <div class="border-b border-[#2A3440] pb-3">
@@ -50,7 +62,7 @@
     </div>
 
     <!-- MODE B: DETAILED INCIDENT INSPECTOR PANEL -->
-    <div id="panel-incident-inspector" class="hidden flex-1 flex flex-col overflow-y-auto p-4 space-y-4">
+    <div id="panel-incident-inspector" class="hidden flex-1 flex flex-col overflow-y-auto p-4 space-y-4 min-h-0">
 
         <!-- Top Bar with Back Button -->
         <div class="flex items-center justify-between border-b border-[#2A3440] pb-3">
@@ -103,7 +115,6 @@
                 <p id="insp-reporter" class="text-[11px] text-slate-300 font-semibold truncate">—</p>
             </div>
         </div>
-
 
         <!-- Status Timeline (Stage Progression) -->
         <div class="p-3.5 rounded-xl bg-[#11161D] border border-[#2A3440] space-y-2 font-mono">

@@ -27,6 +27,7 @@ class Incident extends Model
         'response_progress', 'response_investigator_id', 'response_started_at',
         'response_deadline', 'response_status', 'support_requested_at',
         'investigation_completed_at', 'investigation_result',
+        'archived_from_map_at', 'archived_by', 'archive_notes',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class Incident extends Model
         'response_deadline' => 'datetime',
         'support_requested_at' => 'datetime',
         'investigation_completed_at' => 'datetime',
+        'archived_from_map_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -89,6 +91,26 @@ class Incident extends Model
     }
 
     public function responderAssignments() { return $this->hasMany(ResponderAssignment::class); }
+
+    public function archivedBy()
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    public function isArchivedFromMap(): bool
+    {
+        return !is_null($this->archived_from_map_at);
+    }
+
+    public function scopeActiveOnMap($query)
+    {
+        return $query->whereNull('archived_from_map_at');
+    }
+
+    public function scopeArchivedFromMap($query)
+    {
+        return $query->whereNotNull('archived_from_map_at');
+    }
 
     public function getSeverityColorAttribute(): string
     {

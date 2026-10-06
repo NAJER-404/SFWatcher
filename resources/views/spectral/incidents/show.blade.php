@@ -3,10 +3,10 @@
 @section('title', 'Incident ' . $incident->incident_code . ' — Spectra')
 
 @section('content')
-<div class="flex-1 overflow-y-auto p-6 bg-[#0B0F14] space-y-6 max-w-6xl mx-auto w-full">
+<div class="flex-1 overflow-y-auto p-3.5 sm:p-6 bg-[#0B0F14] space-y-5 sm:space-y-6 max-w-6xl mx-auto w-full">
 
     <!-- Top Breadcrumb & Actions -->
-    <div class="flex items-center justify-between pb-3 border-b border-[#2A3440]">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2A3440]">
         <div class="flex items-center gap-2 text-xs font-mono">
             <a href="{{ route('spectral.dashboard') }}" class="text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -18,7 +18,7 @@
             <span class="text-slate-400">{{ $incident->incident_code }}</span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center flex-wrap gap-2">
             @if($incident->reported_by === auth()->id() || auth()->user()?->isAdmin())
             <button type="button"
                     onclick="openDeleteModal('{{ route('spectral.incidents.destroy', $incident->id) }}', '{{ $incident->incident_code }}', '{{ addslashes($incident->title) }}')"
@@ -47,7 +47,7 @@
         <div class="lg:col-span-2 space-y-6">
 
             <!-- Core Details Card -->
-            <div class="p-6 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-4 shadow-xl">
+            <div class="p-4 sm:p-6 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-4 shadow-xl">
                 <div>
                     <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8B5CF6]">{{ $incident->incident_type }}</span>
                     <h1 class="text-xl font-extrabold text-white mt-1 leading-snug">{{ $incident->title }}</h1>
@@ -236,7 +236,7 @@
             </div>
 
             <!-- Evidence Photos Section -->
-            <div class="p-6 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-4 shadow-xl">
+            <div class="p-4 sm:p-6 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-4 shadow-xl">
                 <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#8B5CF6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
@@ -270,7 +270,7 @@
             </div>
 
             <!-- Investigation Timeline Log -->
-            <div class="p-6 rounded-xl bg-[#151B23] border border-[#2A3440] space-y-4 shadow-xl">
+            <div class="p-4 sm:p-6 rounded-xl bg-[#151B23] border border-[#2A3440] space-y-4 shadow-xl">
                 <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
                     Investigation &amp; Action Log
                 </h3>

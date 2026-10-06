@@ -51,12 +51,23 @@
     <link rel="stylesheet" href="{{ asset('css/spectral.css') }}">
     @stack('styles')
 </head>
-<body class="h-full bg-[#0B0F14] text-[#F3F4F6] font-sans antialiased flex flex-col overflow-hidden select-none">
+<body class="h-full bg-[#0B0F14] text-[#F3F4F6] font-sans antialiased flex flex-col overflow-hidden select-none" style="-webkit-tap-highlight-color: transparent; touch-action: manipulation;">
 
     <!-- Investigator Top Header -->
-    <header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-4 flex items-center justify-between flex-shrink-0 z-30 select-none">
-        <!-- Left: Brand & Portal Title -->
-        <div class="flex items-center gap-3">
+    <header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-3 sm:px-4 flex items-center justify-between flex-shrink-0 z-[1001] select-none">
+        <!-- Left: Hamburger (mobile) + Brand & Portal Title -->
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Mobile hamburger -->
+            <button type="button"
+                    id="investigator-mobile-menu-toggle"
+                    onclick="InvestigatorSidebar.openMobile()"
+                    class="flex md:hidden w-8 h-8 items-center justify-center rounded-lg bg-[#1B222C] border border-[#2A3440] text-[#9CA3AF] hover:text-white hover:border-[#8B5CF6]/50 transition-all"
+                    aria-label="Open menu">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+
             <a href="{{ route('investigator.dashboard') }}" class="flex items-center gap-2 hover:opacity-90 transition">
                 <img src="{{ asset('images/spectra-logo.png') }}" alt="SpectraWatch" class="h-8 w-8 object-contain">
                 <span class="text-lg font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SpectraWatch</span>

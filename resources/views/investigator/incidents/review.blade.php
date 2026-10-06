@@ -225,54 +225,88 @@
                     <div class="space-y-1.5">
                         <p class="text-[10px] font-mono text-slate-400 uppercase font-bold">Workflow Stage Selection</p>
 
-                        {{-- Under Investigation --}}
-                        <button type="button" onclick="setStatus('UNDER INVESTIGATION')" id="btn-status-under-investigation"
-                            class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between
-                                {{ $incident->status === 'UNDER INVESTIGATION'
-                                    ? 'bg-[#8B5CF6]/20 border border-[#8B5CF6]/50 text-[#C4B5FD]'
-                                    : 'bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-slate-200 hover:border-[#3A4450]' }}">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full {{ $incident->status === 'UNDER INVESTIGATION' ? 'bg-[#8B5CF6]' : 'bg-slate-600' }}"></span>
-                                <span>Under Investigation</span>
-                            </div>
-                        </button>
-
-                        {{-- Verify Incident — disabled once already VERIFIED or RESOLVED to prevent re-verifying --}}
-                        @php $alreadyVerifiedOrResolved = in_array($incident->status, ['VERIFIED', 'RESOLVED']); @endphp
-                        @if($alreadyVerifiedOrResolved)
-                            <div id="btn-status-verified"
+                        {{-- Stage 1: Under Investigation --}}
+                        @if(in_array($incident->status, ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED']))
+                            <div id="btn-status-under-investigation"
                                 class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-500 cursor-not-allowed select-none opacity-60">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-slate-600"></span>
-                                    <span id="label-verified">Verify Incident</span>
+                                    <span class="w-2 h-2 rounded-full {{ $incident->status === 'UNDER INVESTIGATION' ? 'bg-[#8B5CF6]' : 'bg-emerald-500' }}"></span>
+                                    <span class="{{ $incident->status === 'UNDER INVESTIGATION' ? 'text-[#C4B5FD]' : 'text-slate-400' }}">Under Investigation</span>
                                 </div>
-                                <span class="text-[10px] text-slate-600 font-normal">completed</span>
+                                <span class="text-[10px] {{ $incident->status === 'UNDER INVESTIGATION' ? 'text-[#A78BFA]' : 'text-slate-600' }} font-normal">
+                                    {{ $incident->status === 'UNDER INVESTIGATION' ? 'active' : 'completed' }}
+                                </span>
                             </div>
                         @else
-                            <button type="button" onclick="setStatus('VERIFIED')" id="btn-status-verified"
-                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-emerald-300 hover:border-emerald-500/30">
+                            <button type="button" onclick="setStatus('UNDER INVESTIGATION')" id="btn-status-under-investigation"
+                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-[#C4B5FD] hover:border-[#8B5CF6]/50">
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-slate-600"></span>
-                                    <span id="label-verified">Verify Incident</span>
+                                    <span>Under Investigation</span>
                                 </div>
+                                <span class="text-[10px] text-slate-500 font-normal" id="badge-status-under-investigation">select →</span>
                             </button>
                         @endif
 
-                        {{-- Assign Responder (Opens Modal) - Unlocked ONLY if already committed as VERIFIED/RESOLVED --}}
+                        {{-- Stage 2: Verify Incident — locked if PENDING; clickable if UNDER INVESTIGATION; completed if VERIFIED/RESOLVED --}}
+                        @if(in_array($incident->status, ['VERIFIED', 'RESOLVED']))
+                            <div id="btn-status-verified"
+                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-500 cursor-not-allowed select-none opacity-60">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    <span id="label-verified" class="text-slate-400">Verify Incident</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-400/80 font-normal">verified</span>
+                            </div>
+                        @elseif($incident->status === 'UNDER INVESTIGATION')
+                            <button type="button" onclick="setStatus('VERIFIED')" id="btn-status-verified"
+                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-emerald-300 hover:border-emerald-500/50">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-slate-600"></span>
+                                    <span id="label-verified">Verify Incident</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-400/80 font-normal" id="badge-status-verified">select →</span>
+                            </button>
+                        @else
+                            {{-- PENDING: Cannot verify incident before putting it under investigation --}}
+                            <div id="btn-status-verified" title="Incident must be put Under Investigation first before verifying"
+                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-600 cursor-not-allowed select-none opacity-50">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-slate-700"></span>
+                                    <span id="label-verified" class="text-slate-600">Verify Incident</span>
+                                </div>
+                                <span class="text-[10px] text-amber-500/80 font-normal">under investigation required first</span>
+                            </div>
+                        @endif
+
+                        {{-- Staged action indicator banner --}}
+                        <div id="staged-action-indicator" class="hidden p-2 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 text-center font-mono text-[11px] text-[#C4B5FD] animate-pulse">
+                            Stage selected: <span id="staged-status-text" class="font-bold text-white"></span>. Click <strong>Commit Update</strong> below to apply!
+                        </div>
+
+                        {{-- Assign Responder (Opens Modal) - Unlocked ONLY if already committed as VERIFIED/RESOLVED and not yet assigned --}}
                         @php
                             $isVerifiedIncident = in_array($incident->status, ['VERIFIED', 'RESOLVED']);
                         @endphp
-                        @if($isVerifiedIncident)
-                            <button type="button" onclick="openAssignModal()" id="btn-assign-responder"
-                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between
-                                    {{ ($assignedResponder && $incident->status === 'VERIFIED')
-                                        ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-200'
-                                        : 'bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-cyan-300 hover:border-cyan-500/30' }}">
+                        @if($assignedResponder)
+                            {{-- Once assigned & committed: Locked, cannot be clicked to reassign --}}
+                            <div id="btn-assign-responder"
+                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 cursor-not-allowed select-none opacity-85"
+                                title="Responder already assigned and committed. Cannot be reassigned.">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full {{ ($assignedResponder && $incident->status === 'VERIFIED') ? 'bg-cyan-400' : 'bg-slate-600' }}"></span>
+                                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                                     <span id="label-assign-responder">
-                                        Assign Responder{{ $assignedResponder ? ' → ' . $assignedResponder->name : '' }}
+                                        Assigned Responder → {{ $assignedResponder->name }}
                                     </span>
+                                </div>
+                                <span class="text-[10px] text-cyan-400 font-normal">assigned</span>
+                            </div>
+                        @elseif($isVerifiedIncident)
+                            <button type="button" onclick="openAssignModal()" id="btn-assign-responder"
+                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-cyan-300 hover:border-cyan-500/30">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-slate-600"></span>
+                                    <span id="label-assign-responder">Assign Responder</span>
                                 </div>
                                 <span class="text-[10px] text-cyan-400 font-normal">→ modal</span>
                             </button>
@@ -316,7 +350,7 @@
 
                     {{-- Investigation Note --}}
                     <div class="space-y-1">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase font-mono">Investigation Note <span class="text-slate-600 font-normal normal-case">— recorded to audit trail</span></label>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase font-mono">Investigation Note</label>
                         <textarea
                             name="notes"
                             rows="2"
@@ -325,7 +359,7 @@
                         ></textarea>
                     </div>
 
-                    <button type="submit" class="w-full py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] active:scale-[0.99] text-white font-bold rounded-xl transition shadow-md shadow-[#8B5CF6]/20 font-mono text-xs">
+                    <button type="submit" id="btn-commit-update" class="w-full py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] active:scale-[0.99] text-white font-bold rounded-xl transition shadow-md shadow-[#8B5CF6]/20 font-mono text-xs">
                         Commit Update
                     </button>
                 </form>
@@ -339,37 +373,6 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-
-    {{-- Audit Trail — Full Width Below Grid --}}
-    <div class="p-5 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-3">
-        <div class="flex items-center justify-between pb-3 border-b border-[#1E2631]">
-            <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-[#8B5CF6]"></span>
-                Audit Trail
-            </h3>
-            <span class="text-[10px] font-mono text-slate-500">
-                {{ min($incident->investigations->count(), 3) }} of {{ $incident->investigations->count() }} record(s)
-            </span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            @forelse($incident->investigations->sortByDesc('investigation_date')->take(3) as $inv)
-                <div class="px-3 py-2.5 rounded-xl bg-[#11161D] border border-[#2A3440] text-[11px] font-mono space-y-1">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-1.5 min-w-0">
-                            <span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#1B222C] text-[#A78BFA] border border-[#2A3440]">{{ $inv->result ?? 'UPDATE' }}</span>
-                            <span class="text-white font-bold truncate">{{ $inv->investigator->name ?? 'Investigator' }}</span>
-                        </div>
-                        <span class="shrink-0 text-[10px] text-[#64748B]">
-                            {{ $inv->investigation_date ? $inv->investigation_date->format('m-d h:i A') : ($inv->created_at?->format('m-d h:i A') ?? '—') }}
-                        </span>
-                    </div>
-                    <p class="text-slate-400 truncate pl-0.5">{{ $inv->notes }}</p>
-                </div>
-            @empty
-                <div class="sm:col-span-3 py-4 text-center text-slate-600 text-[11px] font-mono">No audit records yet.</div>
-            @endforelse
         </div>
     </div>
 
@@ -503,40 +506,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }).addTo(map);
     }
 
-    // Status selection
+    // Status selection (Stages selection; does NOT auto-submit until Commit Update is clicked)
     window.setStatus = function(status) {
         const input = document.getElementById('status-input');
-        if (input) input.value = status;
+        if (!input) return;
 
-        // Reset visual styles of buttons
+        const currentDbStatus = '{{ $incident->status }}';
+
+        // Toggle back if clicking the already selected staged value
+        if (input.value === status && status !== currentDbStatus) {
+            input.value = currentDbStatus;
+            resetWorkflowButtonStyles();
+            const ind = document.getElementById('staged-action-indicator');
+            if (ind) ind.classList.add('hidden');
+            return;
+        }
+
+        input.value = status;
+        resetWorkflowButtonStyles();
+
+        // Highlight the staged button
         const btnMap = {
             'UNDER INVESTIGATION': 'btn-status-under-investigation',
             'VERIFIED': 'btn-status-verified',
             'RESOLVED': 'btn-status-resolved'
         };
 
-        ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED'].forEach(st => {
-            const btn = document.getElementById(btnMap[st]);
-            if (btn) {
-                if (st === status) {
-                    btn.classList.remove('bg-[#11161D]', 'border-[#2A3440]', 'text-slate-400');
-                    if (st === 'VERIFIED') {
-                        btn.classList.add('bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-300');
-                    } else if (st === 'RESOLVED') {
-                        btn.classList.add('bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-200');
-                    } else {
-                        btn.classList.add('bg-[#8B5CF6]/20', 'border-[#8B5CF6]/50', 'text-[#C4B5FD]');
-                    }
-                } else {
-                    btn.classList.remove(
-                        'bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-300', 'text-emerald-200',
-                        'bg-[#8B5CF6]/20', 'border-[#8B5CF6]/50', 'text-[#C4B5FD]'
-                    );
-                    btn.classList.add('bg-[#11161D]', 'border-[#2A3440]', 'text-slate-400');
-                }
+        const targetBtn = document.getElementById(btnMap[status]);
+        if (targetBtn && targetBtn.tagName === 'BUTTON') {
+            targetBtn.classList.remove('bg-[#11161D]', 'border-[#2A3440]', 'text-slate-400');
+            if (status === 'VERIFIED') {
+                targetBtn.classList.add('bg-emerald-500/20', 'border-2', 'border-emerald-500', 'text-white', 'ring-1', 'ring-emerald-500/50');
+            } else if (status === 'RESOLVED') {
+                targetBtn.classList.add('bg-emerald-500/20', 'border-2', 'border-emerald-500', 'text-white', 'ring-1', 'ring-emerald-500/50');
+            } else {
+                targetBtn.classList.add('bg-[#8B5CF6]/20', 'border-2', 'border-[#8B5CF6]', 'text-white', 'ring-1', 'ring-[#8B5CF6]/50');
             }
-        });
+        }
+
+        // Show banner informing user to click Commit Update
+        const indicator = document.getElementById('staged-action-indicator');
+        const textEl    = document.getElementById('staged-status-text');
+        if (indicator && textEl) {
+            textEl.textContent = status;
+            indicator.classList.remove('hidden');
+        }
+
+        // Pulse the Commit Update button
+        const commitBtn = document.getElementById('btn-commit-update');
+        if (commitBtn) {
+            commitBtn.classList.add('ring-2', 'ring-[#8B5CF6]', 'animate-pulse');
+            setTimeout(() => {
+                commitBtn.classList.remove('animate-pulse');
+            }, 1000);
+        }
     };
+
+    function resetWorkflowButtonStyles() {
+        const btnUnder = document.getElementById('btn-status-under-investigation');
+        const btnVer   = document.getElementById('btn-status-verified');
+        const btnRes   = document.getElementById('btn-status-resolved');
+
+        if (btnUnder && btnUnder.tagName === 'BUTTON') {
+            btnUnder.className = "w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-[#C4B5FD] hover:border-[#8B5CF6]/50";
+        }
+        if (btnVer && btnVer.tagName === 'BUTTON') {
+            btnVer.className = "w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-emerald-300 hover:border-emerald-500/50";
+        }
+        if (btnRes && btnRes.tagName === 'BUTTON') {
+            btnRes.className = "w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-emerald-200 hover:border-emerald-500/30";
+        }
+    }
 
     // Assign Responder Modal System (AJAX)
     const assignModal    = document.getElementById('assign-modal');

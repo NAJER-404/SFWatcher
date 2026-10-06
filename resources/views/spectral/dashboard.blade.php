@@ -40,11 +40,11 @@
     </main>
 
     <!-- ── BOTTOM PANELS: Recent Incidents + Quick Actions ─── -->
-    <div class="flex-shrink-0 border-t border-[#2A3440] bg-[#11161D] flex divide-x divide-[#2A3440]" style="height: 160px;">
+    <div class="flex-shrink-0 border-t border-[#2A3440] bg-[#11161D] flex divide-x divide-[#2A3440] md:h-[160px] max-h-[45vw] md:max-h-none overflow-hidden">
 
         <!-- Recent Incidents -->
         <div class="flex-1 overflow-hidden flex flex-col min-w-0">
-            <div class="px-4 py-2 flex items-center justify-between border-b border-[#2A3440] flex-shrink-0">
+            <div class="px-3 sm:px-4 py-2 flex items-center justify-between border-b border-[#2A3440] flex-shrink-0">
                 <span class="text-[11px] font-bold text-slate-200">Recent Incidents</span>
                 <a href="{{ route('spectral.incidents.index') }}" class="text-[10px] text-[#8B5CF6] hover:text-[#A78BFA] font-semibold transition inline-flex items-center gap-1">
                     <span>View All</span>
@@ -55,7 +55,7 @@
                 <div class="flex gap-2.5 p-3 h-full items-start">
                     @forelse($incidents->take(5) as $inc)
                     <div onclick="SpectralUI.inspectIncident('{{ $inc->incident_code }}')"
-                         class="flex-shrink-0 w-52 p-2.5 rounded-lg bg-[#151B23] border border-[#2A3440] hover:border-[#8B5CF6]/50 cursor-pointer transition-all">
+                         class="flex-shrink-0 w-44 sm:w-52 p-2.5 rounded-lg bg-[#151B23] border border-[#2A3440] hover:border-[#8B5CF6]/50 cursor-pointer transition-all">
                         <div class="flex items-center justify-between gap-1 mb-1">
                             <span class="text-[9px] font-mono font-bold text-[#8B5CF6]">{{ $inc->incident_code }}</span>
                             <span class="badge-{{ strtolower($inc->severity) }} text-[8px] font-bold px-1.5 rounded">{{ $inc->severity }}</span>
@@ -85,6 +85,7 @@
 
 
 </div>
+
 
 <!-- RIGHT INFORMATION PANEL -->
 @include('spectral.partials.infopanel')

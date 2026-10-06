@@ -3,10 +3,10 @@
 @section('title', 'Response Screen — ' . $assignment->incident->incident_code . ' — Spectra')
 
 @section('content')
-<main class="flex-1 overflow-y-auto p-5 md:p-8 bg-[#0B0F14] max-w-6xl mx-auto w-full space-y-6">
+<main class="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-8 bg-[#0B0F14] max-w-6xl mx-auto w-full space-y-5 sm:space-y-6">
 
     <!-- Top Navigation Breadcrumb -->
-    <div class="flex items-center justify-between pb-3 border-b border-[#2A3440]">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2A3440]">
         <div class="flex items-center gap-2 text-xs font-mono">
             <a href="{{ route('responder.dashboard') }}" class="text-[#8B5CF6] hover:underline">
                 Responder Dashboard
@@ -17,7 +17,7 @@
             <span class="text-[#A78BFA] font-bold">{{ $assignment->incident->incident_code }}</span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center flex-wrap gap-2">
             <span class="px-2.5 py-1 rounded bg-[#151B23] border border-[#2A3440] font-mono text-xs font-bold text-slate-300">
                 SEVERITY: {{ $assignment->incident->severity }}
             </span>
@@ -133,27 +133,27 @@
         </div>
 
         @if($assignment->status === 'ASSIGNED')
-            <div class="flex items-center justify-between gap-4 p-4 rounded-lg bg-[#11161D] border border-amber-500/30">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-[#11161D] border border-amber-500/30">
                 <div>
                     <p class="text-xs font-bold text-white">Assignment Awaiting Acceptance</p>
                     <p class="text-[11px] text-slate-400">Accept this response assignment to take tactical ownership of the site.</p>
                 </div>
-                <form method="POST" action="{{ route('responder.assignments.accept', $assignment) }}">
+                <form method="POST" action="{{ route('responder.assignments.accept', $assignment) }}" class="w-full sm:w-auto">
                     @csrf
-                    <button type="submit" class="px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-[#8B5CF6]/30">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-[#8B5CF6]/30 text-center">
                         ACCEPT ASSIGNMENT
                     </button>
                 </form>
             </div>
         @elseif($assignment->status === 'ACCEPTED')
-            <div class="flex items-center justify-between gap-4 p-4 rounded-lg bg-[#11161D] border border-[#8B5CF6]/30">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-[#11161D] border border-[#8B5CF6]/30">
                 <div>
                     <p class="text-xs font-bold text-white">Ready for Deployment</p>
                     <p class="text-[11px] text-slate-400">Click below to initialize anomaly containment, start tactical monitoring, and begin the operational timer.</p>
                 </div>
-                <form method="POST" action="{{ route('responder.assignments.start', $assignment) }}">
+                <form method="POST" action="{{ route('responder.assignments.start', $assignment) }}" class="w-full sm:w-auto">
                     @csrf
-                    <button type="submit" class="px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-[#8B5CF6]/30">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-[#8B5CF6]/30 text-center">
                         START RESPONSE
                     </button>
                 </form>

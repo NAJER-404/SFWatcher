@@ -11,8 +11,8 @@ class ConfigureSessionCookie
     /**
      * Handle an incoming request.
      *
-     * Ensure the Investigator portal and standard user sessions use separate cookies
-     * so that logging in/out of one does not collide with or terminate the other.
+     * Ensure each portal uses a separate session cookie so that logging in/out
+     * of one guard does not collide with or terminate another guard's session.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -20,6 +20,10 @@ class ConfigureSessionCookie
     {
         if ($request->is('investigator*')) {
             config(['session.cookie' => 'spectrawatch_investigator_session']);
+        } elseif ($request->is('admin*')) {
+            config(['session.cookie' => 'spectrawatch_admin_session']);
+        } elseif ($request->is('responder*')) {
+            config(['session.cookie' => 'spectrawatch_responder_session']);
         } else {
             config(['session.cookie' => 'spectrawatch_session']);
         }
@@ -27,3 +31,4 @@ class ConfigureSessionCookie
         return $next($request);
     }
 }
+

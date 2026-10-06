@@ -78,9 +78,37 @@ class User extends Authenticatable
         return $this->hasMany(PromotionHistory::class);
     }
 
+    public function adminActivityLogs()
+    {
+        return $this->hasMany(AdminActivityLog::class);
+    }
+
+    public function getMaxHpAttribute(): int
+    {
+        $class = strtoupper($this->responder_class ?? 'D');
+        return (int) config("spectral_response.classes.{$class}.responder_hp", 100);
+    }
+
+    public function getNextClassAttribute(): ?string
+    {
+        return match (strtoupper($this->responder_class ?? 'D')) {
+            'D' => 'C',
+            'C' => 'B',
+            'B' => 'A',
+            default => null,
+        };
+    }
+
+    public function getRequiredPromotionXpAttribute(): ?int
+    {
+        $class = strtoupper($this->responder_class ?? 'D');
+        return config("spectral_response.classes.{$class}.promotion_xp");
+    }
+
     public function isPromotionEligible(): bool
     {
-        $next = match ($this->responder_class) { 'D' => 'C', 'C' => 'B', 'B' => 'A', default => null };
-        return $this->isResponder() && $next !== null && $this->xp >= config('spectral_response.classes.'.$this->responder_class.'.promotion_xp');
+        $next = $this->next_class;
+        $req = $this->required_promotion_xp;
+        return $this->isResponder() && $next !== null && $req !== null && $this->xp >= $req;
     }
 }

@@ -7,7 +7,7 @@
 @include('investigator.partials.sidebar')
 
 <!-- RESPONDERS ROSTER WORKSPACE -->
-<main class="flex-1 overflow-y-auto p-5 md:p-7 bg-[#0B0F14] space-y-6 max-w-7xl mx-auto w-full">
+<main class="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-7 bg-[#0B0F14] space-y-5 sm:space-y-6 max-w-7xl mx-auto w-full">
 
     <!-- Top Header -->
     <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#2A3440]">

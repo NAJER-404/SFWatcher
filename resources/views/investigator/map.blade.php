@@ -44,9 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const map = L.map('full-investigator-map', {
         center: [8.5100, 125.9750],
         zoom: 14,
-        zoomControl: true,
+        zoomControl: false,
         attributionControl: false
     });
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         attribution: 'Imagery &copy; Google',

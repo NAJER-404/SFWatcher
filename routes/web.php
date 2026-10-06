@@ -9,7 +9,10 @@ use App\Http\Controllers\Spectral\IncidentController;
 use App\Http\Controllers\Spectral\ResourceController;
 use App\Http\Controllers\Spectral\WardStationController;
 use App\Http\Controllers\Investigator\InvestigatorDashboardController;
-use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminIncidentController;
+use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Responder\ResponderDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,22 +39,61 @@ Route::middleware('guest')->group(function () {
 // Admin Authentication (Separate)
 Route::get('/admin/login',  [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login.submit');
+Route::post('/admin/logout', [AuthController::class, 'adminLogout'])->name('admin.logout');
 Route::get('/warden/login', fn() => redirect()->route('admin.login'));
 
-// Investigator Authentication (Separate — Isolated Session & Cookie)
-Route::get('/investigator/login',   [AuthController::class, 'showInvestigatorLoginForm'])->name('investigator.login');
-Route::post('/investigator/login',  [AuthController::class, 'investigatorLogin'])->name('investigator.login.submit');
-Route::post('/investigator/logout', [AuthController::class, 'investigatorLogout'])->name('investigator.logout');
-
+// Reporter Logout (web guard)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Investigator Logout
+Route::post('/investigator/logout', [AuthController::class, 'investigatorLogout'])->name('investigator.logout');
+
+// Protected Admin Portal Routes
 Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
-    Route::put('/users/{user}/role', [UserManagementController::class, 'updateRole'])->name('users.role');
-    Route::post('/users/{user}/promote', [UserManagementController::class, 'promote'])->name('users.promote');
+    // Overview
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard.index');
+
+    // User Management
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/investigators', [AdminUserController::class, 'investigators'])->name('users.investigators');
+    Route::get('/users/responders', [AdminUserController::class, 'responders'])->name('users.responders');
+    Route::get('/users/reporters', [AdminUserController::class, 'reporters'])->name('users.reporters');
+    Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::put('/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('users.role');
+    Route::post('/users/{user}/promote', [AdminUserController::class, 'promote'])->name('users.promote');
+    Route::put('/users/{user}/class', [AdminUserController::class, 'updateClass'])->name('users.class');
+
+    // Incident Management
+    Route::get('/incidents', [AdminIncidentController::class, 'index'])->name('incidents.index');
+    Route::get('/incidents/resolved', [AdminIncidentController::class, 'resolved'])->name('incidents.resolved');
+    Route::get('/incidents/archived', [AdminIncidentController::class, 'archived'])->name('incidents.archived');
+    Route::get('/incidents/transcripts', [AdminIncidentController::class, 'transcripts'])->name('incidents.transcripts');
+    Route::get('/incidents/{incident}/transcript', [AdminIncidentController::class, 'transcript'])->name('incidents.transcript');
+    Route::get('/incidents/{incident}', [AdminIncidentController::class, 'show'])->name('incidents.show');
+    Route::delete('/incidents/{incident}', [AdminIncidentController::class, 'destroy'])->name('incidents.destroy');
+    Route::post('/incidents/{incident}/archive', [AdminIncidentController::class, 'archive'])->name('incidents.archive');
+    Route::post('/incidents/{incident}/restore', [AdminIncidentController::class, 'restore'])->name('incidents.restore');
+
+    // Analytics
+    Route::get('/analytics', [AdminAnalyticsController::class, 'index'])->name('analytics');
+    Route::get('/statistics', fn() => redirect()->route('admin.analytics'))->name('statistics');
+
+    // System Settings & Profile
+    Route::get('/profile', [AdminDashboardController::class, 'profile'])->name('profile');
+    Route::put('/profile', [AdminDashboardController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
+    Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
 });
 
 // ─── Protected Investigator Portal Routes ─────────────────────────────────
+// Investigator Authentication (Separate — Isolated Session & Cookie)
+Route::get('/investigator/login',  [AuthController::class, 'showInvestigatorLoginForm'])->name('investigator.login');
+Route::post('/investigator/login', [AuthController::class, 'investigatorLogin'])->name('investigator.login.submit');
+
 Route::middleware(['investigator'])->prefix('investigator')->name('investigator.')->group(function () {
     Route::get('/dashboard',             [InvestigatorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/queue',                 [InvestigatorDashboardController::class, 'queue'])->name('queue');
@@ -61,7 +103,7 @@ Route::middleware(['investigator'])->prefix('investigator')->name('investigator.
     Route::post('/incidents/{id}/assign-responder', [InvestigatorDashboardController::class, 'assignResponder'])->name('incidents.assign-responder');
     Route::post('/incidents/{id}/assign-responder-ajax', [InvestigatorDashboardController::class, 'assignResponderAjax'])->name('incidents.assign-responder-ajax');
     Route::get('/incidents/{id}/eligible-responders', [InvestigatorDashboardController::class, 'eligibleResponders'])->name('incidents.eligible-responders');
-    Route::delete('/incidents/{id}/reject',         [InvestigatorDashboardController::class, 'rejectIncident'])->name('incidents.reject');
+    Route::match(['delete', 'post'], '/incidents/{id}/reject', [InvestigatorDashboardController::class, 'rejectIncident'])->name('incidents.reject');
 
     Route::get('/map',                   [InvestigatorDashboardController::class, 'map'])->name('map');
     Route::get('/safe-zones',            [InvestigatorDashboardController::class, 'safeZones'])->name('safe-zones');
@@ -108,7 +150,8 @@ Route::middleware('auth')->group(function () {
             })->pluck('id')->toArray();
             $read = array_values(array_unique(array_merge($read, $allIds)));
         } elseif ($request->filled('incident_id')) {
-            $read[] = (int) $request->input('incident_id');
+            $rawId = $request->input('incident_id');
+            $read[] = is_numeric($rawId) ? (int) $rawId : (string) $rawId;
             $read = array_values(array_unique($read));
         }
         session(['read_notifications' => $read]);

@@ -9,68 +9,68 @@
 <!-- ═══════════════════════════════════════════════════════════
      MAIN WORKSPACE (Full-Height Satellite Map + Inspection Panel)
 ════════════════════════════════════════════════════════════════ -->
-<div class="flex-1 flex min-w-0 h-full overflow-hidden bg-[#0B0F14]">
+<div class="flex-1 flex flex-col lg:flex-row min-w-0 h-full overflow-hidden bg-[#0B0F14]">
 
     <!-- Hidden element to satisfy automated test assertions -->
     <span class="sr-only">Active Investigation Queue</span>
 
     <!-- ── CENTER COLUMN: STATS + FULL-HEIGHT SATELLITE MAP ── -->
-    <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0B0F14] border-r border-[#2A3440]">
+    <div class="flex-1 flex flex-col min-w-0 h-full min-h-0 overflow-hidden bg-[#0B0F14] border-b lg:border-b-0 lg:border-r border-[#2A3440]">
 
         <!-- 1. TOP STAT CARDS (Clean Minimalist Design) -->
-        <div class="flex-shrink-0 bg-[#11161D] border-b border-[#2A3440] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-[#2A3440]">
+        <div class="flex-shrink-0 bg-[#11161D] border-b border-[#2A3440] grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-[#2A3440]">
 
             <!-- ACTIVE INCIDENTS -->
-            <div class="px-5 py-3.5 min-w-0">
-                <p class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
+            <div class="px-2.5 sm:px-5 py-2 sm:py-3.5 min-w-0">
+                <p class="text-[10px] sm:text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
                     Active Incidents
                 </p>
-                <p class="text-2xl font-extrabold font-mono text-[#EF4444] leading-none mt-1.5">
+                <p class="text-lg sm:text-2xl font-extrabold font-mono text-[#EF4444] leading-none mt-1 sm:mt-1.5">
                     {{ $stats['active_incidents'] ?? 3 }}
                 </p>
             </div>
 
-            <div class="px-5 py-3.5 min-w-0">
-                <p class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">Active Responses</p>
-                <p class="text-2xl font-extrabold font-mono text-[#A78BFA] leading-none mt-1.5">{{ $stats['active_responses'] }}</p>
+            <div class="px-2.5 sm:px-5 py-2 sm:py-3.5 min-w-0">
+                <p class="text-[10px] sm:text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">Active Responses</p>
+                <p class="text-lg sm:text-2xl font-extrabold font-mono text-[#A78BFA] leading-none mt-1 sm:mt-1.5">{{ $stats['active_responses'] }}</p>
             </div>
 
             <!-- PENDING REVIEW -->
-            <div class="px-5 py-3.5 min-w-0">
-                <p class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
+            <div class="px-2.5 sm:px-5 py-2 sm:py-3.5 min-w-0">
+                <p class="text-[10px] sm:text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
                     Pending Review
                 </p>
-                <p class="text-2xl font-extrabold font-mono text-[#EAB308] leading-none mt-1.5">
+                <p class="text-lg sm:text-2xl font-extrabold font-mono text-[#EAB308] leading-none mt-1 sm:mt-1.5">
                     {{ $stats['pending_review'] ?? 6 }}
                 </p>
             </div>
 
             <!-- UNDER INVESTIGATION -->
-            <div class="px-5 py-3.5 min-w-0">
-                <p class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
+            <div class="px-2.5 sm:px-5 py-2 sm:py-3.5 min-w-0">
+                <p class="text-[10px] sm:text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
                     Under Investigation
                 </p>
-                <p class="text-2xl font-extrabold font-mono text-[#38BDF8] leading-none mt-1.5">
+                <p class="text-lg sm:text-2xl font-extrabold font-mono text-[#38BDF8] leading-none mt-1 sm:mt-1.5">
                     {{ $stats['under_investigation'] ?? 5 }}
                 </p>
             </div>
 
             <!-- HIGH SEVERITY -->
-            <div class="px-5 py-3.5 min-w-0">
-                <p class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
+            <div class="px-2.5 sm:px-5 py-2 sm:py-3.5 min-w-0">
+                <p class="text-[10px] sm:text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
                     High Severity
                 </p>
-                <p class="text-2xl font-extrabold font-mono text-[#EF4444] leading-none mt-1.5">
+                <p class="text-lg sm:text-2xl font-extrabold font-mono text-[#EF4444] leading-none mt-1 sm:mt-1.5">
                     {{ $stats['high_severity'] ?? 2 }}
                 </p>
             </div>
 
             <!-- RESOLVED -->
-            <div class="px-5 py-3.5 min-w-0">
-                <p class="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
+            <div class="px-2.5 sm:px-5 py-2 sm:py-3.5 min-w-0">
+                <p class="text-[10px] sm:text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider truncate">
                     Resolved
                 </p>
-                <p class="text-2xl font-extrabold font-mono text-[#22C55E] leading-none mt-1.5">
+                <p class="text-lg sm:text-2xl font-extrabold font-mono text-[#22C55E] leading-none mt-1 sm:mt-1.5">
                     {{ $stats['resolved'] ?? 18 }}
                 </p>
             </div>
@@ -122,7 +122,19 @@
     </div>
 
     <!-- ── RIGHT COLUMN: DETAIL INSPECTION PANEL ── -->
-    <aside id="right-detail-panel" class="w-full lg:w-[380px] flex-shrink-0 bg-[#151B23] border-l border-[#2A3440] flex flex-col h-full overflow-hidden">
+    <aside id="right-detail-panel" class="w-full lg:w-[380px] flex-shrink-0 bg-[#151B23] border-t lg:border-t-0 lg:border-l border-[#2A3440] flex flex-col h-11 lg:h-full overflow-hidden transition-all duration-300">
+
+        <!-- Mobile Drawer Drag Handle / Toggle Header (Mobile only) -->
+        <div onclick="toggleInvestigatorDetailPanel()" class="flex lg:hidden items-center justify-between px-3.5 py-2.5 bg-[#11161D] border-b border-[#2A3440] cursor-pointer active:bg-[#1B222C] transition select-none flex-shrink-0 h-11">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse flex-shrink-0"></span>
+                <span id="mobile-investigator-panel-title" class="text-[11px] font-mono font-bold text-slate-200 truncate">Incident Inspection Panel</span>
+            </div>
+            <div class="flex items-center gap-1.5 flex-shrink-0 text-slate-400">
+                <span id="mobile-investigator-panel-hint" class="text-[10px] font-mono">Expand</span>
+                <svg id="mobile-investigator-panel-icon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            </div>
+        </div>
 
         <!-- Incident Header Info (Smaller & Compact) -->
         <div class="px-4 py-3 border-b border-[#2A3440] space-y-1 flex-shrink-0">
@@ -605,6 +617,15 @@ document.addEventListener('DOMContentLoaded', () => {
             historyList.innerHTML = `<p class="text-slate-500 font-mono text-xs italic py-6 text-center">No history recorded yet.</p>`;
         }
 
+        // Update mobile panel title
+        const mobTitle = document.getElementById('mobile-investigator-panel-title');
+        if (mobTitle) mobTitle.textContent = `${inc.incident_code} — ${inc.title}`;
+
+        // Auto-expand mobile panel on user interaction
+        if (!skipFly && window.innerWidth < 1024) {
+            window.expandInvestigatorDetailPanel();
+        }
+
         // Pan to marker & open popup — always zoom IN (never zoom out)
         if (!skipFly && inc.latitude && inc.longitude) {
             const currentZoom = map.getZoom();
@@ -614,6 +635,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 incidentMarkers[inc.id].openPopup();
             }
         }
+    };
+
+    window.toggleInvestigatorDetailPanel = function() {
+        const panel = document.getElementById('right-detail-panel');
+        if (!panel) return;
+        const isCollapsed = panel.classList.contains('h-11');
+        if (isCollapsed) {
+            window.expandInvestigatorDetailPanel();
+        } else {
+            window.collapseInvestigatorDetailPanel();
+        }
+    };
+
+    window.expandInvestigatorDetailPanel = function() {
+        const panel = document.getElementById('right-detail-panel');
+        if (!panel) return;
+        panel.classList.remove('h-11');
+        panel.classList.add('h-[60vh]');
+        const hint = document.getElementById('mobile-investigator-panel-hint');
+        if (hint) hint.textContent = 'Collapse';
+        const icon = document.getElementById('mobile-investigator-panel-icon');
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    };
+
+    window.collapseInvestigatorDetailPanel = function() {
+        const panel = document.getElementById('right-detail-panel');
+        if (!panel) return;
+        panel.classList.remove('h-[60vh]');
+        panel.classList.add('h-11');
+        const hint = document.getElementById('mobile-investigator-panel-hint');
+        if (hint) hint.textContent = 'Expand';
+        const icon = document.getElementById('mobile-investigator-panel-icon');
+        if (icon) icon.style.transform = 'rotate(0deg)';
     };
 
     window.focusSelectedOnMap = function() {

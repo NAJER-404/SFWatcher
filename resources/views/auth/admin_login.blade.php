@@ -139,7 +139,7 @@
             <div class="auth-alert-error">{{ $errors->first('email') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('login.submit') }}">
+        <form method="POST" action="{{ route('admin.login.submit') }}">
             @csrf
 
             <div class="auth-field">

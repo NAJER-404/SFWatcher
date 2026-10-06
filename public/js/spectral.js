@@ -1651,6 +1651,13 @@ const SpectralUI = {
         if (defaultOverview) defaultOverview.classList.add('hidden');
         if (inspectorView)   inspectorView.classList.remove('hidden');
 
+        // On mobile, expand infopanel so the user sees the details immediately
+        if (window.innerWidth < 768) {
+            this.expandMobileInfoPanel();
+            const mobTitle = document.getElementById('mobile-infopanel-title');
+            if (mobTitle) mobTitle.textContent = 'Incident: ' + (inc.incident_code || inc.id);
+        }
+
         // Store current incident coords for focusOnInspected and zoom in on map
         this._inspectedLat = inc.latitude;
         this._inspectedLng = inc.longitude;
@@ -1755,6 +1762,42 @@ const SpectralUI = {
 
         if (defaultOverview) defaultOverview.classList.remove('hidden');
         if (inspectorView)   inspectorView.classList.add('hidden');
+
+        const mobTitle = document.getElementById('mobile-infopanel-title');
+        if (mobTitle) mobTitle.textContent = 'System Summary';
+    },
+
+    toggleMobileInfoPanel() {
+        const panel = document.getElementById('spectral-infopanel');
+        if (!panel) return;
+        const isCollapsed = panel.classList.contains('h-10');
+        if (isCollapsed) {
+            this.expandMobileInfoPanel();
+        } else {
+            this.collapseMobileInfoPanel();
+        }
+    },
+
+    expandMobileInfoPanel() {
+        const panel = document.getElementById('spectral-infopanel');
+        if (!panel) return;
+        panel.classList.remove('h-10');
+        panel.classList.add('h-[50vh]');
+        const hint = document.getElementById('mobile-infopanel-hint');
+        const icon = document.getElementById('mobile-infopanel-icon');
+        if (hint) hint.textContent = 'Collapse';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    },
+
+    collapseMobileInfoPanel() {
+        const panel = document.getElementById('spectral-infopanel');
+        if (!panel) return;
+        panel.classList.remove('h-[50vh]');
+        panel.classList.add('h-10');
+        const hint = document.getElementById('mobile-infopanel-hint');
+        const icon = document.getElementById('mobile-infopanel-icon');
+        if (hint) hint.textContent = 'Expand';
+        if (icon) icon.style.transform = 'rotate(0deg)';
     },
 
     getStatusBadgeClass(status) {

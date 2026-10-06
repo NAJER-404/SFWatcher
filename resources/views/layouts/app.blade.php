@@ -51,7 +51,7 @@
     <link rel="stylesheet" href="{{ asset('css/spectral.css') }}">
     @stack('styles')
 </head>
-<body class="h-full bg-[#0B0F14] text-[#F3F4F6] font-sans antialiased flex flex-col overflow-hidden select-none">
+<body class="h-full bg-[#0B0F14] text-[#F3F4F6] font-sans antialiased flex flex-col overflow-hidden select-none" style="-webkit-tap-highlight-color: transparent; touch-action: manipulation;">
 
     <!-- Top Application Bar -->
     @include('spectral.partials.header')

@@ -4,11 +4,11 @@
 
 @section('content')
 @include('spectral.partials.sidebar')
-<main class="flex-1 h-full overflow-y-auto bg-[#0B0F14] p-6">
-    <div class="max-w-7xl mx-auto space-y-6">
+<main class="flex-1 h-full overflow-y-auto bg-[#0B0F14] p-3.5 sm:p-6">
+    <div class="max-w-7xl mx-auto space-y-5 sm:space-y-6">
 
         <!-- Top Navigation & Actions -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2A3440]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#2A3440]">
             <div>
                 <div class="flex items-center gap-2">
                     <a href="{{ route('spectral.dashboard') }}" class="text-xs font-mono text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5">
@@ -18,15 +18,13 @@
                     <span class="text-slate-600">/</span>
                     <span class="text-xs font-mono text-slate-400">Registry</span>
                 </div>
-                <h1 class="text-xl font-bold text-white mt-1">Incident Reports</h1>
+                <h1 class="text-lg sm:text-xl font-bold text-white mt-1">Incident Reports</h1>
                 <p class="text-xs text-[#9CA3AF]">San Francisco, Agusan del Sur</p>
             </div>
-
-
         </div>
 
         <!-- Filter Form -->
-        <form method="GET" action="{{ route('spectral.incidents.index') }}" class="p-4 rounded-xl bg-[#151B23] border border-[#2A3440] grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+        <form method="GET" action="{{ route('spectral.incidents.index') }}" class="p-3.5 sm:p-4 rounded-xl bg-[#151B23] border border-[#2A3440] grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Severity</label>
                 <select name="severity" onchange="this.form.submit()" class="ecto-select">
@@ -68,8 +66,50 @@
             </div>
         </form>
 
-        <!-- Incidents Table -->
-        <div class="rounded-xl border border-[#2A3440] bg-[#151B23] overflow-hidden shadow-xl">
+        <!-- Incidents List (Mobile Cards: sm:hidden) -->
+        <div class="block sm:hidden space-y-3">
+            @forelse($incidents as $inc)
+            <div class="p-3.5 rounded-xl bg-[#151B23] border border-[#2A3440] space-y-2.5 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <a href="{{ route('spectral.incidents.show', $inc->id) }}" class="text-xs font-mono font-bold text-[#8B5CF6] hover:underline">
+                        {{ $inc->incident_code }}
+                    </a>
+                    <div class="flex items-center gap-1.5">
+                        <span class="badge-{{ strtolower($inc->severity) }} px-2 py-0.5 rounded-full text-[9px] font-bold font-mono">
+                            {{ $inc->severity }}
+                        </span>
+                        <span class="{{ $inc->status_badge_class }} px-2 py-0.5 rounded-full text-[9px] font-bold font-mono">
+                            {{ $inc->status }}
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-white leading-snug">{{ $inc->title }}</h3>
+                    <p class="text-[10px] text-[#9CA3AF] mt-0.5 font-mono">{{ $inc->incident_type }}</p>
+                </div>
+
+                <div class="flex items-center justify-between text-[10px] font-mono text-[#64748B] pt-2 border-t border-[#1E2631]">
+                    <span class="truncate">{{ $inc->barangay->name ?? 'San Francisco' }}</span>
+                    <span>{{ $inc->incident_date ? $inc->incident_date->format('M d, H:i') : $inc->created_at->format('M d, H:i') }}</span>
+                </div>
+
+                <div class="pt-1">
+                    <a href="{{ route('spectral.incidents.show', $inc->id) }}" class="w-full py-2 bg-[#1B222C] hover:bg-[#8B5CF6] hover:text-white text-slate-200 font-bold rounded-lg transition border border-[#2A3440] flex items-center justify-center gap-1.5 text-xs font-mono">
+                        <span>Inspect Incident</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+            </div>
+            @empty
+            <div class="p-8 text-center text-slate-500 font-mono text-xs rounded-xl bg-[#151B23] border border-[#2A3440]">
+                No supernatural incidents matching your filter criteria.
+            </div>
+            @endforelse
+        </div>
+
+        <!-- Incidents Table (Tablet & Desktop: hidden sm:block) -->
+        <div class="hidden sm:block rounded-xl border border-[#2A3440] bg-[#151B23] overflow-hidden shadow-xl">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-[#11161D] text-[#64748B] font-mono uppercase text-[10px] border-b border-[#2A3440]">

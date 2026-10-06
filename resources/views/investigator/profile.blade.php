@@ -7,7 +7,7 @@
 @include('investigator.partials.sidebar')
 
 <!-- PROFILE WORKSPACE -->
-<main class="flex-1 overflow-y-auto p-5 md:p-7 bg-[#0B0F14] space-y-6 max-w-4xl mx-auto w-full">
+<main class="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-7 bg-[#0B0F14] space-y-5 sm:space-y-6 max-w-4xl mx-auto w-full">
 
     <div class="pb-3 border-b border-[#2A3440]">
         <h1 class="text-lg font-bold text-white font-mono uppercase tracking-wider flex items-center gap-2">
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Profile Details Card -->
-    <div class="p-6 rounded-xl bg-[#151B23] border border-[#2A3440] shadow-xl space-y-5">
+    <div class="p-4 sm:p-6 rounded-xl bg-[#151B23] border border-[#2A3440] shadow-xl space-y-5">
         <div class="flex items-center gap-4">
             <div class="w-16 h-16 rounded-2xl bg-[#1B222C] border-2 border-[#8B5CF6]/50 flex items-center justify-center text-xl font-bold text-[#8B5CF6] font-mono">
                 {{ strtoupper(substr($user->name, 0, 1)) }}{{ strtoupper(substr(strrchr($user->name, ' '), 1, 1) ?: substr($user->name, 1, 1)) }}

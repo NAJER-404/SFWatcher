@@ -9,12 +9,14 @@ use App\Models\Incident;
 use App\Models\Resource;
 use App\Models\WardStation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responderAssignments'])
+            ->activeOnMap()
             ->orderByDesc('created_at')
             ->get();
 
@@ -53,11 +55,21 @@ class DashboardController extends Controller
                     'incident_id'   => $inc->id,
                     'is_read'       => in_array($inc->id, $readNotifs),
                 ];
-            })
+            });
+
+        // Merge with rejected notifications stored in cache for this user
+        $rejectedNotifs = collect(\Illuminate\Support\Facades\Cache::get("user_notifications_{$userId}", []))
+            ->map(function ($notif) use ($readNotifs) {
+                $notif['is_read'] = in_array((string)$notif['incident_id'], array_map('strval', $readNotifs));
+                return $notif;
+            });
+
+        $allNotifications = $notifications->concat($rejectedNotifs)
+            ->sortByDesc('updated_at')
             ->values()
             ->take(8);
 
-        $unreadNotifCount = $notifications->where('is_read', false)->count();
+        $unreadNotifCount = $allNotifications->where('is_read', false)->count();
 
         $stats = [
             'total_incidents'    => $incidents->count(),
@@ -130,6 +142,26 @@ class DashboardController extends Controller
             ->take(8);
 
         $unreadNotifCount = $notifications->where('is_read', false)->count();
+
+        // Merge cached rejection notifications (incident deleted, only in Cache)
+        $rejectedCached = Cache::get("user_notifications_{$userId}", []);
+        if (!empty($rejectedCached)) {
+            $rejectedMapped = collect($rejectedCached)->map(function ($n) use ($readNotifs) {
+                return [
+                    'incident_code' => $n['incident_code'] ?? 'N/A',
+                    'title'         => $n['title']         ?? 'Incident',
+                    'status'        => 'REJECTED',
+                    'severity'      => $n['severity']      ?? '—',
+                    'investigator'  => $n['investigator']  ?? 'System',
+                    'notes'         => $n['notes']         ?? null,
+                    'updated_at'    => $n['updated_at']    ?? now(),
+                    'incident_id'   => $n['incident_id']   ?? null,
+                    'is_read'       => in_array((string) ($n['incident_id'] ?? ''), array_map('strval', $readNotifs)),
+                ];
+            });
+            $notifications = $notifications->concat($rejectedMapped)->take(8);
+            $unreadNotifCount = $notifications->where('is_read', false)->count();
+        }
 
         $stats = [
             'total_incidents'    => $allIncidents->count(),

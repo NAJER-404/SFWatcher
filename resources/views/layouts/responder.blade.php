@@ -2,7 +2,7 @@
 <html lang="en" class="h-full bg-[#0B0F14] text-[#F3F4F6]">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Responder Operations — Spectra')</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -36,10 +36,10 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#0B0F14] text-slate-100 flex flex-col">
+<body class="min-h-screen bg-[#0B0F14] text-slate-100 flex flex-col" style="-webkit-tap-highlight-color: transparent; touch-action: manipulation;">
 
     <!-- Top Application Bar -->
-    <header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-5 flex items-center justify-between flex-shrink-0 z-30 select-none">
+    <header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-3 sm:px-5 flex items-center justify-between flex-shrink-0 z-30 select-none">
         <div class="flex items-center gap-3">
             <a href="{{ route('responder.dashboard') }}" class="flex items-center gap-2 hover:opacity-90 transition">
                 <span class="text-lg font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">Spectra</span>

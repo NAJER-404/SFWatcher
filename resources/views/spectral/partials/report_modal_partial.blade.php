@@ -1,13 +1,13 @@
 {{-- Report Incident Modal - included in dashboard and my-reports pages --}}
-<div id="report-modal" class="hidden fixed inset-0 z-[1000] flex items-center justify-center p-4">
+<div id="report-modal" class="hidden fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4">
     <!-- Backdrop -->
     <div class="absolute inset-0 ecto-modal-backdrop" onclick="SpectralUI.closeReportModal()"></div>
 
     <!-- Modal Content -->
-    <div class="relative ecto-modal-content w-full max-w-lg max-h-[90vh] flex flex-col select-none rounded-xl bg-[#151B23] border border-[#2A3440] shadow-2xl overflow-hidden">
+    <div class="relative ecto-modal-content w-full max-w-lg max-h-[94vh] flex flex-col select-none rounded-xl bg-[#151B23] border border-[#2A3440] shadow-2xl overflow-hidden">
         
         <!-- Modal Header -->
-        <div class="px-5 py-3.5 border-b border-[#2A3440] flex items-center justify-between flex-shrink-0 bg-[#11161D]">
+        <div class="px-4 sm:px-5 py-3 border-b border-[#2A3440] flex items-center justify-between flex-shrink-0 bg-[#11161D]">
             <div class="flex items-center gap-2.5">
                 <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra" class="w-6 h-6 object-contain">
                 <div>
@@ -21,7 +21,7 @@
         </div>
 
         <!-- Form Body -->
-        <form id="report-form" onsubmit="SpectralUI.submitReport(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs">
+        <form id="report-form" onsubmit="SpectralUI.submitReport(event)" class="p-3.5 sm:p-5 overflow-y-auto space-y-3 sm:space-y-3.5 text-xs">
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <!-- Incident Type -->

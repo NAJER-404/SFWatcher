@@ -133,7 +133,8 @@ class InvestigatorRoleTest extends TestCase
         $response->assertSee($incident->incident_code);
         $response->assertSee($incident->title);
         $response->assertSee('Investigator Actions');
-        $response->assertSee('Audit Trail');
+        $response->assertDontSee('Audit Trail');
+        $response->assertSee('Field Evidence');
         $response->assertSee('id="investigator-review-mini-map"', false);
 
     }

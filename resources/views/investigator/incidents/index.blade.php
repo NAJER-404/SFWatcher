@@ -7,7 +7,7 @@
 @include('investigator.partials.sidebar')
 
 <!-- REGISTRY WORKSPACE -->
-<main class="flex-1 overflow-y-auto p-5 md:p-7 bg-[#0B0F14] space-y-6 max-w-7xl mx-auto w-full">
+<main class="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-7 bg-[#0B0F14] space-y-5 sm:space-y-6 max-w-7xl mx-auto w-full">
 
     <!-- Top Header -->
     <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#2A3440]">
@@ -65,14 +65,44 @@
         </div>
     </form>
 
-    <!-- Table -->
-    <div class="rounded-xl bg-[#151B23] border border-[#2A3440] shadow-xl overflow-hidden">
+    <!-- Mobile Card List (sm and below) -->
+    <div class="block sm:hidden space-y-3">
+        @forelse($incidents as $inc)
+        <div class="rounded-xl bg-[#151B23] border border-[#2A3440] p-4 space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+                <span class="font-mono font-bold text-[#8B5CF6] text-xs">{{ $inc->incident_code }}</span>
+                <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                    <span class="badge-{{ strtolower($inc->severity) }} px-2 py-0.5 rounded text-[10px] font-bold font-mono">{{ $inc->severity }}</span>
+                    <span class="{{ $inc->status_badge_class }} px-2 py-0.5 rounded-full text-[10px] font-bold font-mono">{{ $inc->status }}</span>
+                </div>
+            </div>
+            <div>
+                <div class="font-semibold text-slate-200 text-sm leading-snug">{{ $inc->title }}</div>
+                <div class="text-[10px] text-[#64748B] font-mono mt-0.5">{{ $inc->incident_type }}</div>
+            </div>
+            <div class="text-xs text-slate-400">📍 Brgy. {{ $inc->barangay->name ?? 'San Francisco' }}</div>
+            <div class="text-[11px] font-mono text-slate-500">{{ $inc->incident_date ? $inc->incident_date->format('Y-m-d h:i A') : ($inc->created_at ? $inc->created_at->format('Y-m-d h:i A') : '—') }}</div>
+            <a href="{{ route('investigator.incidents.review', $inc->id) }}"
+               class="flex items-center justify-center gap-1.5 w-full py-2 bg-[#1B222C] hover:bg-[#8B5CF6] border border-[#2A3440] hover:border-[#8B5CF6] text-slate-300 hover:text-white font-semibold rounded-lg text-xs transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Inspect
+            </a>
+        </div>
+        @empty
+        <div class="rounded-xl bg-[#151B23] border border-[#2A3440] p-8 text-center text-slate-500 text-xs">
+            No incident records match the filter criteria.
+        </div>
+        @endforelse
+    </div>
+
+    <!-- Desktop Table (sm and above) -->
+    <div class="hidden sm:block rounded-xl bg-[#151B23] border border-[#2A3440] shadow-xl overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
                 <thead class="bg-[#0F151C] text-[10px] font-mono uppercase tracking-wider text-[#64748B] border-b border-[#2A3440]">
                     <tr>
                         <th class="px-4 py-3">Incident Code</th>
-                        <th class="px-4 py-3">Title &amp; Type</th>
+                        <th class="px-4 py-3">Title & Type</th>
                         <th class="px-4 py-3">Location</th>
                         <th class="px-4 py-3">Severity</th>
                         <th class="px-4 py-3">Reported Date</th>

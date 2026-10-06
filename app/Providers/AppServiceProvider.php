@@ -57,13 +57,23 @@ class AppServiceProvider extends ServiceProvider
                         'incident_id'   => $inc->id,
                         'is_read'       => in_array($inc->id, $readNotifs),
                     ];
-                })
+                });
+
+            // Merge with rejected notifications stored in cache for this user
+            $rejectedNotifs = collect(\Illuminate\Support\Facades\Cache::get("user_notifications_{$userId}", []))
+                ->map(function ($notif) use ($readNotifs) {
+                    $notif['is_read'] = in_array((string)$notif['incident_id'], array_map('strval', $readNotifs));
+                    return $notif;
+                });
+
+            $allNotifications = $notifications->concat($rejectedNotifs)
+                ->sortByDesc('updated_at')
                 ->values()
                 ->take(8);
 
-            $unreadNotifCount = $notifications->where('is_read', false)->count();
+            $unreadNotifCount = $allNotifications->where('is_read', false)->count();
 
-            $view->with('notifications', $notifications)->with('unreadNotifCount', $unreadNotifCount);
+            $view->with('notifications', $allNotifications)->with('unreadNotifCount', $unreadNotifCount);
         });
     }
 }

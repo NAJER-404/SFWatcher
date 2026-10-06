@@ -3,7 +3,7 @@
 @section('title', 'Resources — Spectra')
 
 @section('content')
-<div class="flex-1 overflow-y-auto p-6 bg-[#0B0F14] space-y-6 max-w-6xl mx-auto w-full">
+<div class="flex-1 overflow-y-auto p-3.5 sm:p-6 bg-[#0B0F14] space-y-5 sm:space-y-6 max-w-6xl mx-auto w-full">
 
     <!-- Header -->
     <div class="flex items-center justify-between pb-3 border-b border-[#2A3440]">

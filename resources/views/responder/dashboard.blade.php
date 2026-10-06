@@ -3,13 +3,13 @@
 @section('title', 'Responder Dashboard — Spectra')
 
 @section('content')
-<main class="flex-1 overflow-y-auto p-5 md:p-8 bg-[#0B0F14] max-w-6xl mx-auto w-full space-y-7">
+<main class="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-8 bg-[#0B0F14] max-w-6xl mx-auto w-full space-y-5 sm:space-y-7">
 
     <!-- Top Header & Stats -->
     <div class="space-y-4">
         <div>
             <p class="text-xs font-mono font-bold text-[#A78BFA] uppercase tracking-wider">SPECTRAWATCH DEFENSE GRID</p>
-            <h1 class="text-2xl font-extrabold text-white mt-0.5">Tactical Responder Dashboard</h1>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-white mt-0.5">Tactical Responder Dashboard</h1>
             <p class="text-xs text-slate-400">Manage incident response assignments and active anomaly containment.</p>
         </div>
 
@@ -105,9 +105,9 @@
 
             <!-- Action Button: Accept Assignment -->
             <div class="flex items-center justify-end pt-2">
-                <form method="POST" action="{{ route('responder.assignments.accept', $assignment) }}">
+                <form method="POST" action="{{ route('responder.assignments.accept', $assignment) }}" class="w-full sm:w-auto">
                     @csrf
-                    <button type="submit" class="px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-[#8B5CF6]/30">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-[#8B5CF6]/30">
                         ACCEPT ASSIGNMENT
                     </button>
                 </form>
@@ -174,7 +174,7 @@
             @endif
 
             <div class="flex items-center justify-end pt-2">
-                <a href="{{ route('responder.assignments.show', $assignment) }}" class="px-5 py-2.5 bg-[#1B222C] hover:bg-[#222B38] text-white border border-[#2A3440] hover:border-[#8B5CF6] font-bold text-xs rounded-lg transition font-mono">
+                <a href="{{ route('responder.assignments.show', $assignment) }}" class="w-full sm:w-auto text-center px-5 py-2.5 bg-[#1B222C] hover:bg-[#222B38] text-white border border-[#2A3440] hover:border-[#8B5CF6] font-bold text-xs rounded-lg transition font-mono">
                     OPEN RESPONSE SCREEN
                 </a>
             </div>
@@ -208,7 +208,7 @@
                     Neutralized &bull; Brgy. {{ $assignment->incident->barangay->name ?? 'San Francisco' }} &bull; Completed {{ $assignment->response_completed_at?->format('M j, Y h:i A') ?? '—' }}
                 </p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                 <span class="px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono font-bold text-xs">
                     NEUTRALIZED
                 </span>

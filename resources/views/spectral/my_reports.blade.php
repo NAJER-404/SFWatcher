@@ -2,7 +2,7 @@
 @section('title', 'My Reports — Spectra')
 @section('content')
 @include('spectral.partials.sidebar')
-<main class="flex-1 h-full overflow-y-auto bg-[#06090D] p-6">
+<main class="flex-1 h-full overflow-y-auto bg-[#06090D] p-3.5 sm:p-6">
     <div class="max-w-4xl mx-auto space-y-5">
 
         {{-- ── Page Header ── --}}
@@ -136,7 +136,7 @@
             </div>
 
             {{-- ── Card Body ── --}}
-            <div class="flex items-stretch gap-0">
+            <div class="flex flex-col sm:flex-row items-stretch gap-0">
 
                 {{-- Evidence Thumbnail: FIXED uniform dimensions for all cards --}}
                 @if($thumbEv)
@@ -146,7 +146,7 @@
                         : asset('storage/' . $thumbEv->file_path);
                 @endphp
                 <a href="{{ route('spectral.incidents.show', $inc->id) }}"
-                   class="flex-shrink-0 w-32 sm:w-44 h-36 relative overflow-hidden group block border-r border-[#2A3440] bg-[#0E131A]">
+                   class="flex-shrink-0 w-full sm:w-44 h-44 sm:h-auto min-h-[140px] relative overflow-hidden group block border-b sm:border-b-0 sm:border-r border-[#2A3440] bg-[#0E131A]">
                     <img src="{{ $evUrl }}" alt="Evidence" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -154,7 +154,7 @@
                 </a>
                 @else
                 <a href="{{ route('spectral.incidents.show', $inc->id) }}"
-                   class="flex-shrink-0 w-32 sm:w-44 h-36 bg-[#0E131A] border-r border-[#2A3440] flex items-center justify-center group hover:bg-[#11161D] transition">
+                   class="flex-shrink-0 w-full sm:w-44 h-28 sm:h-auto bg-[#0E131A] border-b sm:border-b-0 sm:border-r border-[#2A3440] flex items-center justify-center group hover:bg-[#11161D] transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#2A3440] group-hover:text-[#64748B] transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
                     </svg>
@@ -162,7 +162,7 @@
                 @endif
 
                 {{-- Main Info --}}
-                <div class="flex-1 min-w-0 p-4 flex flex-col justify-between gap-2.5">
+                <div class="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between gap-2.5">
 
                     {{-- Title --}}
                     <div>
@@ -209,22 +209,23 @@
 
                 </div>
 
-                {{-- View & Delete Action: Dedicated right-aligned column with exact same alignment --}}
-                <div class="flex-shrink-0 flex items-center justify-center gap-1 px-3 border-l border-[#1E2631]">
+                {{-- View & Delete Action: Dedicated right-aligned column on desktop, bottom bar on mobile --}}
+                <div class="flex-shrink-0 flex items-center justify-between sm:justify-center gap-2 px-4 py-2.5 sm:px-3 sm:py-0 border-t sm:border-t-0 sm:border-l border-[#1E2631] bg-[#11161D]/40 sm:bg-transparent">
                     <a href="{{ route('spectral.incidents.show', $inc->id) }}"
-                       class="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#64748B] hover:text-[#8B5CF6] transition px-2.5 py-1.5 rounded hover:bg-[#1B222C]">
+                       class="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#8B5CF6] hover:text-white transition px-2.5 py-1.5 rounded bg-[#1B222C] sm:bg-transparent hover:bg-[#1B222C]">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#8B5CF6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                        <span class="hidden sm:inline">View</span>
+                        <span>View Details</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-[#64748B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </a>
                     <button type="button"
                             onclick="openDeleteModal('{{ route('spectral.incidents.destroy', $inc->id) }}', '{{ $inc->incident_code }}', '{{ addslashes($inc->title) }}')"
                             title="Delete incident report"
-                            class="p-1.5 text-[#64748B] hover:text-rose-400 hover:bg-rose-500/10 rounded transition">
+                            class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-[#64748B] hover:text-rose-400 hover:bg-rose-500/10 rounded transition font-mono">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         </svg>
+                        <span class="sm:hidden text-[10px]">Delete</span>
                     </button>
                 </div>
             </div>

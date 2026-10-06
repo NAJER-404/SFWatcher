@@ -22,6 +22,7 @@ class InvestigatorDashboardController extends Controller
     public function index()
     {
         $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responseInvestigator', 'responderAssignments.responder'])
+            ->activeOnMap()
             ->orderByDesc('created_at')
             ->get();
 
@@ -187,6 +188,22 @@ class InvestigatorDashboardController extends Controller
             }
         }
 
+        // Guard: Prevent regressing workflow stages (e.g. from VERIFIED or RESOLVED back to earlier stages)
+        $statusRank = [
+            'PENDING'             => 1,
+            'UNDER INVESTIGATION' => 2,
+            'VERIFIED'            => 3,
+            'RESOLVED'            => 4,
+        ];
+        $currentRank = $statusRank[$incident->status] ?? 1;
+        $newRank     = $statusRank[$validated['status']] ?? 1;
+
+        if ($newRank < $currentRank) {
+            return back()->withErrors([
+                'status' => "Cannot regress workflow stage from {$incident->status} to {$validated['status']}."
+            ]);
+        }
+
         $oldStatus   = $incident->status;
         $oldSeverity = $incident->severity;
 
@@ -213,6 +230,8 @@ class InvestigatorDashboardController extends Controller
             ?? Auth::id()
             ?? (User::where('role', 'investigator')->first()?->id);
 
+        $assignedResponderName = null;
+
         // When explicit responder_id is provided, create or update assignment
         if (!empty($validated['responder_id'])) {
             $explicitResponder = User::where('id', $validated['responder_id'])->where('role', 'responder')->first();
@@ -228,6 +247,7 @@ class InvestigatorDashboardController extends Controller
                         'anomaly_max_hp'  => $incident->anomaly_max_hp,
                     ]
                 );
+                $assignedResponderName = $explicitResponder->name;
             }
         }
 
@@ -258,6 +278,10 @@ class InvestigatorDashboardController extends Controller
                     'anomaly_hp'      => $incident->anomaly_hp,
                     'anomaly_max_hp'  => $incident->anomaly_max_hp,
                 ]);
+
+                if ($availableResponder) {
+                    $assignedResponderName = $availableResponder->name;
+                }
             }
         }
 
@@ -291,7 +315,11 @@ class InvestigatorDashboardController extends Controller
             $investigator->increment('xp', config('spectral_response.xp.investigation_completed', 15));
         }
 
-        return redirect()->back()->with('success', "Incident {$incident->incident_code} successfully updated to {$incident->status}.");
+        $successMsg = $assignedResponderName
+            ? "Incident {$incident->incident_code} successfully assigned to {$assignedResponderName}."
+            : "Incident {$incident->incident_code} successfully updated to {$incident->status}.";
+
+        return redirect()->back()->with('success', $successMsg);
     }
 
     public function assignResponder(Request $request, $id)
@@ -446,16 +474,46 @@ class InvestigatorDashboardController extends Controller
     /**
      * Reject (delete) an incident — investigator confirmation required.
      */
-    public function rejectIncident($id)
+    public function rejectIncident(Request $request, $id)
     {
         $incident = Incident::where('id', $id)
             ->orWhere('incident_code', $id)
             ->firstOrFail();
 
-        $code = $incident->incident_code;
+        $code       = $incident->incident_code;
+        $title      = $incident->title;
+        $severity   = $incident->severity;
+        $reporterId = $incident->reported_by;
+        $rejectionReason = $request->input('notes') ?: 'Investigation report rejected by defense command.';
+
+        // Dispatch rejection notification directly to civilian reporter
+        if ($reporterId) {
+            $existingNotifs = \Illuminate\Support\Facades\Cache::get("user_notifications_{$reporterId}", []);
+            $existingNotifs[] = [
+                'incident_code' => $code,
+                'title'         => $title,
+                'status'        => 'REJECTED',
+                'severity'      => $severity,
+                'investigator'  => Auth::guard('investigator')->user()?->name ?? 'Lead Investigator',
+                'notes'         => 'Reason of rejection: ' . $rejectionReason,
+                'updated_at'    => now()->toIso8601String(),
+                'incident_id'   => 'rej_' . $incident->id,
+                'is_read'       => false,
+            ];
+            \Illuminate\Support\Facades\Cache::forever("user_notifications_{$reporterId}", $existingNotifs);
+        }
+
         $incident->delete();
 
-        return redirect()->route('investigator.queue')
+        if ($request->wantsJson() || $request->ajax() || $request->isJson()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => "Incident {$code} rejected and removed from defense maps.",
+                'redirect' => route('investigator.dashboard'),
+            ]);
+        }
+
+        return redirect()->route('investigator.dashboard')
             ->with('success', "Incident {$code} has been rejected and removed from the system.");
     }
 
@@ -491,6 +549,7 @@ class InvestigatorDashboardController extends Controller
     public function map()
     {
         $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responderAssignments.responder'])
+            ->activeOnMap()
             ->orderByDesc('created_at')
             ->get();
 

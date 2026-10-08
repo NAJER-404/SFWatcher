@@ -41,14 +41,37 @@ class Incident extends Model
         'archived_from_map_at' => 'datetime',
     ];
 
+    public static function generateUniqueIncidentCode(): string
+    {
+        $existingCodes = static::pluck('incident_code')->filter()->toArray();
+        $maxNum = 0;
+        foreach ($existingCodes as $code) {
+            if (preg_match('/SF-INC-(\d+)/i', $code, $matches)) {
+                $num = (int) $matches[1];
+                if ($num > $maxNum) {
+                    $maxNum = $num;
+                }
+            }
+        }
+
+        $nextNum = max($maxNum + 1, count($existingCodes) + 1, 1);
+        while (in_array(sprintf('SF-INC-%03d', $nextNum), $existingCodes, true)) {
+            $nextNum++;
+        }
+
+        return sprintf('SF-INC-%03d', $nextNum);
+    }
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($incident) {
-            if (empty($incident->incident_code)) {
-                $count = static::count() + 1;
-                $incident->incident_code = sprintf('SF-INC-%03d', $count);
+            if (empty($incident->incident_code) || static::where('incident_code', $incident->incident_code)->exists()) {
+                $incident->incident_code = static::generateUniqueIncidentCode();
+            }
+            if (empty($incident->incident_date)) {
+                $incident->incident_date = now();
             }
             if (empty($incident->anomaly_max_hp)) {
                 $sev = strtoupper($incident->severity ?? 'MEDIUM');
@@ -117,8 +140,8 @@ class Incident extends Model
         return match (strtoupper($this->severity ?? '')) {
             'LOW' => '#22C55E',
             'MEDIUM' => '#EAB308',
-            'HIGH' => '#F97316',
-            'CRITICAL' => '#EF4444',
+            'HIGH' => '#EF4444',
+            'CRITICAL' => '#000000',
             default => '#9CA3AF',
         };
     }

@@ -66,6 +66,30 @@ class IncidentController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Resolve / sanitize barangay_id if passed as name or missing
+        $rawBarangay = $request->input('barangay_id');
+        if (empty($rawBarangay) || !is_numeric($rawBarangay) || in_array($rawBarangay, ['undefined', 'null', ''])) {
+            $nameCandidate = (is_string($rawBarangay) && !in_array($rawBarangay, ['undefined', 'null', '']))
+                ? $rawBarangay
+                : $request->input('barangay');
+
+            $matched = null;
+            if ($nameCandidate) {
+                $matched = Barangay::where('name', $nameCandidate)
+                    ->orWhere('name', 'LIKE', '%' . str_replace('Barangay ', '', $nameCandidate) . '%')
+                    ->first();
+            }
+
+            if (!$matched && $request->filled('latitude') && $request->filled('longitude')) {
+                $matched = \App\Http\Controllers\Api\SpectralApiController::resolveSanFranciscoBarangay(
+                    (float) $request->latitude,
+                    (float) $request->longitude
+                );
+            }
+
+            $request->merge(['barangay_id' => $matched?->id]);
+        }
+
         $validated = $request->validate([
             'incident_type' => 'required|string|max:100',
             'title'         => 'required|string|max:255',
@@ -73,27 +97,79 @@ class IncidentController extends Controller
             'barangay_id'   => 'nullable|exists:barangays,id',
             'latitude'      => 'required|numeric|between:-90,90',
             'longitude'     => 'required|numeric|between:-180,180',
-            'incident_date' => 'nullable|date',
+            'incident_date' => 'nullable',
             'severity'      => 'required|in:LOW,MEDIUM,HIGH,CRITICAL',
             'evidence'      => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240', // max 10MB
         ]);
-        $userId = \Illuminate\Support\Facades\Auth::id();
+
+        $userId = \Illuminate\Support\Facades\Auth::id()
+            ?? \Illuminate\Support\Facades\Auth::guard('web')->id()
+            ?? \Illuminate\Support\Facades\Auth::guard('admin')->id()
+            ?? \Illuminate\Support\Facades\Auth::guard('investigator')->id()
+            ?? \Illuminate\Support\Facades\Auth::guard('responder')->id();
+
         if (!$userId) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please refresh the page and log in again.',
+                ], 401);
+            }
             abort(401, 'Unauthenticated.');
         }
 
-        $incident = Incident::create([
-            'reported_by'   => $userId,
-            'barangay_id'   => $validated['barangay_id'] ?? null,
-            'incident_type' => $validated['incident_type'],
-            'title'         => $validated['title'],
-            'description'   => $validated['description'],
-            'latitude'      => $validated['latitude'],
-            'longitude'     => $validated['longitude'],
-            'incident_date' => $validated['incident_date'] ?? now(),
-            'severity'      => $validated['severity'],
-            'status'        => 'PENDING',
-        ]);
+        // Parse date safely
+        $incidentDate = now();
+        if (!empty($validated['incident_date'])) {
+            try {
+                $incidentDate = \Carbon\Carbon::parse($validated['incident_date']);
+            } catch (\Throwable $e) {
+                $incidentDate = now();
+            }
+        }
+
+        // Ensure barangay_id is assigned
+        $barangayId = $validated['barangay_id'] ?? null;
+        if (!$barangayId) {
+            $nearest = \App\Http\Controllers\Api\SpectralApiController::resolveSanFranciscoBarangay(
+                (float) $validated['latitude'],
+                (float) $validated['longitude']
+            );
+            $barangayId = $nearest?->id;
+        }
+
+        try {
+            $incident = Incident::create([
+                'reported_by'   => $userId,
+                'barangay_id'   => $barangayId,
+                'incident_type' => $validated['incident_type'],
+                'title'         => $validated['title'],
+                'description'   => $validated['description'],
+                'latitude'      => $validated['latitude'],
+                'longitude'     => $validated['longitude'],
+                'incident_date' => $incidentDate,
+                'severity'      => $validated['severity'],
+                'status'        => 'PENDING',
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (str_contains($e->getMessage(), 'incident_code') || $e->getCode() == 23505) {
+                $incident = Incident::create([
+                    'incident_code' => Incident::generateUniqueIncidentCode(),
+                    'reported_by'   => $userId,
+                    'barangay_id'   => $barangayId,
+                    'incident_type' => $validated['incident_type'],
+                    'title'         => $validated['title'],
+                    'description'   => $validated['description'],
+                    'latitude'      => $validated['latitude'],
+                    'longitude'     => $validated['longitude'],
+                    'incident_date' => $incidentDate,
+                    'severity'      => $validated['severity'],
+                    'status'        => 'PENDING',
+                ]);
+            } else {
+                throw $e;
+            }
+        }
 
         if ($request->hasFile('evidence')) {
             $path = $request->file('evidence')->store('evidence', 'public');

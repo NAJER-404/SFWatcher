@@ -22,6 +22,8 @@
 
         <!-- Form Body -->
         <form id="report-form" onsubmit="SpectralUI.submitReport(event)" class="p-3.5 sm:p-5 overflow-y-auto space-y-3 sm:space-y-3.5 text-xs">
+            @csrf
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <!-- Incident Type -->
@@ -58,7 +60,10 @@
             <!-- Location Picker & Barangay Selector -->
             <div class="p-3 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-2.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-semibold text-slate-300">Coordinates</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-semibold text-slate-300">Coordinates</span>
+                        <span id="report-geocode-status" class="text-[10px] font-mono text-[#9CA3AF]"></span>
+                    </div>
                     <button type="button" onclick="SpectralMap.startLocationPicking()" class="px-2.5 py-1 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold text-[11px] rounded-md transition flex items-center gap-1.5 shadow-sm">
                         <span>Select on Map</span>
                     </button>
@@ -67,9 +72,9 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div class="space-y-1">
                         <label class="text-[10px] text-[#9CA3AF] font-mono">Barangay</label>
-                        <select id="report-barangay" class="ecto-select" required>
+                        <select id="report-barangay" name="barangay_id" class="ecto-select" required>
                             @foreach(isset($barangays) ? $barangays : \App\Models\Barangay::orderBy('name')->get() as $b)
-                                <option value="{{ $b->name }}" data-id="{{ $b->id }}" {{ $b->name === 'Hubang' ? 'selected' : '' }}>
+                                <option value="{{ $b->id }}" data-id="{{ $b->id }}" data-name="{{ $b->name }}" {{ $b->name === 'Hubang' ? 'selected' : '' }}>
                                     Brgy. {{ $b->name }}
                                 </option>
                             @endforeach

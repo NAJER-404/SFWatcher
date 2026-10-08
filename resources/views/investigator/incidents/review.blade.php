@@ -289,18 +289,17 @@
                             $isVerifiedIncident = in_array($incident->status, ['VERIFIED', 'RESOLVED']);
                         @endphp
                         @if($assignedResponder)
-                            {{-- Once assigned & committed: Locked, cannot be clicked to reassign --}}
-                            <div id="btn-assign-responder"
-                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 cursor-not-allowed select-none opacity-85"
-                                title="Responder already assigned and committed. Cannot be reassigned.">
+                            {{-- Already assigned but still allow reassignment via modal --}}
+                            <button type="button" onclick="openAssignModal()" id="btn-assign-responder"
+                                class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:border-cyan-400 hover:bg-cyan-500/20">
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                                     <span id="label-assign-responder">
-                                        Assigned Responder → {{ $assignedResponder->name }}
+                                        Assigned: {{ $assignedResponder->name }} — Click to Reassign
                                     </span>
                                 </div>
-                                <span class="text-[10px] text-cyan-400 font-normal">assigned</span>
-                            </div>
+                                <span class="text-[10px] text-cyan-400 font-normal">→ modal</span>
+                            </button>
                         @elseif($isVerifiedIncident)
                             <button type="button" onclick="openAssignModal()" id="btn-assign-responder"
                                 class="w-full px-3 py-2.5 rounded-xl text-left text-xs font-semibold font-mono transition flex items-center justify-between bg-[#11161D] border border-[#2A3440] text-slate-400 hover:text-cyan-300 hover:border-cyan-500/30">
@@ -412,6 +411,17 @@
             <div class="inline-block w-5 h-5 border-2 border-[#8B5CF6] border-t-transparent rounded-full animate-spin"></div>
             <p>Loading eligible responders...</p>
         </div>
+
+        {{-- Suggested Classes Banner (populated by JS) --}}
+        <div id="modal-suggested-classes" class="hidden p-3 rounded-xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 text-xs font-mono">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-[10px] font-bold text-purple-300 uppercase tracking-wider">Suggested Classes</span>
+            </div>
+            <div id="modal-suggested-badges" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        {{-- Class Filter Tabs (populated by JS) --}}
+        <div id="modal-class-tabs" class="hidden flex gap-1.5 flex-wrap"></div>
 
         {{-- Responder Selection List --}}
         <div id="modal-responder-list" class="space-y-2 max-h-60 overflow-y-auto pr-1 hidden">
@@ -579,18 +589,117 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Assign Responder Modal System (AJAX)
-    const assignModal    = document.getElementById('assign-modal');
-    const assignModalBox = document.getElementById('assign-modal-box');
-    const modalTitle     = document.getElementById('modal-title');
-    const modalSubtitle  = document.getElementById('modal-subtitle');
-    const modalLoading   = document.getElementById('modal-loading');
-    const modalList      = document.getElementById('modal-responder-list');
-    const modalEmpty     = document.getElementById('modal-empty-state');
-    const modalError     = document.getElementById('modal-error-alert');
-    const modalConfirmBtn= document.getElementById('modal-confirm-btn');
-    const modalAnomalyHp = document.getElementById('modal-anomaly-hp');
+    const assignModal       = document.getElementById('assign-modal');
+    const assignModalBox    = document.getElementById('assign-modal-box');
+    const modalTitle        = document.getElementById('modal-title');
+    const modalSubtitle     = document.getElementById('modal-subtitle');
+    const modalLoading      = document.getElementById('modal-loading');
+    const modalList         = document.getElementById('modal-responder-list');
+    const modalEmpty        = document.getElementById('modal-empty-state');
+    const modalError        = document.getElementById('modal-error-alert');
+    const modalConfirmBtn   = document.getElementById('modal-confirm-btn');
+    const modalAnomalyHp    = document.getElementById('modal-anomaly-hp');
+    const modalSuggestedWrap= document.getElementById('modal-suggested-classes');
+    const modalSuggestedBadges = document.getElementById('modal-suggested-badges');
+    const modalClassTabs    = document.getElementById('modal-class-tabs');
 
     let selectedResponderId = null;
+    let activeClassFilter   = 'ALL';
+
+    const classColors = {
+        'A': { tab: 'bg-rose-500/20 text-rose-300 border-rose-500/40',   active: 'bg-rose-500 text-white border-rose-500' },
+        'B': { tab: 'bg-purple-500/20 text-purple-300 border-purple-500/40', active: 'bg-purple-500 text-white border-purple-500' },
+        'C': { tab: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',   active: 'bg-cyan-500 text-white border-cyan-500' },
+        'D': { tab: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', active: 'bg-emerald-500 text-white border-emerald-500' }
+    };
+
+    function buildResponderCards(responders, currentResponderId) {
+        modalList.innerHTML = '';
+        const filtered = activeClassFilter === 'ALL'
+            ? responders
+            : responders.filter(r => r.responder_class === activeClassFilter);
+
+        if (filtered.length === 0) {
+            modalList.innerHTML = `<p class="text-center text-xs font-mono text-slate-500 py-4">No responders in Class ${activeClassFilter}.</p>`;
+            return;
+        }
+
+        filtered.forEach(resp => {
+            const card = document.createElement('div');
+            const isCurrent = (currentResponderId == resp.id);
+            card.className = `p-3 rounded-xl bg-[#11161D] border border-[#2A3440] hover:border-cyan-500/50 cursor-pointer transition flex items-center justify-between responder-option-card ${isCurrent ? 'ring-1 ring-cyan-500/50' : ''}`;
+            card.dataset.id = resp.id;
+            card.dataset.class = resp.responder_class;
+
+            const colorClass = (classColors[resp.responder_class] || { tab: 'bg-slate-700 text-slate-300 border-slate-600' }).tab;
+
+            card.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <input type="radio" name="modal_resp_radio" value="${resp.id}" class="accent-cyan-500" ${isCurrent ? 'checked' : ''}>
+                    <div>
+                        <div class="text-xs font-bold text-white flex items-center gap-2">
+                            <span>${resp.name}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono border ${colorClass}">Class ${resp.responder_class}</span>
+                        </div>
+                        <div class="text-[11px] font-mono text-slate-400 mt-0.5">
+                            Health: <span class="text-emerald-400 font-bold">${resp.hp} HP</span> &bull; Status: <span class="text-slate-300">${resp.responder_status}</span>
+                        </div>
+                    </div>
+                </div>
+                ${isCurrent ? '<span class="text-[10px] font-mono text-cyan-400 uppercase font-bold">Current</span>' : ''}
+            `;
+
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.responder-option-card').forEach(c => {
+                    c.classList.remove('border-cyan-500', 'bg-[#151B23]');
+                    c.classList.add('border-[#2A3440]', 'bg-[#11161D]');
+                });
+                card.classList.remove('border-[#2A3440]', 'bg-[#11161D]');
+                card.classList.add('border-cyan-500', 'bg-[#151B23]');
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+                selectedResponderId = resp.id;
+                modalConfirmBtn.disabled = false;
+            });
+
+            if (isCurrent) {
+                selectedResponderId = resp.id;
+                modalConfirmBtn.disabled = false;
+            }
+
+            modalList.appendChild(card);
+        });
+    }
+
+    function buildClassTabs(responders, eligibleClasses) {
+        modalClassTabs.innerHTML = '';
+        modalClassTabs.classList.remove('hidden');
+
+        // "All" tab
+        const allPresent = [...new Set(responders.map(r => r.responder_class))];
+        const tabClasses = ['ALL', ...allPresent.sort()];
+
+        tabClasses.forEach(cls => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.dataset.cls = cls;
+            const count = cls === 'ALL' ? responders.length : responders.filter(r => r.responder_class === cls).length;
+            const isSuggested = cls !== 'ALL' && eligibleClasses.includes(cls);
+            const colors = classColors[cls] || { tab: 'bg-slate-700/40 text-slate-300 border-slate-600', active: 'bg-slate-600 text-white border-slate-500' };
+            const baseStyle = cls === activeClassFilter ? colors.active : (cls === 'ALL' ? 'bg-[#11161D] text-slate-300 border-[#2A3440]' : colors.tab);
+
+            btn.className = `px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold border transition ${baseStyle}`;
+            btn.innerHTML = cls === 'ALL' ? `All <span class="opacity-70">(${count})</span>` : `Class ${cls} <span class="opacity-70">(${count})</span>${isSuggested ? ' <span class="text-yellow-300">★</span>' : ''}`;
+
+            btn.addEventListener('click', () => {
+                activeClassFilter = cls;
+                buildClassTabs(responders, eligibleClasses);
+                buildResponderCards(responders, window._modalCurrentResponderId);
+            });
+
+            modalClassTabs.appendChild(btn);
+        });
+    }
 
     window.openAssignModal = function() {
         const dbStatus = '{{ $incident->status }}';
@@ -600,14 +709,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         selectedResponderId = null;
+        activeClassFilter   = 'ALL';
         modalConfirmBtn.disabled = true;
         modalError.classList.add('hidden');
         modalError.textContent = '';
         modalList.classList.add('hidden');
         modalEmpty.classList.add('hidden');
+        modalSuggestedWrap.classList.add('hidden');
+        modalClassTabs.classList.add('hidden');
         modalLoading.classList.remove('hidden');
 
-        modalTitle.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Assign Responder';
+        modalTitle.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> Assign Responder';
         modalSubtitle.textContent = 'Select an eligible responder for {{ $incident->incident_code }}';
         modalConfirmBtn.className = 'flex-1 py-2.5 rounded-xl text-xs font-mono font-bold text-white bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md shadow-cyan-900/30';
         modalConfirmBtn.textContent = 'Confirm & Assign';
@@ -630,68 +742,53 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             modalLoading.classList.add('hidden');
             modalAnomalyHp.textContent = data.anomalyMaxHp + ' HP (' + data.severity + ')';
+            window._modalCurrentResponderId = data.currentResponderId;
+
+            // Show Suggested Classes banner
+            if (data.eligibleClasses && data.eligibleClasses.length > 0) {
+                modalSuggestedBadges.innerHTML = '';
+                const suggestedLabel = {
+                    'CRITICAL': 'Only Class A can handle Critical incidents',
+                    'HIGH':     'Class A, B, C eligible for High severity',
+                    'MEDIUM':   'All classes eligible',
+                    'LOW':      'All classes eligible',
+                }[data.severity] || 'Check eligible classes below';
+
+                data.eligibleClasses.forEach(cls => {
+                    const colors = classColors[cls] || { tab: 'bg-slate-700 text-slate-300 border-slate-600' };
+                    const badge = document.createElement('span');
+                    badge.className = `px-2 py-0.5 rounded text-[11px] font-mono font-bold border ${colors.tab} cursor-pointer hover:opacity-80`;
+                    badge.textContent = `Class ${cls}`;
+                    badge.title = 'Click to filter';
+                    badge.addEventListener('click', () => {
+                        activeClassFilter = cls;
+                        buildClassTabs(data.responders, data.eligibleClasses);
+                        buildResponderCards(data.responders, data.currentResponderId);
+                        modalList.classList.remove('hidden');
+                    });
+                    modalSuggestedBadges.appendChild(badge);
+                });
+
+                // Add severity hint
+                const hint = document.createElement('p');
+                hint.className = 'text-[10px] text-purple-400/80 mt-1 w-full';
+                hint.textContent = suggestedLabel;
+                modalSuggestedBadges.parentElement.appendChild(hint);
+
+                modalSuggestedWrap.classList.remove('hidden');
+            }
 
             if (!data.responders || data.responders.length === 0) {
                 modalEmpty.classList.remove('hidden');
                 return;
             }
 
-            modalList.innerHTML = '';
+            // Build class filter tabs
+            buildClassTabs(data.responders, data.eligibleClasses || []);
+
+            // Build initial responder list
             modalList.classList.remove('hidden');
-
-            const classColors = {
-                'A': 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-                'B': 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-                'C': 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-                'D': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-            };
-
-            data.responders.forEach(resp => {
-                const card = document.createElement('div');
-                const isCurrent = (data.currentResponderId == resp.id);
-                card.className = `p-3 rounded-xl bg-[#11161D] border border-[#2A3440] hover:border-cyan-500/50 cursor-pointer transition flex items-center justify-between responder-option-card ${isCurrent ? 'ring-1 ring-cyan-500/50' : ''}`;
-                card.dataset.id = resp.id;
-
-                const colorClass = classColors[resp.responder_class] || 'bg-slate-700 text-slate-300 border-slate-600';
-
-                card.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <input type="radio" name="modal_resp_radio" value="${resp.id}" class="accent-cyan-500" ${isCurrent ? 'checked' : ''}>
-                        <div>
-                            <div class="text-xs font-bold text-white flex items-center gap-2">
-                                <span>${resp.name}</span>
-                                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono border ${colorClass}">
-                                    Class ${resp.responder_class}
-                                </span>
-                            </div>
-                            <div class="text-[11px] font-mono text-slate-400 mt-0.5">
-                                Health: <span class="text-emerald-400 font-bold">${resp.hp} HP</span> &bull; Status: <span class="text-slate-300">${resp.responder_status}</span>
-                            </div>
-                        </div>
-                    </div>
-                    ${isCurrent ? '<span class="text-[10px] font-mono text-cyan-400 uppercase font-bold">Current</span>' : ''}
-                `;
-
-                card.addEventListener('click', () => {
-                    document.querySelectorAll('.responder-option-card').forEach(c => {
-                        c.classList.remove('border-cyan-500', 'bg-[#151B23]');
-                        c.classList.add('border-[#2A3440]', 'bg-[#11161D]');
-                    });
-                    card.classList.remove('border-[#2A3440]', 'bg-[#11161D]');
-                    card.classList.add('border-cyan-500', 'bg-[#151B23]');
-                    const radio = card.querySelector('input[type="radio"]');
-                    if (radio) radio.checked = true;
-                    selectedResponderId = resp.id;
-                    modalConfirmBtn.disabled = false;
-                });
-
-                if (isCurrent) {
-                    selectedResponderId = resp.id;
-                    modalConfirmBtn.disabled = false;
-                }
-
-                modalList.appendChild(card);
-            });
+            buildResponderCards(data.responders, data.currentResponderId);
         })
         .catch(err => {
             modalLoading.classList.add('hidden');

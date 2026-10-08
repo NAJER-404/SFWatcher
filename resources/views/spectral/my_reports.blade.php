@@ -91,12 +91,12 @@
             // Only show anomaly condition for these statuses
             $showAnomaly = in_array($inc->status, ['VERIFIED', 'RESOLVED']);
 
-            // Severity styling
+            // Severity styling — Low=Green, Medium=Yellow, High=Red, Critical=Black
             $sevClass = match($inc->severity) {
-                'CRITICAL' => 'bg-red-500/15 text-red-400 border-red-500/30',
-                'HIGH'     => 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+                'CRITICAL' => 'bg-black text-white border-gray-600',
+                'HIGH'     => 'bg-red-500/15 text-red-500 border-red-500/30',
                 'MEDIUM'   => 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
-                default    => 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+                default    => 'bg-green-500/15 text-green-500 border-green-500/30',
             };
 
             // Status styling

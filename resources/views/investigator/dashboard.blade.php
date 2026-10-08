@@ -148,19 +148,9 @@
             </p>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex-shrink-0 border-b border-[#2A3440] bg-[#11161D] flex text-[11px] font-mono font-bold">
-            <button onclick="switchTab('overview')" id="tab-overview" class="flex-1 py-2 text-center border-b-2 border-[#8B5CF6] text-[#8B5CF6] transition whitespace-nowrap">Overview</button>
-            <button onclick="switchTab('evidence')" id="tab-evidence" class="flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition whitespace-nowrap">Evidence</button>
-            <button onclick="switchTab('notes')"    id="tab-notes"    class="flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition whitespace-nowrap">Notes</button>
-            <button onclick="switchTab('history')"  id="tab-history"  class="flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition whitespace-nowrap">History</button>
-        </div>
-
-        <!-- Tab Panes Container -->
-        <div class="flex-1 overflow-y-auto p-5 text-xs space-y-4">
-
-            <!-- ── TAB 1: OVERVIEW ── -->
-            <div id="pane-overview" class="space-y-4">
+        <!-- Overview Content Container (Centered Vertically) -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 text-xs">
+            <div class="min-h-full flex flex-col justify-center space-y-4 py-2">
 
                 <!-- 2-Column Info Grid -->
                 <div class="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#11161D] border border-[#2A3440] text-xs">
@@ -194,30 +184,10 @@
                     <p id="dp-desc" class="p-3 rounded-xl bg-[#11161D] border border-[#2A3440] text-slate-300 leading-relaxed"></p>
                 </div>
 
-                <!-- Update Status Form (Inline) -->
+                <!-- Investigation Notes Form -->
                 <div class="pt-2 border-t border-[#2A3440] space-y-3">
-                    <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-white">Update Status</h3>
-
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <div>
-                            <label class="block text-[10px] font-mono text-[#64748B] uppercase mb-1">Status</label>
-                            <select id="update-status-sel" class="ecto-select text-xs w-full">
-                                <option value="PENDING">Pending</option>
-                                <option value="UNDER INVESTIGATION">Under Investigation</option>
-                                <option value="VERIFIED">Verified</option>
-                                <option value="RESOLVED">Resolved</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-mono text-[#64748B] uppercase mb-1">Severity</label>
-                            <select id="update-sev-sel" class="ecto-select text-xs w-full">
-                                <option value="LOW">Low</option>
-                                <option value="MEDIUM">Medium</option>
-                                <option value="HIGH">High</option>
-                                <option value="CRITICAL">Critical</option>
-                            </select>
-                        </div>
-                    </div>
+                    <input type="hidden" id="update-status-sel" value="">
+                    <input type="hidden" id="update-sev-sel" value="">
 
                     <div>
                         <div class="flex items-center justify-between mb-1">
@@ -238,23 +208,8 @@
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- ── TAB 2: EVIDENCE ── -->
-            <div id="pane-evidence" class="space-y-3 hidden">
-                <div id="dp-evidence-full-list" class="space-y-3"></div>
             </div>
-
-            <!-- ── TAB 3: INVESTIGATION NOTES ── -->
-            <div id="pane-notes" class="space-y-3 hidden">
-                <div id="dp-investigations-list" class="space-y-2.5"></div>
-            </div>
-
-            <!-- ── TAB 4: HISTORY ── -->
-            <div id="pane-history" class="space-y-3 hidden">
-                <div id="dp-history-timeline" class="space-y-2.5"></div>
-            </div>
-
         </div>
 
     </aside>
@@ -346,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── 6. RENDER INCIDENT MARKERS & POPUPS ──────────────────────────────
     const sevColors = {
-        CRITICAL: '#EF4444',
+        CRITICAL: '#000000',
         HIGH:     '#EF4444',
         MEDIUM:   '#EAB308',
         LOW:      '#22C55E'
@@ -430,13 +385,17 @@ document.addEventListener('DOMContentLoaded', () => {
     RAW_INCIDENTS.forEach(inc => {
         if (!inc.latitude || !inc.longitude) return;
 
-        const color = sevColors[inc.severity] || '#EF4444';
+        const color = sevColors[inc.severity] || '#22C55E';
         const isHigh = inc.severity === 'HIGH' || inc.severity === 'CRITICAL';
+        const isCritical = inc.severity === 'CRITICAL';
+        const pulseBg = isCritical ? 'rgba(0,0,0,0.6)' : `${color}44`;
+        const markerBorder = isCritical ? '#9CA3AF' : '#FFFFFF';
+        const markerShadow = isCritical ? '0 0 12px rgba(0,0,0,0.95)' : `0 0 10px ${color}`;
 
         const markerHtml = `
             <div style="position:relative; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                ${isHigh ? `<div style="position:absolute; inset:-4px; border-radius:50%; background:${color}44; animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>` : ''}
-                <div style="position:relative; width:20px; height:20px; border-radius:50%; background:${color}; border:2px solid #FFFFFF; box-shadow:0 0 10px ${color}; display:flex; align-items:center; justify-content:center;">
+                ${isHigh ? `<div style="position:absolute; inset:-4px; border-radius:50%; background:${pulseBg}; animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>` : ''}
+                <div style="position:relative; width:20px; height:20px; border-radius:50%; background:${color}; border:2px solid ${markerBorder}; box-shadow:${markerShadow}; display:flex; align-items:center; justify-content:center;">
                     <div style="width:6px; height:6px; border-radius:50%; background:#FFFFFF;"></div>
                 </div>
             </div>`;
@@ -474,10 +433,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── 9. RIGHT DETAIL PANEL LOGIC ──────────────────────────────────────
     const sevBadgeStyles = {
-        CRITICAL: 'bg-red-950/80 text-red-300 border border-red-900/80',
-        HIGH:     'bg-red-600/30 text-red-400 border border-red-500/50',
-        MEDIUM:   'bg-amber-500/20 text-amber-400 border border-amber-500/40',
-        LOW:      'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+        CRITICAL: 'bg-black text-white border border-gray-600',
+        HIGH:     'bg-red-500/20 text-red-400 border border-red-500/40',
+        MEDIUM:   'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40',
+        LOW:      'bg-green-500/20 text-green-400 border border-green-500/40'
     };
 
     const statusBadgeStyles = {
@@ -505,12 +464,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Header — code, title, location only (badges/review button removed)
         document.getElementById('dp-code').textContent = inc.incident_code;
         document.getElementById('dp-title').textContent = inc.title;
+        const brgyRaw = inc.barangay ? inc.barangay.name : 'San Francisco';
+        const brgyLabel = brgyRaw.toLowerCase().startsWith('barangay') ? brgyRaw : `Barangay ${brgyRaw}`;
         document.getElementById('dp-location').querySelector('span').textContent =
-            `Barangay ${inc.barangay ? inc.barangay.name : 'San Francisco'}, San Francisco, Agusan del Sur`;
+            `${brgyLabel}, San Francisco, Agusan del Sur`;
 
         // Overview Tab Data
         document.getElementById('dp-ov-loc').textContent =
-            `Barangay ${inc.barangay ? inc.barangay.name : 'San Francisco'}, San Francisco`;
+            `${brgyLabel}, San Francisco`;
 
         // Friendly date format: "March 4, 2026 · 5:21 PM"
         document.getElementById('dp-ov-date').textContent =
@@ -603,18 +564,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 </span>` : ''}
             </div>`;
 
-        // Render Notes tab
-        if (realNotes.length > 0) {
-            notesList.innerHTML = realNotes.map(buildNoteCard).join('');
-        } else {
-            notesList.innerHTML = `<p class="text-slate-500 font-mono text-xs italic py-6 text-center">No investigation notes written yet.</p>`;
+        // Render Notes tab (if present)
+        if (notesList) {
+            if (realNotes.length > 0) {
+                notesList.innerHTML = realNotes.map(buildNoteCard).join('');
+            } else {
+                notesList.innerHTML = `<p class="text-slate-500 font-mono text-xs italic py-6 text-center">No investigation notes written yet.</p>`;
+            }
         }
 
-        // Render History tab
-        if (allSorted.length > 0) {
-            historyList.innerHTML = allSorted.map(buildNoteCard).join('');
-        } else {
-            historyList.innerHTML = `<p class="text-slate-500 font-mono text-xs italic py-6 text-center">No history recorded yet.</p>`;
+        // Render History tab (if present)
+        if (historyList) {
+            if (allSorted.length > 0) {
+                historyList.innerHTML = allSorted.map(buildNoteCard).join('');
+            } else {
+                historyList.innerHTML = `<p class="text-slate-500 font-mono text-xs italic py-6 text-center">No history recorded yet.</p>`;
+            }
         }
 
         // Update mobile panel title
@@ -702,9 +667,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.submitStatusUpdate = function(forcedStatus) {
         if (!activeIncident) return;
 
-        const status   = forcedStatus || document.getElementById('update-status-sel').value;
-        const severity = document.getElementById('update-sev-sel').value;
-        const notes    = document.getElementById('update-notes-input').value;
+        const statusEl = document.getElementById('update-status-sel');
+        const sevEl    = document.getElementById('update-sev-sel');
+        const status   = forcedStatus || (statusEl && statusEl.value ? statusEl.value : activeIncident.status);
+        const severity = (sevEl && sevEl.value) ? sevEl.value : activeIncident.severity;
+        const notesEl  = document.getElementById('update-notes-input');
+        const notes    = notesEl ? notesEl.value : '';
 
         const form = document.createElement('form');
         form.method = 'POST';
@@ -786,7 +754,12 @@ document.addEventListener('DOMContentLoaded', () => {
     padding: 2px 6px;
     border-radius: 4px;
 }
-.popup-sev.high, .popup-sev.critical {
+.popup-sev.critical {
+    background: #000000;
+    color: #FFFFFF;
+    border: 1px solid #4B5563;
+}
+.popup-sev.high {
     background: rgba(239,68,68,0.2);
     color: #EF4444;
     border: 1px solid rgba(239,68,68,0.4);

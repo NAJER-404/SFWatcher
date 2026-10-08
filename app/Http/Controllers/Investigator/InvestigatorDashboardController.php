@@ -168,6 +168,11 @@ class InvestigatorDashboardController extends Controller
             ->orWhere('incident_code', $id)
             ->firstOrFail();
 
+        $request->merge([
+            'status'   => $request->input('status') ?? $incident->status,
+            'severity' => $request->input('severity') ?? $incident->severity,
+        ]);
+
         $validated = $request->validate([
             'status'       => 'required|in:PENDING,UNDER INVESTIGATION,VERIFIED,RESOLVED',
             'severity'     => 'required|in:LOW,MEDIUM,HIGH,CRITICAL',

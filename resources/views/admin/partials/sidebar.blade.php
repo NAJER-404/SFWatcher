@@ -45,11 +45,15 @@
        class="fixed md:static inset-y-0 left-0 z-50 w-72 md:w-64 bg-[#0E1319] border-r border-[#2A3440] flex flex-col flex-shrink-0 -translate-x-full md:translate-x-0 select-none shadow-2xl md:shadow-none">
 
     {{-- Header --}}
-    <div class="side-brand flex items-center justify-between gap-2 pl-[26px] pr-3 py-4 border-b border-[#2A3440]">
+    <div class="side-brand flex items-center justify-between gap-2 px-4 py-3.5 border-b border-[#2A3440]">
         <a href="{{ route('admin.dashboard') }}"
-           class="side-label min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-400"
-           aria-label="Admin Panel">
-            <span class="block truncate text-sm font-semibold text-slate-400">Admin Panel</span>
+           class="flex items-center gap-2.5 min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3B82F6]"
+           aria-label="SFWatch Admin">
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch" class="h-8 w-8 shrink-0 object-contain">
+            <span class="side-label min-w-0">
+                <span class="block text-sm font-extrabold leading-tight tracking-wide bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SFWatch</span>
+                <span class="block text-[11px] text-slate-500 leading-tight">Admin Console</span>
+            </span>
         </a>
 
         {{-- Desktop collapse toggle --}}

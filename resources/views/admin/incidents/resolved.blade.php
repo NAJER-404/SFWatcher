@@ -86,10 +86,10 @@
                         <!-- Severity -->
                         <td class="p-3.5">
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold border uppercase
-                                @if($inc->severity === 'CRITICAL') bg-rose-500/20 text-rose-300 border-rose-500/40
-                                @elseif($inc->severity === 'HIGH') bg-orange-500/20 text-orange-300 border-orange-500/40
-                                @elseif($inc->severity === 'MEDIUM') bg-amber-500/20 text-amber-300 border-amber-500/40
-                                @else bg-emerald-500/20 text-emerald-300 border-emerald-500/40
+                                @if($inc->severity === 'CRITICAL') bg-black text-white border-slate-600
+                                @elseif($inc->severity === 'HIGH') bg-red-500/20 text-red-400 border-red-500/40
+                                @elseif($inc->severity === 'MEDIUM') bg-yellow-500/20 text-yellow-300 border-yellow-500/40
+                                @else bg-green-500/20 text-green-300 border-green-500/40
                                 @endif">
                                 {{ $inc->severity }}
                             </span>

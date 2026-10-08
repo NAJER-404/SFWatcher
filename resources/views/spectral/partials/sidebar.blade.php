@@ -153,9 +153,6 @@
                     </svg>
                     <span class="sb-label">My Reports</span>
                 </span>
-                @if(($stats['my_reports'] ?? 0) > 0)
-                <span class="sb-label font-mono text-[11px] text-slate-400 font-bold">{{ $stats['my_reports'] }}</span>
-                @endif
             </a>
 
             <!-- Incident Reports -->
@@ -168,9 +165,6 @@
                     </svg>
                     <span class="sb-label">Incident Reports</span>
                 </span>
-                @if(($stats['total_incidents'] ?? 0) > 0)
-                <span class="sb-label font-mono text-[11px] text-slate-400 font-bold">{{ $stats['total_incidents'] }}</span>
-                @endif
             </a>
         </div>
 

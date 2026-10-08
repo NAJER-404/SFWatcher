@@ -125,10 +125,10 @@
                         </div>
                         <div class="w-full h-2 rounded-full bg-[#11161D] overflow-hidden border border-[#2A3440]">
                             <div class="h-full
-                                @if($sev === 'CRITICAL') bg-rose-500
-                                @elseif($sev === 'HIGH') bg-orange-500
-                                @elseif($sev === 'MEDIUM') bg-amber-500
-                                @else bg-emerald-500
+                                @if($sev === 'CRITICAL') bg-black border border-slate-600
+                                @elseif($sev === 'HIGH') bg-red-500
+                                @elseif($sev === 'MEDIUM') bg-yellow-500
+                                @else bg-green-500
                                 @endif"
                                 style="width: {{ $pct }}%;"></div>
                         </div>

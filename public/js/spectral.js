@@ -109,8 +109,8 @@ const SpectralData = {
                         responder_assignments: inc.responder_assignments || [],
                         reported_at:   reportedAt,       // Bug #5 fix — human-readable date
                         reported_by:   inc.reporter ? inc.reporter.name : 'Civilian Observer',
-                        evidence:      (inc.evidence && inc.evidence.length > 0)
-                                          ? (inc.evidence[0].file_path.startsWith('http')
+                        evidence:      (inc.evidence && inc.evidence.length > 0 && inc.evidence[0] && inc.evidence[0].file_path)
+                                          ? (String(inc.evidence[0].file_path).startsWith('http')
                                               ? inc.evidence[0].file_path
                                               : '/storage/' + inc.evidence[0].file_path)
                                           : null,
@@ -906,57 +906,73 @@ const SpectralMap = {
         const mapElement = document.getElementById('spectral-map');
         if (!mapElement) return;
 
-        const initialCenter = SpectralData.node.coordinates;
-        const initialZoom = 15; // Start zoomed into San Francisco
+        if (this.map) {
+            try { this.map.invalidateSize(); } catch (_) {}
+            return;
+        }
 
-        this.map = L.map('spectral-map', {
-            center: initialCenter,
-            zoom: initialZoom,
-            minZoom: 2,
-            maxZoom: 21,
-            zoomControl: false,
-            preferCanvas: true
-        });
+        try {
+            const initialCenter = (SpectralData.node && SpectralData.node.coordinates) ? SpectralData.node.coordinates : [8.5100, 125.9750];
+            const initialZoom = 15; // Start zoomed into San Francisco
 
-        // ── Google Satellite (only tile layer) ───────────────────────────
-        this.baseLayers.satellite = L.tileLayer(
-            'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            attribution: 'Imagery &copy; <a href="https://maps.google.com">Google</a>',
-            maxZoom: 21,
-            subdomains: ['0','1','2','3'],
-            tileSize: 256
-        }).addTo(this.map);
+            this.map = L.map('spectral-map', {
+                center: initialCenter,
+                zoom: initialZoom,
+                minZoom: 2,
+                maxZoom: 21,
+                zoomControl: false,
+                preferCanvas: true
+            });
 
-        this.activeBaseMap = 'satellite';
+            // ── Google Satellite (only tile layer) ───────────────────────────
+            this.baseLayers.satellite = L.tileLayer(
+                'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                attribution: 'Imagery &copy; <a href="https://maps.google.com">Google</a>',
+                maxZoom: 21,
+                subdomains: ['0','1','2','3'],
+                tileSize: 256
+            }).addTo(this.map);
 
-        // ── Tile error handling ──────────────────────────────────────────
-        const tileErrorEl = document.getElementById('map-tile-error');
-        let tileErrors = 0;
-        this.map.on('tileerror', () => {
-            tileErrors++;
-            if (tileErrors >= 3 && tileErrorEl) {
-                tileErrorEl.classList.add('visible');
-                clearTimeout(this.tileErrorTimer);
-                this.tileErrorTimer = setTimeout(() => {
-                    tileErrorEl.classList.remove('visible');
-                    tileErrors = 0;
-                }, 6000);
-            }
-        });
-        this.map.on('tileload', () => { tileErrors = 0; });
+            this.activeBaseMap = 'satellite';
 
-        L.control.zoom({ position: 'topright' }).addTo(this.map);
+            // ── Tile error handling ──────────────────────────────────────────
+            const tileErrorEl = document.getElementById('map-tile-error');
+            let tileErrors = 0;
+            this.map.on('tileerror', () => {
+                tileErrors++;
+                if (tileErrors >= 3 && tileErrorEl) {
+                    tileErrorEl.classList.add('visible');
+                    clearTimeout(this.tileErrorTimer);
+                    this.tileErrorTimer = setTimeout(() => {
+                        tileErrorEl.classList.remove('visible');
+                        tileErrors = 0;
+                    }, 6000);
+                }
+            });
+            this.map.on('tileload', () => { tileErrors = 0; });
 
-        // Initialize Layer Groups
-        this.layerGroups.incidents = L.layerGroup().addTo(this.map);
-        this.layerGroups.wards     = L.layerGroup().addTo(this.map);
-        this.layerGroups.resources = L.layerGroup().addTo(this.map);
-        this.layerGroups.safeZones = L.layerGroup().addTo(this.map);
+            L.control.zoom({ position: 'topright' }).addTo(this.map);
 
-        this.renderAllLayers();
+            // Initialize Layer Groups
+            this.layerGroups.incidents = L.layerGroup().addTo(this.map);
+            this.layerGroups.wards     = L.layerGroup().addTo(this.map);
+            this.layerGroups.resources = L.layerGroup().addTo(this.map);
+            this.layerGroups.safeZones = L.layerGroup().addTo(this.map);
 
-        // ── Map click: street view mode OR picker mode OR anomaly drop ───
-        this.map.on('click', (e) => this.handleMapClick(e));
+            this.renderAllLayers();
+
+            // ── Map click: street view mode OR picker mode OR anomaly drop ───
+            this.map.on('click', (e) => this.handleMapClick(e));
+
+            // Invalidate size once DOM layout is fully computed
+            setTimeout(() => {
+                if (this.map) {
+                    this.map.invalidateSize();
+                }
+            }, 250);
+        } catch (err) {
+            console.error('[SpectralMap] Init error:', err);
+        }
     },
 
     renderAllLayers() {
@@ -1146,14 +1162,17 @@ const SpectralMap = {
     startLocationPicking() {
         this.isPickingLocation = true;
         // Remove any anomaly marker while picking
-        if (this.anomalyMarker) {
+        if (this.anomalyMarker && this.map) {
             this.map.removeLayer(this.anomalyMarker);
             this.anomalyMarker = null;
         }
         const mapEl = document.getElementById('spectral-map');
         const hudEl = document.getElementById('location-picker-hud');
         if (mapEl) mapEl.classList.add('picking-location');
-        if (hudEl) hudEl.classList.add('visible');
+        if (hudEl) {
+            hudEl.style.display = 'flex';
+            hudEl.classList.add('visible');
+        }
 
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.add('hidden');
@@ -1164,7 +1183,10 @@ const SpectralMap = {
         const mapEl = document.getElementById('spectral-map');
         const hudEl = document.getElementById('location-picker-hud');
         if (mapEl) mapEl.classList.remove('picking-location');
-        if (hudEl) hudEl.classList.remove('visible');
+        if (hudEl) {
+            hudEl.style.display = 'none';
+            hudEl.classList.remove('visible');
+        }
 
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.remove('hidden');
@@ -2178,7 +2200,22 @@ const SpectralUI = {
 window.SpectralMap = SpectralMap;
 window.SpectralUI  = SpectralUI;
 
-document.addEventListener('DOMContentLoaded', () => {
-    SpectralUI.init();
-    SpectralMap.init();
-});
+function bootSpectralApp() {
+    try {
+        if (window.SpectralUI) SpectralUI.init();
+    } catch (e) {
+        console.error('[SpectralUI] init error:', e);
+    }
+
+    try {
+        if (window.SpectralMap) SpectralMap.init();
+    } catch (e) {
+        console.error('[SpectralMap] init error:', e);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootSpectralApp);
+} else {
+    bootSpectralApp();
+}

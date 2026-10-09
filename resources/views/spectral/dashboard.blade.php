@@ -16,7 +16,7 @@
         <div id="spectral-map" class="w-full h-full"></div>
 
         <!-- Location Selection Active HUD Banner -->
-        <div id="location-picker-hud" class="absolute top-3 inset-x-0 mx-auto max-w-md z-[500] px-4 py-2.5 rounded-lg bg-[#1B222C] border border-[#8B5CF6] text-white text-xs shadow-2xl flex items-center justify-between gap-3">
+        <div id="location-picker-hud" style="display: none;" class="absolute top-3 inset-x-0 mx-auto max-w-md z-[500] px-4 py-2.5 rounded-lg bg-[#1B222C] border border-[#8B5CF6] text-white text-xs shadow-2xl flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse"></span>
                 <span class="font-medium text-slate-100">Click on the map to set coordinates</span>
@@ -138,6 +138,27 @@
             // Stop trying after 8 seconds
             setTimeout(() => clearInterval(tryZoom), 8000);
         }
+    })();
+
+    // Map initialization guarantee for immediate rendering
+    (function() {
+        function checkAndInitMap() {
+            if (window.SpectralMap && !window.SpectralMap.map && typeof L !== 'undefined') {
+                try {
+                    window.SpectralMap.init();
+                } catch (e) {
+                    console.error('[Dashboard] Map init error:', e);
+                }
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAndInitMap);
+        } else {
+            checkAndInitMap();
+        }
+        window.addEventListener('load', checkAndInitMap);
+        setTimeout(checkAndInitMap, 300);
+        setTimeout(checkAndInitMap, 1000);
     })();
 </script>
 @endsection

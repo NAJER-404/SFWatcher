@@ -197,7 +197,7 @@
                         <textarea id="update-notes-input" rows="3" maxlength="500"
                                   oninput="document.getElementById('notes-char-count').textContent = this.value.length + '/500'"
                                   placeholder="Add your investigation notes here..."
-                                  class="ecto-input text-xs w-full"></textarea>
+                                  class="ecto-input text-xs w-full bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg p-2.5 focus:border-[#8B5CF6] focus:outline-none placeholder-slate-500"></textarea>
                     </div>
 
                     <!-- Action Buttons -->

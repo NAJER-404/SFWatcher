@@ -27,32 +27,32 @@
         <form method="GET" action="{{ route('spectral.incidents.index') }}" class="p-3.5 sm:p-4 rounded-xl bg-[#151B23] border border-[#2A3440] grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Severity</label>
-                <select name="severity" onchange="this.form.submit()" class="ecto-select">
-                    <option value="ALL">All Severities</option>
-                    <option value="LOW" {{ request('severity') == 'LOW' ? 'selected' : '' }}>LOW</option>
-                    <option value="MEDIUM" {{ request('severity') == 'MEDIUM' ? 'selected' : '' }}>MEDIUM</option>
-                    <option value="HIGH" {{ request('severity') == 'HIGH' ? 'selected' : '' }}>HIGH</option>
-                    <option value="CRITICAL" {{ request('severity') == 'CRITICAL' ? 'selected' : '' }}>CRITICAL</option>
+                <select name="severity" onchange="this.form.submit()" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none">
+                    <option class="bg-[#151B23] text-slate-200" value="ALL">All Severities</option>
+                    <option class="bg-[#151B23] text-slate-200" value="LOW" {{ request('severity') == 'LOW' ? 'selected' : '' }}>LOW</option>
+                    <option class="bg-[#151B23] text-slate-200" value="MEDIUM" {{ request('severity') == 'MEDIUM' ? 'selected' : '' }}>MEDIUM</option>
+                    <option class="bg-[#151B23] text-slate-200" value="HIGH" {{ request('severity') == 'HIGH' ? 'selected' : '' }}>HIGH</option>
+                    <option class="bg-[#151B23] text-slate-200" value="CRITICAL" {{ request('severity') == 'CRITICAL' ? 'selected' : '' }}>CRITICAL</option>
                 </select>
             </div>
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status</label>
-                <select name="status" onchange="this.form.submit()" class="ecto-select">
-                    <option value="ALL">All Statuses</option>
-                    <option value="PENDING" {{ request('status') == 'PENDING' ? 'selected' : '' }}>PENDING</option>
-                    <option value="UNDER INVESTIGATION" {{ request('status') == 'UNDER INVESTIGATION' ? 'selected' : '' }}>UNDER INVESTIGATION</option>
-                    <option value="VERIFIED" {{ request('status') == 'VERIFIED' ? 'selected' : '' }}>VERIFIED</option>
-                    <option value="RESOLVED" {{ request('status') == 'RESOLVED' ? 'selected' : '' }}>RESOLVED</option>
+                <select name="status" onchange="this.form.submit()" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none">
+                    <option class="bg-[#151B23] text-slate-200" value="ALL">All Statuses</option>
+                    <option class="bg-[#151B23] text-slate-200" value="PENDING" {{ request('status') == 'PENDING' ? 'selected' : '' }}>PENDING</option>
+                    <option class="bg-[#151B23] text-slate-200" value="UNDER INVESTIGATION" {{ request('status') == 'UNDER INVESTIGATION' ? 'selected' : '' }}>UNDER INVESTIGATION</option>
+                    <option class="bg-[#151B23] text-slate-200" value="VERIFIED" {{ request('status') == 'VERIFIED' ? 'selected' : '' }}>VERIFIED</option>
+                    <option class="bg-[#151B23] text-slate-200" value="RESOLVED" {{ request('status') == 'RESOLVED' ? 'selected' : '' }}>RESOLVED</option>
                 </select>
             </div>
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Barangay</label>
-                <select name="barangay_id" onchange="this.form.submit()" class="ecto-select">
-                    <option value="">All Barangays</option>
+                <select name="barangay_id" onchange="this.form.submit()" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none">
+                    <option class="bg-[#151B23] text-slate-200" value="">All Barangays</option>
                     @foreach($barangays as $b)
-                        <option value="{{ $b->id }}" {{ request('barangay_id') == $b->id ? 'selected' : '' }}>
+                        <option class="bg-[#151B23] text-slate-200" value="{{ $b->id }}" {{ request('barangay_id') == $b->id ? 'selected' : '' }}>
                             Brgy. {{ $b->name }}
                         </option>
                     @endforeach

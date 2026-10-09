@@ -935,11 +935,27 @@ const SpectralMap = {
 
             this.activeBaseMap = 'satellite';
 
+            // ── OSM Fallback tile layer (hidden by default) ──────────────────
+            this.baseLayers.osm = L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            });
+
             // ── Tile error handling ──────────────────────────────────────────
             const tileErrorEl = document.getElementById('map-tile-error');
             let tileErrors = 0;
+            let switchedToOsm = false;
             this.map.on('tileerror', () => {
                 tileErrors++;
+                if (tileErrors >= 3 && !switchedToOsm) {
+                    switchedToOsm = true;
+                    // Switch to OSM fallback
+                    this.baseLayers.satellite.remove();
+                    this.baseLayers.osm.addTo(this.map);
+                    this.activeBaseMap = 'osm';
+                    console.warn('[SpectralMap] Google tiles failed — switched to OpenStreetMap');
+                }
                 if (tileErrors >= 3 && tileErrorEl) {
                     tileErrorEl.classList.add('visible');
                     clearTimeout(this.tileErrorTimer);

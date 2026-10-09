@@ -10,7 +10,7 @@
 <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
 
     <!-- ── MAP ──────────────────────────────────────────────── -->
-    <main class="relative flex-1 min-h-0 bg-[#06090D] overflow-hidden">
+    <main class="relative flex-1 h-full min-h-0 bg-[#06090D] overflow-hidden">
 
         <!-- Real Geographic Leaflet Map Container -->
         <div id="spectral-map" class="w-full h-full"></div>

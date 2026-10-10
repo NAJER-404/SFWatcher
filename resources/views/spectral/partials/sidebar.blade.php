@@ -67,11 +67,10 @@
             <!-- Open / Close toggle (desktop) -->
             <button type="button" id="sidebar-toggle"
                     aria-controls="spectral-sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar"
-                    class="hidden md:flex flex-shrink-0 w-7 h-7 items-center justify-center rounded-lg text-slate-600 hover:text-slate-300 hover:bg-[#161d27] transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
+                    class="hidden md:flex flex-shrink-0 w-7 h-7 items-center justify-center rounded-lg text-slate-500 hover:text-slate-200 hover:bg-[#161d27] transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2.5"/>
+                    <path d="M9 3v18"/>
                 </svg>
             </button>
 
@@ -107,10 +106,10 @@
             <p class="sb-section-title text-[9px] font-mono font-bold uppercase tracking-widest text-[#3d4e5f] px-2 mb-1.5">Monitoring</p>
 
             <!-- Interactive Map -->
-            <a href="{{ route('spectral.dashboard') }}#map" data-label="Interactive Map"
+            <a href="{{ route('spectral.map') }}" data-label="Interactive Map"
                onclick="SpectralSidebar.closeMobile()"
-               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-[#161d27] hover:text-white transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('spectral.map') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} {{ request()->routeIs('spectral.map') ? 'font-semibold' : '' }} transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 {{ request()->routeIs('spectral.map') ? 'text-[#3B82F6]' : 'text-slate-500' }} flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
                     <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
                 </svg>
@@ -120,7 +119,7 @@
             <!-- Incidents -->
             <a href="{{ route('spectral.incidents.index') }}" data-label="Incidents"
                onclick="SpectralSidebar.closeMobile()"
-               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('spectral.incidents.*') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} transition">
+               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('spectral.incidents.*') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60 font-semibold' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 {{ request()->routeIs('spectral.incidents.*') ? 'text-[#3B82F6]' : 'text-slate-500' }} flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                     <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -129,13 +128,14 @@
             </a>
 
             <!-- Safe Zones -->
-            <button onclick="SpectralSidebar.closeMobile();" data-label="Safe Zones"
-                    class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-[#161d27] hover:text-white transition">
+            <a href="{{ route('spectral.map') }}?layer=safeZones" data-label="Safe Zones"
+               onclick="SpectralSidebar.closeMobile()"
+               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-[#161d27] hover:text-white transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
                 <span class="sb-label">Safe Zones</span>
-            </button>
+            </a>
         </div>
 
         <!-- MY ACTIVITY -->
@@ -145,11 +145,22 @@
             <!-- My Reports -->
             <a href="{{ route('spectral.my-reports') }}" data-label="My Reports"
                onclick="SpectralSidebar.closeMobile()"
-               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('spectral.my-reports') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} transition">
+               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('spectral.my-reports') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60 font-semibold' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 {{ request()->routeIs('spectral.my-reports') ? 'text-[#3B82F6]' : 'text-slate-500' }} flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                 </svg>
                 <span class="sb-label">My Reports</span>
+            </a>
+
+            <!-- Incident Reports -->
+            <a href="{{ route('spectral.incidents.index') }}" data-label="Incident Reports"
+               onclick="SpectralSidebar.closeMobile()"
+               class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('spectral.incidents.*') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60 font-semibold' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 {{ request()->routeIs('spectral.incidents.*') ? 'text-[#3B82F6]' : 'text-slate-500' }} flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                </svg>
+                <span class="sb-label">Incident Reports</span>
             </a>
 
             <!-- Notifications -->

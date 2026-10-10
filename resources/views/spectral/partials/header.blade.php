@@ -247,30 +247,82 @@
         </button>
         @endif
 
-        <!-- User Profile -->
+        <!-- User Profile Dropdown Pill matching mockup -->
         @auth
-        <div class="hidden lg:flex items-center gap-2 pl-2 border-l border-[#2A3440]">
-            <div class="w-7 h-7 rounded-full bg-[#1B222C] border border-[#8B5CF6]/40 flex items-center justify-center text-xs font-bold text-[#8B5CF6] font-mono">
-                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(strrchr(Auth::user()->name, ' '), 1, 1) ?: substr(Auth::user()->name, 1, 1)) }}
-            </div>
-            <div class="text-left">
-                <p class="text-xs font-semibold text-white leading-tight">{{ Auth::user()->name }}</p>
-                <p class="text-[10px] text-[#9CA3AF] font-mono leading-tight capitalize">{{ Auth::user()->role }}</p>
-            </div>
-        </div>
-
-        <!-- Logout Button -->
-        <form method="POST" action="{{ route('logout') }}" class="flex items-center">
-            @csrf
-            <button type="submit"
-                title="Sign out"
-                class="w-7 h-7 rounded-lg bg-[#1B222C] border border-[#2A3440] flex items-center justify-center text-[#9CA3AF] hover:text-red-400 hover:border-red-400/40 transition-all"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+        <div class="relative" id="user-menu-wrapper">
+            <button type="button"
+                    id="user-menu-btn"
+                    onclick="SpectralHeader.toggleUserMenu()"
+                    class="flex items-center gap-2.5 py-1 px-2 rounded-lg hover:bg-[#1B222C] transition group cursor-pointer focus:outline-none">
+                <div class="w-8 h-8 rounded-full bg-[#1e293b] border border-[#334155] flex items-center justify-center text-xs font-bold text-slate-200">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                </div>
+                <div class="text-left hidden sm:block">
+                    <p class="text-xs font-bold text-slate-200 leading-tight group-hover:text-white transition">{{ Auth::user()->name }}</p>
+                    <p class="text-[10px] text-slate-400 capitalize leading-tight">{{ Auth::user()->role ?? 'Reporter' }}</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
                 </svg>
             </button>
-        </form>
+
+            <!-- Dropdown Menu -->
+            <div id="user-dropdown-menu"
+                 class="hidden absolute right-0 top-12 w-56 rounded-xl bg-[#151B23] border border-[#2A3440] shadow-2xl shadow-black/80 py-1.5 z-50 overflow-hidden">
+                <div class="px-3.5 py-2.5 border-b border-[#2A3440] bg-[#11161D]">
+                    <p class="text-xs font-bold text-white truncate">{{ Auth::user()->name }}</p>
+                    <p class="text-[10px] text-slate-400 truncate">{{ Auth::user()->email }}</p>
+                    <span class="inline-block mt-1 text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-[#1e293b] text-[#38BDF8] border border-[#38BDF8]/30">
+                        {{ Auth::user()->role }}
+                    </span>
+                </div>
+
+                <div class="py-1">
+                    <a href="{{ route('spectral.profile') }}"
+                       class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-[#1B222C] transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <span>Profile & Settings</span>
+                    </a>
+
+                    <a href="{{ route('spectral.my-reports') }}"
+                       class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-[#1B222C] transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span>My Reports</span>
+                    </a>
+
+                    @if(Auth::user()->isAdmin())
+                        <a href="{{ route('admin.dashboard') }}"
+                           class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-red-400 hover:text-red-300 hover:bg-[#1B222C] transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            <span>Admin Portal</span>
+                        </a>
+                    @elseif(Auth::user()->isInvestigator())
+                        <a href="{{ route('investigator.dashboard') }}"
+                           class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-purple-400 hover:text-purple-300 hover:bg-[#1B222C] transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <span>Investigator Portal</span>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="border-t border-[#2A3440] py-1">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                                class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-400 hover:text-red-400 hover:bg-[#1B222C] transition text-left">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+                            </svg>
+                            <span>Log Out</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
         @endauth
 
     </div>
@@ -404,6 +456,17 @@ const SpectralNotif = {
     }
 };
 
+const SpectralHeader = {
+    toggleUserMenu() {
+        const menu = document.getElementById('user-dropdown-menu');
+        if (menu) menu.classList.toggle('hidden');
+    },
+    closeUserMenu() {
+        const menu = document.getElementById('user-dropdown-menu');
+        if (menu) menu.classList.add('hidden');
+    }
+};
+
 // Re-apply locally stored read state on page load
 document.addEventListener('DOMContentLoaded', function () {
     const readIds = SpectralNotif.getReadIds();
@@ -421,10 +484,16 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('click', function (e) {
     const wrapper = document.getElementById('notif-wrapper');
     if (wrapper && !wrapper.contains(e.target)) SpectralNotif.close();
+
+    const userWrapper = document.getElementById('user-menu-wrapper');
+    if (userWrapper && !userWrapper.contains(e.target)) SpectralHeader.closeUserMenu();
 });
 
-// Close with Escape and return focus to the bell
+// Close with Escape
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && SpectralNotif.isOpen()) SpectralNotif.close(true);
+    if (e.key === 'Escape') {
+        if (SpectralNotif.isOpen()) SpectralNotif.close(true);
+        SpectralHeader.closeUserMenu();
+    }
 });
 </script>

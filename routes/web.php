@@ -134,6 +134,7 @@ Route::middleware('auth')->group(function () {
     // ─── Main GIS Dashboard & Profile ──────────────────────────────────────
     Route::get('/',           [DashboardController::class, 'index'])->name('spectral.dashboard');
     Route::get('/spectral',   [DashboardController::class, 'index'])->name('spectral.index');
+    Route::get('/map',        [DashboardController::class, 'map'])->name('spectral.map');
     Route::get('/ecto',       fn() => redirect()->route('spectral.dashboard'));
     Route::get('/my-reports', [DashboardController::class, 'myReports'])->name('spectral.my-reports');
 

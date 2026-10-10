@@ -17,6 +17,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        return view('spectral.dashboard', $this->getDashboardPayload());
+    }
+
+    public function map()
+    {
+        return view('spectral.map', $this->getDashboardPayload());
+    }
+
+    private function getDashboardPayload(): array
+    {
         $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responderAssignments'])
             ->activeOnMap()
             ->orderByDesc('created_at')
@@ -84,9 +94,9 @@ class DashboardController extends Controller
             'notifications'      => $unreadNotifCount,
         ];
 
-        return view('spectral.dashboard', compact(
+        return compact(
             'incidents', 'wardStations', 'resources', 'barangays', 'equipment', 'stats', 'notifications'
-        ));
+        );
     }
 
     public function myReports()

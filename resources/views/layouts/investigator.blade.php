@@ -70,10 +70,10 @@
 
             <a href="{{ route('investigator.dashboard') }}" class="flex items-center gap-2 hover:opacity-90 transition">
                 <img src="{{ asset('images/spectra-logo.png') }}" alt="SpectraWatch" class="h-8 w-8 object-contain">
-                <span class="text-lg font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SpectraWatch</span>
+                <span class="text-lg font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SFWatch</span>
             </a>
-            <span class="hidden md:inline-block text-slate-600">|</span>
-            <span class="hidden md:inline-block text-xs font-medium text-slate-400">Spectral Incident &amp; Resource Monitoring System</span>
+          
+            
         </div>
 
         <!-- Right: Profile Info & Logout -->

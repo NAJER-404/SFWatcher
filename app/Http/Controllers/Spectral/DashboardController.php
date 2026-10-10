@@ -8,8 +8,10 @@ use App\Models\Equipment;
 use App\Models\Incident;
 use App\Models\Resource;
 use App\Models\WardStation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class DashboardController extends Controller
 {
@@ -27,7 +29,6 @@ class DashboardController extends Controller
 
         $userId = Auth::id();
 
-        // Fetch current user's incidents with investigation history for the notification bell
         $myIncidents = Incident::with(['barangay', 'investigations.investigator'])
             ->where(function ($query) use ($userId) {
                 $query->where('reported_by', $userId)
@@ -57,8 +58,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Merge with rejected notifications stored in cache for this user
-        $rejectedNotifs = collect(\Illuminate\Support\Facades\Cache::get("user_notifications_{$userId}", []))
+        $rejectedNotifs = collect(Cache::get("user_notifications_{$userId}", []))
             ->map(function ($notif) use ($readNotifs) {
                 $notif['is_read'] = in_array((string)$notif['incident_id'], array_map('strval', $readNotifs));
                 return $notif;
@@ -78,7 +78,6 @@ class DashboardController extends Controller
             'critical_incidents' => $incidents->where('severity', 'CRITICAL')->count(),
             'ward_stations'      => $wardStations->count(),
             'resources'          => $resources->count(),
-            // User-specific stats
             'my_reports'         => $myIncidents->count(),
             'pending'            => $incidents->where('status', 'PENDING')->count(),
             'resolved'           => $incidents->where('status', 'RESOLVED')->count(),
@@ -121,7 +120,6 @@ class DashboardController extends Controller
         $allIncidents = Incident::all();
         $readNotifs   = session('read_notifications', []);
 
-        // Build notifications for the header bell on this page too
         $notifications = $incidents
             ->filter(fn($inc) => $inc->investigations->isNotEmpty())
             ->map(function ($inc) use ($readNotifs) {
@@ -143,7 +141,6 @@ class DashboardController extends Controller
 
         $unreadNotifCount = $notifications->where('is_read', false)->count();
 
-        // Merge cached rejection notifications (incident deleted, only in Cache)
         $rejectedCached = Cache::get("user_notifications_{$userId}", []);
         if (!empty($rejectedCached)) {
             $rejectedMapped = collect($rejectedCached)->map(function ($n) use ($readNotifs) {
@@ -175,5 +172,93 @@ class DashboardController extends Controller
         ];
 
         return view('spectral.my_reports', compact('incidents', 'notifications', 'stats'));
+    }
+
+    public function profile()
+    {
+        $userId = Auth::id();
+        $user = Auth::user();
+
+        $incidents = Incident::with(['barangay', 'evidence', 'investigations.investigator'])
+            ->where('reported_by', $userId)
+            ->latest()
+            ->get();
+
+        $allIncidents = Incident::all();
+        $readNotifs   = session('read_notifications', []);
+
+        $notifications = $incidents
+            ->filter(fn($inc) => $inc->investigations->isNotEmpty())
+            ->map(function ($inc) use ($readNotifs) {
+                $latest = $inc->investigations->sortByDesc('investigation_date')->first();
+                return [
+                    'incident_code' => $inc->incident_code,
+                    'title'         => $inc->title,
+                    'status'        => $inc->status,
+                    'severity'      => $inc->severity,
+                    'investigator'  => $latest?->investigator?->name ?? 'System',
+                    'notes'         => $latest?->notes,
+                    'updated_at'    => $latest?->investigation_date ?? $inc->updated_at,
+                    'incident_id'   => $inc->id,
+                    'is_read'       => in_array($inc->id, $readNotifs),
+                ];
+            })
+            ->values()
+            ->take(8);
+
+        $unreadNotifCount = $notifications->where('is_read', false)->count();
+
+        $rejectedCached = Cache::get("user_notifications_{$userId}", []);
+        if (!empty($rejectedCached)) {
+            $rejectedMapped = collect($rejectedCached)->map(function ($n) use ($readNotifs) {
+                return [
+                    'incident_code' => $n['incident_code'] ?? 'N/A',
+                    'title'         => $n['title']         ?? 'Incident',
+                    'status'        => 'REJECTED',
+                    'severity'      => $n['severity']      ?? '—',
+                    'investigator'  => $n['investigator']  ?? 'System',
+                    'notes'         => $n['notes']         ?? null,
+                    'updated_at'    => $n['updated_at']    ?? now(),
+                    'incident_id'   => $n['incident_id']   ?? null,
+                    'is_read'       => in_array((string) ($n['incident_id'] ?? ''), array_map('strval', $readNotifs)),
+                ];
+            });
+            $notifications = $notifications->concat($rejectedMapped)->take(8);
+            $unreadNotifCount = $notifications->where('is_read', false)->count();
+        }
+
+        $stats = [
+            'total_incidents'    => $allIncidents->count(),
+            'active_incidents'   => $allIncidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
+            'pending'            => $incidents->where('status', 'PENDING')->count(),
+            'resolved'           => $incidents->where('status', 'RESOLVED')->count(),
+            'my_reports'         => $incidents->count(),
+            'notifications'      => $unreadNotifCount,
+        ];
+
+        return view('spectral.reporter_profile', compact('incidents', 'stats', 'user', 'notifications'));
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password'         => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = Auth::user();
+        /** @var \App\Models\User $user */
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully.'
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Password updated successfully.');
     }
 }

@@ -42,10 +42,8 @@
     <header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-3 sm:px-5 flex items-center justify-between flex-shrink-0 z-30 select-none">
         <div class="flex items-center gap-3">
             <a href="{{ route('responder.dashboard') }}" class="flex items-center gap-2 hover:opacity-90 transition">
-                <span class="text-lg font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">Spectra</span>
+                <span class="text-lg font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SFWatch</span>
             </a>
-            <span class="text-[#2A3440]">|</span>
-            <span class="text-xs font-mono font-bold text-[#A78BFA] uppercase tracking-wider">Responder Operations</span>
         </div>
 
         <div class="flex items-center gap-3">

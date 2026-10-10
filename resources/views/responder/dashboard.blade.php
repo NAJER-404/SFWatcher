@@ -1,6 +1,6 @@
 @extends('layouts.responder')
 
-@section('title', 'Responder Dashboard — Spectra')
+@section('title', 'Responder Dashboard — SFWatch')
 
 @section('content')
 <main class="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-8 bg-[#0B0F14] max-w-6xl mx-auto w-full space-y-5 sm:space-y-7">
@@ -8,7 +8,7 @@
     <!-- Top Header & Stats -->
     <div class="space-y-4">
         <div>
-            <p class="text-xs font-mono font-bold text-[#A78BFA] uppercase tracking-wider">SPECTRAWATCH DEFENSE GRID</p>
+            <p class="text-xs font-mono font-bold text-[#A78BFA] uppercase tracking-wider">SFWatch Defense Grid</p>
             <h1 class="text-xl sm:text-2xl font-extrabold text-white mt-0.5">Tactical Responder Dashboard</h1>
             <p class="text-xs text-slate-400">Manage incident response assignments and active anomaly containment.</p>
         </div>

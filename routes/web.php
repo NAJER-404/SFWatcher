@@ -90,27 +90,26 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
 });
 
 // ─── Protected Investigator Portal Routes ─────────────────────────────────
-// Investigator Authentication (Separate — Isolated Session & Cookie)
 Route::get('/investigator/login',  [AuthController::class, 'showInvestigatorLoginForm'])->name('investigator.login');
 Route::post('/investigator/login', [AuthController::class, 'investigatorLogin'])->name('investigator.login.submit');
 
 Route::middleware(['investigator'])->prefix('investigator')->name('investigator.')->group(function () {
-    Route::get('/dashboard',             [InvestigatorDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/queue',                 [InvestigatorDashboardController::class, 'queue'])->name('queue');
-    Route::get('/incidents',             [InvestigatorDashboardController::class, 'incidents'])->name('incidents.index');
-    Route::get('/incidents/{id}/review', [InvestigatorDashboardController::class, 'review'])->name('incidents.review');
-    Route::put('/incidents/{id}',        [InvestigatorDashboardController::class, 'updateIncident'])->name('incidents.update');
+    Route::get('/dashboard',                 [InvestigatorDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/queue',                     [InvestigatorDashboardController::class, 'queue'])->name('queue');
+    Route::get('/incidents',                 [InvestigatorDashboardController::class, 'incidents'])->name('incidents.index');
+    Route::get('/incidents/{id}/review',     [InvestigatorDashboardController::class, 'review'])->name('incidents.review');
+    Route::put('/incidents/{id}',            [InvestigatorDashboardController::class, 'updateIncident'])->name('incidents.update');
     Route::post('/incidents/{id}/assign-responder', [InvestigatorDashboardController::class, 'assignResponder'])->name('incidents.assign-responder');
     Route::post('/incidents/{id}/assign-responder-ajax', [InvestigatorDashboardController::class, 'assignResponderAjax'])->name('incidents.assign-responder-ajax');
     Route::get('/incidents/{id}/eligible-responders', [InvestigatorDashboardController::class, 'eligibleResponders'])->name('incidents.eligible-responders');
     Route::match(['delete', 'post'], '/incidents/{id}/reject', [InvestigatorDashboardController::class, 'rejectIncident'])->name('incidents.reject');
 
-    Route::get('/map',                   [InvestigatorDashboardController::class, 'map'])->name('map');
-    Route::get('/safe-zones',            [InvestigatorDashboardController::class, 'safeZones'])->name('safe-zones');
-    Route::get('/responders',            [InvestigatorDashboardController::class, 'responders'])->name('responders');
-    Route::get('/wards',                 [InvestigatorDashboardController::class, 'wards'])->name('wards');
-    Route::get('/resources',             [InvestigatorDashboardController::class, 'resources'])->name('resources');
-    Route::get('/profile',               [InvestigatorDashboardController::class, 'profile'])->name('profile');
+    Route::get('/map',                       [InvestigatorDashboardController::class, 'map'])->name('map');
+    Route::get('/safe-zones',                [InvestigatorDashboardController::class, 'safeZones'])->name('safe-zones');
+    Route::get('/responders',                [InvestigatorDashboardController::class, 'responders'])->name('responders');
+    Route::get('/wards',                     [InvestigatorDashboardController::class, 'wards'])->name('wards');
+    Route::get('/resources',                 [InvestigatorDashboardController::class, 'resources'])->name('resources');
+    Route::get('/profile',                   [InvestigatorDashboardController::class, 'profile'])->name('profile');
 });
 
 Route::get('/responder/login', [AuthController::class, 'showResponderLoginForm'])->name('responder.login');
@@ -132,12 +131,17 @@ Route::middleware('responder')->prefix('responder')->name('responder.')->group(f
 // ─── Protected Spectral Routes (Auth Required) ───────────────────────────
 Route::middleware('auth')->group(function () {
 
-    // ─── Main GIS Dashboard ────────────────────────────────────────────────
+    // ─── Main GIS Dashboard & Profile ──────────────────────────────────────
     Route::get('/',           [DashboardController::class, 'index'])->name('spectral.dashboard');
     Route::get('/spectral',   [DashboardController::class, 'index'])->name('spectral.index');
     Route::get('/ecto',       fn() => redirect()->route('spectral.dashboard'));
     Route::get('/my-reports', [DashboardController::class, 'myReports'])->name('spectral.my-reports');
-    Route::get('/profile',    fn() => redirect()->route('spectral.dashboard'))->name('spectral.profile');
+
+    // Profile & Credentials Update Routes
+    Route::get('/profile',          [DashboardController::class, 'profile'])->name('spectral.profile');
+    Route::put('/profile/update',   [DashboardController::class, 'updateProfile'])->name('spectral.profile.update');
+    Route::put('/profile/password', [DashboardController::class, 'updatePassword'])->name('spectral.profile.password');
+
     Route::post('/notifications/mark-as-read', function (\Illuminate\Http\Request $request) {
         $read = session('read_notifications', []);
         if ($request->boolean('all')) {
@@ -161,10 +165,10 @@ Route::middleware('auth')->group(function () {
 
     // ─── Spectral Incident Management ──────────────────────────────────────
     Route::prefix('incidents')->name('spectral.incidents.')->group(function () {
-        Route::get('/',            [IncidentController::class, 'index'])->name('index');
-        Route::get('/create',      [IncidentController::class, 'create'])->name('create');
-        Route::post('/',           [IncidentController::class, 'store'])->name('store');
-        Route::get('/{id}',        [IncidentController::class, 'show'])->name('show');
+        Route::get('/',             [IncidentController::class, 'index'])->name('index');
+        Route::get('/create',       [IncidentController::class, 'create'])->name('create');
+        Route::post('/',            [IncidentController::class, 'store'])->name('store');
+        Route::get('/{id}',         [IncidentController::class, 'show'])->name('show');
         Route::put('/{id}/status', [IncidentController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{id}',     [IncidentController::class, 'destroy'])->name('destroy');
     });

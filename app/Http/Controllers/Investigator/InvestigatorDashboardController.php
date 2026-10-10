@@ -161,6 +161,10 @@ class InvestigatorDashboardController extends Controller
 
     /**
      * Update incident status, severity, and record investigation note.
+     *
+     * Only writes / logs / awards XP when something ACTUALLY changed, so pressing
+     * "Commit Update" after assigning a responder no longer creates a fake
+     * "Status updated from VERIFIED to VERIFIED" entry.
      */
     public function updateIncident(Request $request, $id)
     {
@@ -210,35 +214,43 @@ class InvestigatorDashboardController extends Controller
         }
 
         $oldStatus   = $incident->status;
-        $oldSeverity = $incident->severity;
-
+        $oldSeverity = strtoupper($incident->severity ?? '');
         $newSeverity = strtoupper($validated['severity']);
+        $userNote    = trim($validated['notes'] ?? '');
+
+        $statusChanged   = $oldStatus !== $validated['status'];
+        $severityChanged = $oldSeverity !== $newSeverity;
+
+        // Has the form's responder actually changed? (After the AJAX assign modal the
+        // hidden responder_id already matches the saved assignment, so this is false.)
+        $existingAssignment = ResponderAssignment::where('incident_id', $incident->id)->first();
+        $responderChanged   = ! empty($validated['responder_id'])
+            && (int) ($existingAssignment?->responder_id) !== (int) $validated['responder_id'];
+
+        // ── Nothing to commit → do nothing (no fake log row, no XP) ──
+        if (! $statusChanged && ! $severityChanged && ! $responderChanged && $userNote === '') {
+            return redirect()->back()->with('success', "No changes to commit — {$incident->incident_code} is already {$incident->status}.");
+        }
+
         $incident->status   = $validated['status'];
         $incident->severity = $newSeverity;
 
         // Auto-determine Anomaly HP and Required Class from severity
         $anomalyMaxHp = config("spectral_response.anomaly_hp.{$newSeverity}", 80);
         $incident->anomaly_max_hp = $anomalyMaxHp;
-        if ($incident->anomaly_hp === null || $oldSeverity !== $newSeverity) {
+        if ($incident->anomaly_hp === null || $severityChanged) {
             $incident->anomaly_hp = $anomalyMaxHp;
         }
-
         $incident->required_responder_class = config("spectral_response.required_minimum_class.{$newSeverity}", 'D');
-
-        $noteText = !empty($validated['notes'])
-            ? trim($validated['notes'])
-            : "Status updated from {$oldStatus} to {$validated['status']}" . ($oldSeverity !== $newSeverity ? " (Severity set to {$newSeverity} [Anomaly HP: {$anomalyMaxHp}])" : "");
-
-        $incident->notes = $noteText;
 
         $investigatorId = Auth::guard('investigator')->id()
             ?? Auth::id()
             ?? (User::where('role', 'investigator')->first()?->id);
 
-        $assignedResponderName = null;
+        $assignedResponder = null;
 
-        // When explicit responder_id is provided, create or update assignment
-        if (!empty($validated['responder_id'])) {
+        // Explicit responder chosen on the form (only when it really changed)
+        if ($responderChanged) {
             $explicitResponder = User::where('id', $validated['responder_id'])->where('role', 'responder')->first();
             if ($explicitResponder) {
                 ResponderAssignment::updateOrCreate(
@@ -252,11 +264,11 @@ class InvestigatorDashboardController extends Controller
                         'anomaly_max_hp'  => $incident->anomaly_max_hp,
                     ]
                 );
-                $assignedResponderName = $explicitResponder->name;
+                $assignedResponder = $explicitResponder;
             }
         }
 
-        // When status transitions to VERIFIED — auto-assign responder if none exists and an eligible one is available
+        // Transition to VERIFIED — auto-assign if none exists and an eligible responder is free
         if ($validated['status'] === 'VERIFIED') {
             if (! $incident->investigation_result) {
                 $incident->investigation_result = 'CONFIRMED';
@@ -265,8 +277,7 @@ class InvestigatorDashboardController extends Controller
                 $incident->investigation_completed_at = now();
             }
 
-            $existingAssignment = ResponderAssignment::where('incident_id', $incident->id)->first();
-            if (! $existingAssignment) {
+            if (! $existingAssignment && ! $assignedResponder) {
                 $eligibleClasses = config("spectral_response.severity_eligibility.{$newSeverity}", ['D', 'C', 'B', 'A']);
                 $availableResponder = User::where('role', 'responder')
                     ->where('responder_status', 'AVAILABLE')
@@ -285,43 +296,70 @@ class InvestigatorDashboardController extends Controller
                 ]);
 
                 if ($availableResponder) {
-                    $assignedResponderName = $availableResponder->name;
+                    $assignedResponder = $availableResponder;
                 }
             }
         }
 
+        // ── Build the log text from what really changed ──
+        $logResult = $validated['status'];
+        $noteText  = $userNote;
+
+        if ($noteText === '') {
+            if ($statusChanged) {
+                $noteText = "Status updated from {$oldStatus} to {$validated['status']}";
+                if ($severityChanged) {
+                    $noteText .= " (Severity set to {$newSeverity} [Anomaly HP: {$anomalyMaxHp}])";
+                }
+            } elseif ($severityChanged) {
+                $noteText = "Severity set to {$newSeverity} [Anomaly HP: {$anomalyMaxHp}]";
+            } elseif ($assignedResponder) {
+                $noteText  = "Responder {$assignedResponder->name} (Class {$assignedResponder->responder_class}) assigned.";
+                $logResult = 'ASSIGNED';
+            }
+        }
+
+        if ($noteText !== '') {
+            $incident->notes = $noteText;
+        }
+
         $incident->save();
 
-        // Record in investigations history
-        Investigation::create([
-            'incident_id'        => $incident->id,
-            'investigator_id'    => $investigatorId,
-            'notes'              => $noteText,
-            'investigation_date' => now(),
-            'result'             => $validated['status'],
-            'completed_at'       => in_array($validated['status'], ['RESOLVED', 'VERIFIED']) ? now() : null,
-        ]);
+        // Record in investigations history (only when there is something real to record)
+        if ($noteText !== '') {
+            Investigation::create([
+                'incident_id'        => $incident->id,
+                'investigator_id'    => $investigatorId,
+                'notes'              => $noteText,
+                'investigation_date' => now(),
+                'result'             => $logResult,
+                'completed_at'       => ($statusChanged && in_array($validated['status'], ['RESOLVED', 'VERIFIED'])) ? now() : null,
+            ]);
 
-        // Audit Trail Cap: keep only 6 newest records per incident, delete older ones
-        $excessIds = Investigation::where('incident_id', $incident->id)
-            ->orderByDesc('investigation_date')
-            ->orderByDesc('id')
-            ->skip(6)
-            ->take(100)
-            ->pluck('id');
+            // Audit Trail Cap: keep only 6 newest records per incident, delete older ones
+            $excessIds = Investigation::where('incident_id', $incident->id)
+                ->orderByDesc('investigation_date')
+                ->orderByDesc('id')
+                ->skip(6)
+                ->take(100)
+                ->pluck('id');
 
-        if ($excessIds->isNotEmpty()) {
-            Investigation::whereIn('id', $excessIds)->delete();
+            if ($excessIds->isNotEmpty()) {
+                Investigation::whereIn('id', $excessIds)->delete();
+            }
         }
 
-        $investigator = Auth::guard('investigator')->user() ?? Auth::user();
-        if ($investigator) {
-            $investigator->increment('investigations_completed');
-            $investigator->increment('xp', config('spectral_response.xp.investigation_completed', 15));
+        // XP only when the workflow stage genuinely advanced
+        if ($statusChanged) {
+            $investigator = Auth::guard('investigator')->user() ?? Auth::user();
+            if ($investigator) {
+                $investigator->increment('investigations_completed');
+                $investigator->increment('xp', config('spectral_response.xp.investigation_completed', 15));
+            }
         }
 
-        $successMsg = $assignedResponderName
-            ? "Incident {$incident->incident_code} successfully assigned to {$assignedResponderName}."
+        $successMsg = $assignedResponder
+            ? "Incident {$incident->incident_code} successfully assigned to {$assignedResponder->name}."
             : "Incident {$incident->incident_code} successfully updated to {$incident->status}.";
 
         return redirect()->back()->with('success', $successMsg);

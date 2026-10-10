@@ -1,3 +1,56 @@
+@php
+    // Status → color (rgb triplet), short label, friendly message, icon (Feather paths)
+    $notifStatus = [
+        'RESOLVED' => ['rgb' => '52 211 153',  'label' => 'Resolved',      'msg' => 'Your report was resolved',
+            'icon' => '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'],
+        'VERIFIED' => ['rgb' => '96 165 250',  'label' => 'Verified',      'msg' => 'Your report was verified',
+            'icon' => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>'],
+        'UNDER INVESTIGATION' => ['rgb' => '251 191 36', 'label' => 'Investigating', 'msg' => 'An investigator is reviewing your report',
+            'icon' => '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'],
+        'REJECTED' => ['rgb' => '244 63 94',   'label' => 'Rejected',      'msg' => 'Your report was not accepted',
+            'icon' => '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'],
+        'ASSIGNED' => ['rgb' => '34 211 238',  'label' => 'Responder assigned', 'msg' => 'Verified → Responder assigned',
+            'icon' => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>'],
+    ];
+    $notifDefault = ['rgb' => '148 163 184', 'label' => 'Update', 'msg' => 'Your report was updated',
+        'icon' => '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>'];
+
+    $notifList   = collect($notifications ?? []);
+    $unreadCount = $unreadNotifCount ?? $notifList->filter(fn ($n) => empty($n['is_read']))->count();
+
+    // Group by day
+    $notifGroups = $notifList->groupBy(function ($n) {
+        $d = \Carbon\Carbon::parse($n['updated_at']);
+        return $d->isToday() ? 'Today' : ($d->isYesterday() ? 'Yesterday' : 'Earlier');
+    });
+@endphp
+
+<style>
+    /* ===== Notifications ===== */
+    #notif-dropdown .notif-item { --c: 148 163 184; }
+    #notif-dropdown .notif-icon   { background: rgb(var(--c) / .12); color: rgb(var(--c)); border: 1px solid rgb(var(--c) / .28); }
+    #notif-dropdown .notif-accent { background: rgb(var(--c)); }
+    #notif-dropdown .notif-pill   { background: rgb(var(--c) / .12); color: rgb(var(--c)); border: 1px solid rgb(var(--c) / .25); }
+    #notif-dropdown .notif-dot    { background: rgb(var(--c)); box-shadow: 0 0 0 3px rgb(var(--c) / .18); }
+
+    #notif-dropdown .notif-item[data-read="0"] { background: rgba(139, 92, 246, .06); }
+    #notif-dropdown .notif-item[data-read="1"] .notif-accent { opacity: 0; }
+    #notif-dropdown .notif-item[data-read="1"] .notif-dot    { background: #475569; box-shadow: none; }
+    #notif-dropdown .notif-item[data-read="1"] .notif-msg    { color: #CBD5E1; font-weight: 500; }
+    #notif-dropdown .notif-item[data-read="1"] .notif-icon   { opacity: .75; }
+
+    #notif-dropdown[data-filter="unread"] .notif-item[data-read="1"] { display: none; }
+    #notif-dropdown .notif-tab[aria-selected="true"] { color: #fff; background: #1B222C; border-color: #3A4654; }
+
+    #notif-list::-webkit-scrollbar { width: 6px; }
+    #notif-list::-webkit-scrollbar-thumb { background: #2A3440; border-radius: 9999px; }
+
+    @media (prefers-reduced-motion: no-preference) {
+        #notif-dropdown:not(.hidden) { animation: notif-in .16s ease-out; }
+        @keyframes notif-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+    }
+</style>
+
 <header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-3 sm:px-4 flex items-center justify-between flex-shrink-0 z-30 select-none">
     <!-- Left: Hamburger (mobile) + Brand & Logo -->
     <div class="flex items-center gap-2">
@@ -36,128 +89,147 @@
 
         <!-- Notification Bell -->
         @auth
-        @php
-            $unreadCount = $unreadNotifCount ?? (isset($notifications) ? $notifications->where('is_read', false)->count() : 0);
-        @endphp
         <div class="relative" id="notif-wrapper">
             <button type="button"
                 id="notif-bell-btn"
                 onclick="SpectralNotif.toggle()"
-                class="relative w-8 h-8 rounded-lg bg-[#1B222C] border border-[#2A3440] flex items-center justify-center text-[#9CA3AF] hover:text-white hover:border-[#8B5CF6]/50 transition-all"
-                title="Notifications"
+                aria-haspopup="true" aria-expanded="false" aria-controls="notif-dropdown"
+                class="relative w-8 h-8 rounded-lg bg-[#1B222C] border border-[#2A3440] flex items-center justify-center text-[#9CA3AF] hover:text-white hover:border-[#8B5CF6]/50 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8B5CF6]"
+                title="Notifications" aria-label="Notifications"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                 </svg>
-                <span id="notif-badge" class="{{ $unreadCount > 0 ? '' : 'hidden' }} absolute -top-1 -right-1 min-w-[16px] h-[16px] rounded-full bg-[#8B5CF6] text-white text-[9px] font-bold font-mono flex items-center justify-center px-0.5 leading-none">
+                <span id="notif-badge" class="{{ $unreadCount > 0 ? '' : 'hidden' }} absolute -top-1 -right-1 min-w-[16px] h-[16px] rounded-full bg-[#8B5CF6] text-white text-[9px] font-bold font-mono flex items-center justify-center px-0.5 leading-none ring-2 ring-[#11161D]">
                     {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                 </span>
             </button>
 
-            <!-- Notification Dropdown -->
-            <div id="notif-dropdown"
-                class="hidden fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-10 sm:w-96 rounded-xl bg-[#151B23] border border-[#2A3440] shadow-2xl shadow-black/60 z-[200] overflow-hidden"
+            <!-- Notification Panel -->
+            <div id="notif-dropdown" data-filter="all" role="region" aria-label="Notifications"
+                class="hidden fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-11 sm:w-80 rounded-2xl bg-[#151B23] border border-[#2A3440] shadow-2xl shadow-black/60 z-[200] overflow-hidden"
             >
                 <!-- Header -->
-                <div class="flex items-center justify-between px-4 py-3 border-b border-[#2A3440] bg-[#11161D]">
-                    <div class="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#8B5CF6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                        </svg>
-                        <span class="text-xs font-bold text-white">Incident Updates</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span id="notif-unread-header" class="text-[10px] font-mono text-[#8B5CF6] font-bold">
-                            {{ $unreadCount > 0 ? $unreadCount . ' new' : 'All caught up' }}
-                        </span>
+                <div class="px-3.5 pt-3 pb-2.5 border-b border-[#2A3440] bg-[#11161D]">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-[13px] font-bold text-white">Notifications</h2>
+                            <p id="notif-unread-header" class="text-[10px] text-slate-500">
+                                {{ $unreadCount > 0 ? $unreadCount . ' unread' : 'All caught up' }}
+                            </p>
+                        </div>
                         <button type="button"
                             id="notif-mark-all-btn"
                             onclick="SpectralNotif.markAllAsRead(event)"
-                            class="{{ $unreadCount > 0 ? '' : 'hidden' }} text-[10px] font-mono text-[#9CA3AF] hover:text-white transition px-2 py-0.5 rounded bg-[#1B222C] hover:bg-[#2A3440] border border-[#2A3440]">
-                            Mark all as read
+                            class="{{ $unreadCount > 0 ? '' : 'hidden' }} inline-flex items-center gap-1 text-[10px] font-medium text-slate-300 hover:text-white transition px-2 py-1 rounded-md bg-[#1B222C] hover:bg-[#222B38] border border-[#2A3440] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8B5CF6]">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            Mark all read
+                        </button>
+                    </div>
+
+                    <!-- Filter tabs -->
+                    <div class="mt-2 flex items-center gap-1" role="tablist" aria-label="Filter notifications">
+                        <button type="button" role="tab" aria-selected="true" data-tab="all" onclick="SpectralNotif.setFilter('all')"
+                                class="notif-tab px-2.5 py-0.5 rounded-md border border-transparent text-[10px] font-medium text-slate-400 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8B5CF6]">
+                            All
+                        </button>
+                        <button type="button" role="tab" aria-selected="false" data-tab="unread" onclick="SpectralNotif.setFilter('unread')"
+                                class="notif-tab px-2.5 py-0.5 rounded-md border border-transparent text-[10px] font-medium text-slate-400 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8B5CF6]">
+                            Unread
                         </button>
                     </div>
                 </div>
 
-                <!-- Notification Items -->
-                <div class="max-h-80 overflow-y-auto divide-y divide-[#1E2631]" id="notif-items-list">
-                    @forelse($notifications as $notif)
-                    @php
-                        $isRead = !empty($notif['is_read']);
-                        $isRejected = ($notif['status'] ?? '') === 'REJECTED';
-                        $dotColor = match($notif['status']) {
-                            'RESOLVED'           => 'bg-emerald-400',
-                            'VERIFIED'           => 'bg-blue-400',
-                            'UNDER INVESTIGATION'=> 'bg-amber-400',
-                            'REJECTED'           => 'bg-rose-500',
-                            default              => 'bg-slate-400',
-                        };
-                        $notifUrl = str_starts_with((string)$notif['incident_id'], 'rej_')
-                            ? '#'
-                            : route('spectral.incidents.show', $notif['incident_id']);
-                    @endphp
-                    <a href="{{ $notifUrl }}"
-                       data-incident-id="{{ $notif['incident_id'] }}"
-                       data-read="{{ $isRead ? '1' : '0' }}"
-                       onclick="SpectralNotif.markAsRead('{{ $notif['incident_id'] }}', event)"
-                       class="notif-item flex items-start gap-3 px-4 py-3 hover:bg-[#1B222C] transition group {{ $isRead ? 'opacity-55 bg-[#0e1318]/50' : '' }}">
+                <!-- List -->
+                <div id="notif-list" class="max-h-[min(20rem,60vh)] overflow-y-auto overscroll-contain">
 
-                        <!-- Status dot / read indicator -->
-                        <div class="mt-0.5 flex-shrink-0 notif-dot-wrap">
-                            @if(!$isRead)
-                            <span class="notif-dot w-2 h-2 rounded-full {{ $dotColor }} block mt-1 ring-2 {{ $isRejected ? 'ring-rose-500/20' : 'ring-emerald-500/20' }}"></span>
-                            @else
-                            <span class="notif-dot w-2 h-2 rounded-full bg-slate-600 block mt-1"></span>
-                            @endif
-                        </div>
+                    @forelse($notifGroups as $groupName => $items)
+                    <section class="notif-group" data-group>
+                        <h3 class="sticky top-0 z-10 px-3.5 py-1 bg-[#151B23]/95 backdrop-blur text-[9px] font-semibold uppercase tracking-wider text-slate-500 border-b border-[#1E2631]">
+                            {{ $groupName }}
+                        </h3>
 
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between gap-1 mb-0.5">
-                                <div class="flex items-center gap-1.5 min-w-0">
-                                    <span class="text-[10px] font-mono font-bold text-[#8B5CF6]">{{ $notif['incident_code'] }}</span>
-                                    <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded
-                                        {{ $notif['status'] === 'RESOLVED' ? 'bg-emerald-500/15 text-emerald-400' :
-                                           ($notif['status'] === 'VERIFIED' ? 'bg-blue-500/15 text-blue-400' :
-                                           ($notif['status'] === 'REJECTED' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' : 'bg-amber-500/15 text-amber-400')) }}">
-                                        {{ $notif['status'] }}
-                                    </span>
-                                </div>
-                                <span class="notif-badge-pill text-[9px] font-mono px-1.5 py-0.2 rounded {{ $isRead ? 'text-[#64748B]' : 'text-emerald-400 font-bold bg-emerald-500/10' }}">
-                                    {{ $isRead ? 'Read' : 'New' }}
+                        <div class="divide-y divide-[#1E2631]">
+                        @foreach($items as $notif)
+                            @php
+                                $isRead    = !empty($notif['is_read']);
+                                $cfg       = $notifStatus[$notif['status'] ?? ''] ?? $notifDefault;
+                                $isRejId   = str_starts_with((string) $notif['incident_id'], 'rej_');
+                                $notifUrl  = $isRejId ? '#' : route('spectral.incidents.show', $notif['incident_id']);
+                                $inv       = $notif['investigator'] ?? null;
+                                $updated   = \Carbon\Carbon::parse($notif['updated_at']);
+                            @endphp
+                            <a href="{{ $notifUrl }}"
+                               data-incident-id="{{ $notif['incident_id'] }}"
+                               data-read="{{ $isRead ? '1' : '0' }}"
+                               onclick="SpectralNotif.markAsRead(this, event)"
+                               style="--c: {{ $cfg['rgb'] }}"
+                               class="notif-item group relative flex items-start gap-2.5 py-2.5 pl-3.5 pr-3 transition hover:bg-[#1B222C] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#8B5CF6]">
+
+                                <span class="notif-accent absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r-full" aria-hidden="true"></span>
+
+                                <span class="notif-icon grid h-7 w-7 shrink-0 place-items-center rounded-full" aria-hidden="true">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{!! $cfg['icon'] !!}</svg>
                                 </span>
-                            </div>
-                            <p class="text-xs text-white font-semibold truncate">{{ $notif['title'] }}</p>
-                            @if($notif['notes'])
-                            <p class="text-[11px] text-[#9CA3AF] mt-0.5 line-clamp-2">{{ $notif['notes'] }}</p>
-                            @endif
-                            <div class="flex items-center gap-1 mt-1 text-[10px] text-[#64748B]">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                <span>{{ \Carbon\Carbon::parse($notif['updated_at'])->diffForHumans() }}</span>
-                                <span class="text-[#3B4A5A]">&bull;</span>
-                                <span class="truncate">{{ $notif['investigator'] }}</span>
-                            </div>
-                        </div>
 
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-[#3B4A5A] group-hover:text-[#8B5CF6] transition flex-shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                    </a>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <p class="notif-msg text-xs font-semibold leading-snug text-white">{{ $cfg['msg'] }}</p>
+                                        <span class="flex shrink-0 items-center gap-2 pt-0.5 text-[10px] text-slate-500">
+                                            <time datetime="{{ $updated->toIso8601String() }}" title="{{ $updated->format('M j, Y g:i A') }}">{{ $updated->diffForHumans(['short' => true]) }}</time>
+                                            <span class="notif-dot h-2 w-2 rounded-full" aria-label="{{ $isRead ? 'Read' : 'Unread' }}"></span>
+                                        </span>
+                                    </div>
+
+                                    <p class="mt-0.5 truncate text-[11px] text-slate-300">
+                                        <span class="font-mono text-[#A78BFA]">{{ $notif['incident_code'] }}</span>
+                                        <span class="text-slate-600">&middot;</span>
+                                        {{ $notif['title'] }}
+                                    </p>
+
+                                    @if(!empty($notif['notes']))
+                                    <p class="mt-1 line-clamp-1 rounded border-l-2 border-[#2A3440] bg-[#11161D] px-2 py-1 text-[10px] leading-snug text-slate-400">{{ $notif['notes'] }}</p>
+                                    @endif
+
+                                    <div class="mt-1.5 flex items-center gap-2 text-[10px] text-slate-500">
+                                        <span class="notif-pill rounded-full px-1.5 py-px text-[9px] font-medium">{{ $cfg['label'] }}</span>
+                                        @if($inv)
+                                            <span class="truncate">by {{ $inv }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                        </div>
+                    </section>
                     @empty
-                    <div class="px-4 py-8 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-[#2A3440] mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                        </svg>
-                        <p class="text-xs text-[#64748B]">No updates on your reports yet.</p>
+                    <div class="px-5 py-8 text-center">
+                        <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full border border-[#2A3440] bg-[#11161D] text-slate-500">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-semibold text-white">No updates yet</p>
+                        <p class="mt-1 text-xs text-slate-500">You'll be notified here when an investigator reviews one of your reports.</p>
                     </div>
                     @endforelse
+
+                    <!-- Shown by JS when the Unread tab has nothing -->
+                    <div id="notif-empty-unread" class="hidden px-5 py-8 text-center">
+                        <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <p class="text-sm font-semibold text-white">You're all caught up</p>
+                        <p class="mt-1 text-xs text-slate-500">No unread notifications.</p>
+                    </div>
                 </div>
 
                 <!-- Footer -->
-                <div class="px-4 py-2.5 border-t border-[#2A3440] bg-[#11161D]">
-                    <a href="{{ route('spectral.my-reports') }}" class="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#8B5CF6] hover:text-white transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        View All My Reports
+                <div class="px-3.5 py-2 border-t border-[#2A3440] bg-[#11161D]">
+                    <a href="{{ route('spectral.my-reports') }}" class="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#A78BFA] hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8B5CF6] rounded">
+                        View all my reports
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
                     </a>
                 </div>
             </div>
@@ -206,167 +278,153 @@
 
 <script>
 const SpectralNotif = {
-    toggle() {
-        const dd = document.getElementById('notif-dropdown');
-        if (dd) dd.classList.toggle('hidden');
+    STORAGE_KEY: 'spectral_read_notifs',
+    URL: '/notifications/mark-as-read',
+
+    el(id) { return document.getElementById(id); },
+    csrf() { return document.querySelector('meta[name="csrf-token"]')?.content; },
+
+    /* ── open / close ── */
+    isOpen() { return !this.el('notif-dropdown')?.classList.contains('hidden'); },
+    open() {
+        this.el('notif-dropdown')?.classList.remove('hidden');
+        this.el('notif-bell-btn')?.setAttribute('aria-expanded', 'true');
+        this.refresh();
     },
-    close() {
-        const dd = document.getElementById('notif-dropdown');
-        if (dd) dd.classList.add('hidden');
-    },
-    getReadIds() {
-        try {
-            return JSON.parse(localStorage.getItem('spectral_read_notifs') || '[]');
-        } catch (_) {
-            return [];
+    close(returnFocus) {
+        this.el('notif-dropdown')?.classList.add('hidden');
+        const btn = this.el('notif-bell-btn');
+        if (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+            if (returnFocus) btn.focus();
         }
+    },
+    toggle() { this.isOpen() ? this.close() : this.open(); },
+
+    /* ── read-state storage (ids always stored as strings) ── */
+    getReadIds() {
+        try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]').map(String); }
+        catch (_) { return []; }
     },
     saveReadIds(ids) {
-        try {
-            localStorage.setItem('spectral_read_notifs', JSON.stringify(ids));
-        } catch (_) {}
+        try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(ids)); } catch (_) {}
     },
-    updateBadges() {
-        const items = document.querySelectorAll('.notif-item');
-        let unread = 0;
-        items.forEach(el => {
-            if (el.getAttribute('data-read') !== '1') {
-                unread++;
-            }
-        });
 
-        // Update header bell badge
-        const badge = document.getElementById('notif-badge');
+    /* ── filter tabs ── */
+    setFilter(filter) {
+        const dd = this.el('notif-dropdown');
+        if (!dd) return;
+        dd.setAttribute('data-filter', filter);
+        dd.querySelectorAll('.notif-tab').forEach(t =>
+            t.setAttribute('aria-selected', String(t.getAttribute('data-tab') === filter)));
+        this.refresh();
+    },
+
+    /* ── recompute counters, groups and empty states ── */
+    refresh() {
+        const dd     = this.el('notif-dropdown');
+        const items  = document.querySelectorAll('.notif-item');
+        const unread = Array.from(items).filter(el => el.getAttribute('data-read') !== '1').length;
+        const filter = dd ? dd.getAttribute('data-filter') : 'all';
+
+        const badge = this.el('notif-badge');
         if (badge) {
             badge.textContent = unread > 9 ? '9+' : unread;
-            if (unread > 0) {
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
+            badge.classList.toggle('hidden', unread === 0);
         }
 
-        // Update header counter text
-        const headerText = document.getElementById('notif-unread-header');
-        if (headerText) {
-            headerText.textContent = unread > 0 ? `${unread} new` : 'All caught up';
-        }
+        const header = this.el('notif-unread-header');
+        if (header) header.textContent = unread > 0 ? `${unread} unread` : 'All caught up';
 
-        // Update Mark all button
-        const markAllBtn = document.getElementById('notif-mark-all-btn');
-        if (markAllBtn) {
-            if (unread > 0) {
-                markAllBtn.classList.remove('hidden');
-            } else {
-                markAllBtn.classList.add('hidden');
-            }
-        }
+        this.el('notif-mark-all-btn')?.classList.toggle('hidden', unread === 0);
 
-        // Update sidebar notifications counter
-        const sidebarCount = document.getElementById('sidebar-notif-count');
-        if (sidebarCount) {
-            sidebarCount.textContent = unread;
-            if (unread > 0) {
-                sidebarCount.classList.remove('hidden');
-            } else {
-                sidebarCount.classList.add('hidden');
-            }
-        }
-    },
-    markItemAsReadUi(itemEl) {
-        if (!itemEl) return;
-        itemEl.setAttribute('data-read', '1');
-        itemEl.classList.add('opacity-55', 'bg-[#0e1318]/50');
-
-        const dot = itemEl.querySelector('.notif-dot');
-        if (dot) {
-            dot.className = 'notif-dot w-2 h-2 rounded-full bg-slate-600 block mt-1';
-        }
-
-        const pill = itemEl.querySelector('.notif-badge-pill');
-        if (pill) {
-            pill.textContent = 'Read';
-            pill.className = 'notif-badge-pill text-[9px] font-mono px-1.5 py-0.2 rounded text-[#64748B]';
-        }
-    },
-    async markAsRead(incidentId, event) {
-        const token = document.querySelector('meta[name="csrf-token"]')?.content;
-        const itemEl = document.querySelector(`.notif-item[data-incident-id="${incidentId}"]`);
-
-        // Mark in UI immediately
-        this.markItemAsReadUi(itemEl);
-
-        // Update localStorage
-        const readIds = this.getReadIds();
-        if (!readIds.includes(incidentId)) {
-            readIds.push(incidentId);
-            this.saveReadIds(readIds);
-        }
-
-        this.updateBadges();
-
-        // Send beacon/fetch to server
-        try {
-            fetch('/notifications/mark-as-read', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ incident_id: incidentId })
-            });
-        } catch (_) {}
-    },
-    async markAllAsRead(event) {
-        if (event) event.stopPropagation();
-
-        const token = document.querySelector('meta[name="csrf-token"]')?.content;
-        const items = document.querySelectorAll('.notif-item');
-        const readIds = this.getReadIds();
-
-        items.forEach(el => {
-            this.markItemAsReadUi(el);
-            const id = parseInt(el.getAttribute('data-incident-id'));
-            if (id && !readIds.includes(id)) {
-                readIds.push(id);
-            }
+        // Hide day headings that have no visible items under the Unread tab
+        document.querySelectorAll('.notif-group').forEach(group => {
+            const hasVisible = filter === 'all' ||
+                group.querySelector('.notif-item[data-read="0"]') !== null;
+            group.classList.toggle('hidden', !hasVisible);
         });
 
-        this.saveReadIds(readIds);
-        this.updateBadges();
+        this.el('notif-empty-unread')?.classList.toggle('hidden',
+            !(filter === 'unread' && unread === 0 && items.length > 0));
 
+        const sidebarCount = this.el('sidebar-notif-count');
+        if (sidebarCount) {
+            sidebarCount.textContent = unread;
+            sidebarCount.classList.toggle('hidden', unread === 0);
+        }
+    },
+
+    persist(payload) {
         try {
-            await fetch('/notifications/mark-as-read', {
+            fetch(this.URL, {
                 method: 'POST',
+                keepalive: true, // survives the page navigation that follows a click
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
+                    'X-CSRF-TOKEN': this.csrf(),
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ all: true })
+                body: JSON.stringify(payload)
             });
         } catch (_) {}
+    },
+
+    /* ── mark one as read (called from the item's onclick) ── */
+    markAsRead(itemEl, event) {
+        if (!itemEl) return;
+        const id = String(itemEl.getAttribute('data-incident-id'));
+
+        // Rejected notices have no detail page (href="#"): don't jump to top of page
+        if (itemEl.getAttribute('href') === '#' && event) event.preventDefault();
+
+        itemEl.setAttribute('data-read', '1');
+
+        const ids = this.getReadIds();
+        if (!ids.includes(id)) { ids.push(id); this.saveReadIds(ids); }
+
+        this.refresh();
+        this.persist({ incident_id: id });
+    },
+
+    /* ── mark everything as read ── */
+    markAllAsRead(event) {
+        if (event) event.stopPropagation();
+
+        const ids = this.getReadIds();
+        document.querySelectorAll('.notif-item').forEach(el => {
+            el.setAttribute('data-read', '1');
+            const id = String(el.getAttribute('data-incident-id'));
+            if (!ids.includes(id)) ids.push(id);
+        });
+
+        this.saveReadIds(ids);
+        this.refresh();
+        this.persist({ all: true });
     }
 };
 
-// Sync localStorage on page load
-document.addEventListener('DOMContentLoaded', function() {
+// Re-apply locally stored read state on page load
+document.addEventListener('DOMContentLoaded', function () {
     const readIds = SpectralNotif.getReadIds();
     if (readIds.length > 0) {
-        readIds.forEach(id => {
-            const el = document.querySelector(`.notif-item[data-incident-id="${id}"]`);
-            if (el) SpectralNotif.markItemAsReadUi(el);
+        document.querySelectorAll('.notif-item').forEach(el => {
+            if (readIds.includes(String(el.getAttribute('data-incident-id')))) {
+                el.setAttribute('data-read', '1');
+            }
         });
-        SpectralNotif.updateBadges();
     }
+    SpectralNotif.refresh();
 });
 
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
+// Close when clicking outside
+document.addEventListener('click', function (e) {
     const wrapper = document.getElementById('notif-wrapper');
-    if (wrapper && !wrapper.contains(e.target)) {
-        SpectralNotif.close();
-    }
+    if (wrapper && !wrapper.contains(e.target)) SpectralNotif.close();
+});
+
+// Close with Escape and return focus to the bell
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && SpectralNotif.isOpen()) SpectralNotif.close(true);
 });
 </script>

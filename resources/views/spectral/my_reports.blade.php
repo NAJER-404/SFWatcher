@@ -1,9 +1,11 @@
 @extends('layouts.app')
-@section('title', 'My Reports — Spectra')
+@section('title', 'My Reports — SFWatch')
+
 @section('content')
 @include('spectral.partials.sidebar')
-<main class="flex-1 h-full overflow-y-auto bg-[#06090D] p-3.5 sm:p-6">
-    <div class="max-w-4xl mx-auto space-y-5">
+
+<main class="flex-1 h-full overflow-y-auto bg-[#06090D] p-4 sm:p-6 lg:p-8">
+    <div class="max-w-5xl mx-auto space-y-5">
 
         {{-- ── Page Header ── --}}
         <div class="flex items-center justify-between pb-4 border-b border-[#1E2631]">
@@ -88,10 +90,8 @@
             $hpColor        = $cardPct <= 25 ? 'bg-emerald-500' : ($cardPct <= 60 ? 'bg-yellow-500' : 'bg-rose-500');
             $hpTextColor    = $cardPct <= 25 ? 'text-emerald-400' : ($cardPct <= 60 ? 'text-yellow-400' : 'text-rose-400');
 
-            // Only show anomaly condition for these statuses
             $showAnomaly = in_array($inc->status, ['VERIFIED', 'RESOLVED']);
 
-            // Severity styling — Low=Green, Medium=Yellow, High=Red, Critical=Black
             $sevClass = match($inc->severity) {
                 'CRITICAL' => 'bg-black text-white border-gray-600',
                 'HIGH'     => 'bg-red-500/15 text-red-500 border-red-500/30',
@@ -99,7 +99,6 @@
                 default    => 'bg-green-500/15 text-green-500 border-green-500/30',
             };
 
-            // Status styling
             $statusClass = match($inc->status) {
                 'RESOLVED'            => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
                 'PENDING'             => 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
@@ -110,25 +109,21 @@
         @endphp
         <article
             data-status="{{ $inc->status }}"
-            class="incident-card rounded-xl bg-[#151B23] border border-[#2A3440] hover:border-[#8B5CF6]/40 transition-all overflow-hidden">
+            class="incident-card rounded-xl bg-[#151B23] border border-[#2A3440] hover:border-[#8B5CF6]/40 transition-all overflow-hidden shadow-sm">
 
             {{-- ── Card Header Strip ── --}}
             <div class="flex items-center justify-between px-4 py-2.5 bg-[#11161D] border-b border-[#1E2631]">
                 <div class="flex items-center gap-2.5">
-                    {{-- Incident Code --}}
                     <a href="{{ route('spectral.incidents.show', $inc->id) }}"
                        class="text-[11px] font-mono font-bold text-[#8B5CF6] hover:underline underline-offset-2">
                         {{ $inc->incident_code }}
                     </a>
-                    {{-- Type --}}
                     <span class="hidden sm:inline text-[10px] text-[#64748B] font-mono">{{ $inc->incident_type }}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    {{-- Severity --}}
                     <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded border {{ $sevClass }}">
                         {{ $inc->severity }}
                     </span>
-                    {{-- Status --}}
                     <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded border {{ $statusClass }}">
                         {{ $inc->status }}
                     </span>
@@ -138,7 +133,6 @@
             {{-- ── Card Body ── --}}
             <div class="flex flex-col sm:flex-row items-stretch gap-0">
 
-                {{-- Evidence Thumbnail: FIXED uniform dimensions for all cards --}}
                 @if($thumbEv)
                 @php
                     $evUrl = str_starts_with($thumbEv->file_path, 'http')
@@ -146,15 +140,16 @@
                         : asset('storage/' . $thumbEv->file_path);
                 @endphp
                 <a href="{{ route('spectral.incidents.show', $inc->id) }}"
-                   class="flex-shrink-0 w-full sm:w-44 h-44 sm:h-auto min-h-[140px] relative overflow-hidden group block border-b sm:border-b-0 sm:border-r border-[#2A3440] bg-[#0E131A]">
-                    <img src="{{ $evUrl }}" alt="Evidence" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                   class="flex-shrink-0 w-full sm:w-48 h-44 relative overflow-hidden group block border-b sm:border-b-0 sm:border-r border-[#2A3440] bg-[#0E131A]">
+                    <img src="{{ $evUrl }}" alt="Evidence" loading="lazy" decoding="async"
+                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </div>
                 </a>
                 @else
                 <a href="{{ route('spectral.incidents.show', $inc->id) }}"
-                   class="flex-shrink-0 w-full sm:w-44 h-28 sm:h-auto bg-[#0E131A] border-b sm:border-b-0 sm:border-r border-[#2A3440] flex items-center justify-center group hover:bg-[#11161D] transition">
+                   class="flex-shrink-0 w-full sm:w-48 h-44 bg-[#0E131A] border-b sm:border-b-0 sm:border-r border-[#2A3440] flex items-center justify-center group hover:bg-[#11161D] transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#2A3440] group-hover:text-[#64748B] transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
                     </svg>
@@ -164,7 +159,6 @@
                 {{-- Main Info --}}
                 <div class="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between gap-2.5">
 
-                    {{-- Title --}}
                     <div>
                         <a href="{{ route('spectral.incidents.show', $inc->id) }}"
                            class="block text-sm font-semibold text-white hover:text-[#8B5CF6] transition leading-snug truncate">
@@ -172,7 +166,6 @@
                         </a>
                     </div>
 
-                    {{-- Meta row: Location & Date --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-mono text-[#64748B]">
                         <div class="flex items-center gap-1.5 truncate">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0 text-[#64748B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -184,7 +177,6 @@
                         </div>
                     </div>
 
-                    {{-- Investigation Status Box (Uniform Box Size and Design for Both Pending & Reviewed) --}}
                     @if($latestInv)
                     <div class="rounded-lg bg-[#0E131A] border border-[#1E2631] px-3 py-2 space-y-1">
                         <div class="flex items-center justify-between gap-2">
@@ -209,7 +201,7 @@
 
                 </div>
 
-                {{-- View & Delete Action: Dedicated right-aligned column on desktop, bottom bar on mobile --}}
+                {{-- View & Delete Action --}}
                 <div class="flex-shrink-0 flex items-center justify-between sm:justify-center gap-2 px-4 py-2.5 sm:px-3 sm:py-0 border-t sm:border-t-0 sm:border-l border-[#1E2631] bg-[#11161D]/40 sm:bg-transparent">
                     <a href="{{ route('spectral.incidents.show', $inc->id) }}"
                        class="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#8B5CF6] hover:text-white transition px-2.5 py-1.5 rounded bg-[#1B222C] sm:bg-transparent hover:bg-[#1B222C]">
@@ -230,12 +222,11 @@
                 </div>
             </div>
 
-            {{-- ── Anomaly Condition (VERIFIED / RESOLVED only) ── --}}
+            {{-- ── Anomaly Condition ── --}}
             @if($showAnomaly)
             <div class="border-t border-[#1E2631] px-4 py-3 bg-[#0A0E14] space-y-3">
                 <p class="text-[9px] font-mono font-bold text-[#64748B] uppercase tracking-widest">Anomaly Condition</p>
 
-                {{-- HP --}}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between text-[10px] font-mono">
                         <span class="text-[#64748B]">Threat Level (HP)</span>
@@ -251,7 +242,6 @@
                     </div>
                 </div>
 
-                {{-- Response Progress --}}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between text-[10px] font-mono">
                         <span class="text-[#64748B]">Response Progress</span>
@@ -276,9 +266,8 @@
             <p class="text-xs text-[#64748B]">Submit an incident report using the button in the top navigation bar.</p>
         </div>
         @endforelse
-        </div>{{-- #incidents-list --}}
+        </div>
 
-        {{-- Empty filtered state --}}
         <div id="filter-empty" class="hidden text-center py-16">
             <p class="text-sm font-semibold text-white mb-1">No records match this filter</p>
             <p class="text-xs text-[#64748B]">Try selecting a different status above.</p>
@@ -289,11 +278,10 @@
 
 <script>
 function filterReports(status) {
-    // Update button styles
     document.querySelectorAll('.filter-btn').forEach(btn => {
         const isActive = btn.getAttribute('data-filter') === status;
         btn.classList.toggle('bg-[#8B5CF6]',   isActive);
-        btn.classList.toggle('text-white',       isActive);
+        btn.classList.toggle('text-white',      isActive);
         btn.classList.toggle('border-[#8B5CF6]',isActive);
         btn.classList.toggle('bg-[#151B23]',    !isActive);
         btn.classList.toggle('text-[#64748B]',  !isActive);
@@ -313,8 +301,8 @@ function filterReports(status) {
     if (empty) empty.classList.toggle('hidden', visible > 0);
 }
 </script>
-
 @endsection
+
 @section('modals')
 @include('spectral.partials.report_modal_partial')
 @include('spectral.partials.delete_modal_partial')

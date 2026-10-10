@@ -1,20 +1,28 @@
-@extends('layouts.investigator')
-@section('title', 'Investigator Profile — SpectraWatch')
+@extends('layouts.app')
+@section('title', 'My Profile — SFWatch')
 
 @php
     $user = $user ?? \Illuminate\Support\Facades\Auth::user();
 
+    $myIncidents = collect($incidents ?? \App\Models\Incident::with('barangay')
+        ->where('reported_by', $user->id)
+        ->latest()
+        ->get());
+
+    $total    = $myIncidents->count();
+    $pending  = $myIncidents->where('status', 'PENDING')->count();
+    $active   = $myIncidents->whereIn('status', ['UNDER INVESTIGATION', 'VERIFIED'])->count();
+    $resolved = $myIncidents->where('status', 'RESOLVED')->count();
+
     $nameParts = preg_split('/\s+/', trim($user->name));
-    $initials  = strtoupper(mb_substr($nameParts[0] ?? 'I', 0, 1) . mb_substr($nameParts[1] ?? '', 0, 1));
+    $initials  = strtoupper(mb_substr($nameParts[0] ?? 'U', 0, 1) . mb_substr($nameParts[1] ?? '', 0, 1));
 
     $inputClass = 'w-full rounded-lg bg-[#11161D] border border-[#2A3440] px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]/40 transition';
 @endphp
 
 @section('content')
-<!-- INVESTIGATOR SIDEBAR -->
-@include('investigator.partials.sidebar')
+@include('spectral.partials.sidebar')
 
-<!-- PROFILE WORKSPACE -->
 <main class="flex-1 h-full overflow-y-auto bg-[#06090D] p-4 sm:p-6 lg:p-8">
     <div class="max-w-5xl mx-auto space-y-5">
 
@@ -26,10 +34,10 @@
             </div>
         @endif
 
-        {{-- ═════ SINGLE COLUMN STACK ═════ --}}
+        {{-- ═════ SINGLE VERTICAL COLUMN STACK ═════ --}}
         <div class="space-y-5">
 
-            {{-- Investigator Identity & Security Card --}}
+            {{-- Identity card with aligned Security section --}}
             <section class="rounded-2xl bg-[#151B23] border border-[#2A3440] overflow-hidden" aria-labelledby="identity-heading">
                 <div class="h-16 bg-gradient-to-r from-[#8B5CF6]/30 via-[#2DD4BF]/10 to-transparent border-b border-[#2A3440]" aria-hidden="true"></div>
 
@@ -42,24 +50,28 @@
                     <p class="text-xs text-slate-400 mt-0.5 break-all">{{ $user->email }}</p>
 
                     <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-md border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-[#A78BFA]">
-                            <span class="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]"></span>Investigator &bull; Authorized
+                        <span class="inline-flex items-center gap-1.5 rounded-md border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 px-2 py-0.5 text-[10px] font-mono font-bold capitalize text-[#A78BFA]">
+                            <span class="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]"></span>{{ $user->role ?? 'reporter' }}
                         </span>
                     </div>
 
-                    <dl class="mt-4 space-y-3 border-t border-[#2A3440] pt-4 text-xs font-mono">
+                    <dl class="mt-4 space-y-3 border-t border-[#2A3440] pt-4 text-xs">
                         <div class="flex items-center justify-between gap-3">
-                            <dt class="text-[#64748B]">Jurisdiction</dt>
+                            <dt class="text-[#64748B]">Member since</dt>
+                            <dd class="text-slate-200 font-medium">{{ $user->created_at?->format('F j, Y') ?? '—' }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <dt class="text-[#64748B]">Location</dt>
                             <dd class="text-slate-200 font-medium text-right">San Francisco, Agusan del Sur</dd>
                         </div>
                         <div class="flex items-center justify-between gap-3">
-                            <dt class="text-[#64748B]">Account Security</dt>
-                            <dd class="text-emerald-400 font-bold">Active Field Token Verified</dd>
+                            <dt class="text-[#64748B]">Total Reports Filed</dt>
+                            <dd class="text-slate-200 font-mono font-bold">{{ $total }}</dd>
                         </div>
                         
-                        {{-- Security / Change Password Row --}}
+                        {{-- Security Settings Row --}}
                         <div class="flex items-center justify-between gap-3 pt-2 border-t border-[#2A3440]/60">
-                            <dt class="text-[#64748B]">Security Settings</dt>
+                            <dt class="text-[#64748B]">Security</dt>
                             <dd>
                                 <button type="button" onclick="openPasswordModal()" class="inline-flex items-center gap-1.5 rounded-lg border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 hover:border-[#8B5CF6]/60 px-3 py-1.5 text-xs font-semibold text-[#A78BFA] hover:text-white transition">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -71,27 +83,38 @@
                 </div>
             </section>
 
-            {{-- Recent Investigation Log Card --}}
-            <section class="rounded-2xl bg-[#151B23] border border-[#2A3440] shadow-xl overflow-hidden">
-                <div class="px-5 py-3.5 border-b border-[#2A3440] bg-[#11161D]">
-                    <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Your Recent Investigation Log</h3>
-                </div>
-                <div class="p-5 space-y-3">
-                    @forelse($recentInvestigations as $inv)
-                        <div class="p-3.5 rounded-xl bg-[#11161D] border border-[#2A3440] text-xs space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <span class="font-mono font-bold text-[#8B5CF6]">{{ $inv->incident->incident_code ?? 'INCIDENT' }}</span>
-                                <span class="text-[10px] font-mono text-[#64748B]">{{ $inv->investigation_date ? \Carbon\Carbon::parse($inv->investigation_date)->format('Y-m-d h:i A') : '—' }}</span>
-                            </div>
-                            <p class="text-slate-300 leading-relaxed font-sans">{{ $inv->notes }}</p>
-                        </div>
-                    @empty
-                        <div class="py-8 text-center">
-                            <p class="text-slate-500 text-xs font-mono">No logged investigations under this account yet.</p>
-                        </div>
-                    @endforelse
-                </div>
+            {{-- Stats Grid (2x2) --}}
+            <section aria-label="Report statistics" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                @foreach([
+                    ['Total reports', $total,    'text-white',        'bg-slate-400'],
+                    ['Pending',       $pending,  'text-yellow-400',   'bg-yellow-400'],
+                    ['In progress',   $active,   'text-[#A78BFA]',    'bg-[#8B5CF6]'],
+                    ['Resolved',      $resolved, 'text-emerald-400',  'bg-emerald-400'],
+                ] as [$label, $value, $text, $dot])
+                    <div class="rounded-xl bg-[#151B23] border border-[#2A3440] p-4">
+                        <p class="flex items-center gap-2 text-[11px] text-[#64748B]">
+                            <span class="h-1.5 w-1.5 rounded-full {{ $dot }}" aria-hidden="true"></span>{{ $label }}
+                        </p>
+                        <p class="mt-2 text-2xl font-bold font-mono tabular-nums {{ $text }}">{{ $value }}</p>
+                    </div>
+                @endforeach
             </section>
+
+            {{-- Status distribution progress bar --}}
+            @if($total > 0)
+            <section class="rounded-2xl bg-[#151B23] border border-[#2A3440] p-5" aria-labelledby="dist-heading">
+                <h2 id="dist-heading" class="text-xs font-semibold text-slate-300">Where your reports stand</h2>
+                <div class="mt-3 flex h-2 w-full overflow-hidden rounded-full bg-[#11161D]" role="img"
+                     aria-label="{{ $pending }} pending, {{ $active }} in progress, {{ $resolved }} resolved">
+                    @if($pending > 0)  <div class="bg-yellow-400"  style="width: {{ round($pending  / $total * 100, 2) }}%"></div>@endif
+                    @if($active > 0)   <div class="bg-[#8B5CF6]"   style="width: {{ round($active   / $total * 100, 2) }}%"></div>@endif
+                    @if($resolved > 0) <div class="bg-emerald-400" style="width: {{ round($resolved / $total * 100, 2) }}%"></div>@endif
+                </div>
+                <p class="mt-2 text-[11px] text-[#64748B]">
+                    {{ $resolved }} of {{ $total }} {{ \Illuminate\Support\Str::plural('report', $total) }} resolved successfully.
+                </p>
+            </section>
+            @endif
 
         </div>
 
@@ -145,7 +168,7 @@
             
             <div class="flex gap-2 pt-2">
                 <button type="button" onclick="closePasswordModal()" class="flex-1 py-2 px-3 rounded-lg bg-[#1E2631] hover:bg-[#2A3440] text-slate-200 text-xs font-semibold transition">Stay Logged In</button>
-                <form method="POST" action="{{ route('investigator.logout') }}" class="flex-1">
+                <form method="POST" action="{{ route('logout') }}" class="flex-1">
                     @csrf
                     <button type="submit" class="w-full py-2 px-3 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">Log Out</button>
                 </form>

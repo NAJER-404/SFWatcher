@@ -1,6 +1,6 @@
 @extends('layouts.responder')
 
-@section('title', 'Response Screen — ' . $assignment->incident->incident_code . ' — Spectra')
+@section('title', 'Response Screen — ' . $assignment->incident->incident_code . ' — SFWatch')
 
 @section('content')
 <main class="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-8 bg-[#0B0F14] max-w-6xl mx-auto w-full space-y-5 sm:space-y-6">

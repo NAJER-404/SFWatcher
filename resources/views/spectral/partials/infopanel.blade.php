@@ -36,11 +36,11 @@
             </div>
             <div class="p-3 rounded-lg bg-[#1B222C] border border-[#2A3440] flex flex-col justify-between">
                 <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Safe Ward Stations</span>
-                <p class="text-2xl font-bold text-[#22C55E] font-mono mt-1">02</p>
+                <p id="stat-ward-stations" class="text-2xl font-bold text-[#22C55E] font-mono mt-1">{{ sprintf('%02d', $stats['ward_stations'] ?? 2) }}</p>
             </div>
             <div class="p-3 rounded-lg bg-[#1B222C] border border-[#2A3440] flex flex-col justify-between">
                 <span class="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">Resolved</span>
-                <p class="text-2xl font-bold text-[#38BDF8] font-mono mt-1">{{ sprintf('%02d', $stats['resolved'] ?? 0) }}</p>
+                <p id="stat-resolved" class="text-2xl font-bold text-[#38BDF8] font-mono mt-1">{{ sprintf('%02d', $stats['resolved'] ?? 0) }}</p>
             </div>
         </div>
 

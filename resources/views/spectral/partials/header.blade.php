@@ -236,14 +236,14 @@
         </div>
         @endauth
 
-        <!-- Quick Report Incident Button — shown on the Dashboard only (hidden on My Reports, Incident Reports, etc.) -->
-        @if(request()->routeIs('spectral.dashboard') || request()->routeIs('spectral.index'))
-        <button type="button" onclick="SpectralUI.openReportModal()" class="px-3 py-1.5 bg-[#8B5CF6] hover:bg-[#7C3AED] active:scale-95 text-white font-semibold text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-sm shadow-[#8B5CF6]/20">
+        <!-- Quick Report Incident Button — shown on Interactive Map ONLY (not on dashboard) -->
+        @if(request()->routeIs('spectral.map'))
+        <button type="button" onclick="SpectralUI.openReportModal()" class="px-3 py-1.5 bg-[#38BDF8] hover:bg-[#0284C7] active:scale-95 text-[#070B12] hover:text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-sm shadow-[#38BDF8]/20 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            <span class="hidden sm:inline">Report Incident</span>
+            <span>Report Incident</span>
         </button>
         @endif
 

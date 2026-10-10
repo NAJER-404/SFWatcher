@@ -39,49 +39,7 @@
 
     </main>
 
-    <!-- ── BOTTOM PANELS: Recent Incidents ─────────────────── -->
-    <div class="flex-shrink-0 border-t border-[#2A3440] bg-[#11161D] flex divide-x divide-[#2A3440] md:h-[160px] max-h-[45vw] md:max-h-none overflow-hidden">
-
-        <!-- Recent Incidents -->
-        <div class="flex-1 overflow-hidden flex flex-col min-w-0">
-            <div class="px-3 sm:px-4 py-2 flex items-center justify-between border-b border-[#2A3440] flex-shrink-0">
-                <span class="text-[11px] font-bold text-slate-200">Recent Incidents</span>
-                <a href="{{ route('spectral.incidents.index') }}" class="text-[10px] text-[#8B5CF6] hover:text-[#A78BFA] font-semibold transition inline-flex items-center gap-1">
-                    <span>View All</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </a>
-            </div>
-            <div class="flex-1 overflow-x-auto overflow-y-hidden">
-                <div class="flex gap-2.5 p-3 h-full items-start">
-                    @forelse($incidents->take(5) as $inc)
-                    <div onclick="SpectralUI.inspectIncident('{{ $inc->incident_code }}')"
-                         class="flex-shrink-0 w-44 sm:w-52 p-2.5 rounded-lg bg-[#151B23] border border-[#2A3440] hover:border-[#8B5CF6]/50 cursor-pointer transition-all">
-                        <div class="flex items-center justify-between gap-1 mb-1">
-                            <span class="text-[9px] font-mono font-bold text-[#8B5CF6]">{{ $inc->incident_code }}</span>
-                            <span class="badge-{{ strtolower($inc->severity) }} text-[8px] font-bold px-1.5 rounded">{{ $inc->severity }}</span>
-                        </div>
-                        <h4 class="text-[11px] font-semibold text-slate-200 leading-snug line-clamp-2">{{ $inc->title }}</h4>
-                        <div class="flex items-center justify-between mt-1.5 text-[9px] text-[#9CA3AF]">
-                            <span class="flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                {{ $inc->barangay->name ?? 'San Francisco' }}
-                            </span>
-                            <span class="font-mono font-semibold
-                                {{ $inc->status === 'RESOLVED' ? 'text-emerald-400' :
-                                   ($inc->status === 'PENDING' ? 'text-yellow-400' :
-                                   ($inc->status === 'UNDER INVESTIGATION' ? 'text-[#8B5CF6]' : 'text-slate-400')) }}">
-                                {{ $inc->status }}
-                            </span>
-                        </div>
-                    </div>
-                    @empty
-                    <p class="text-[11px] text-[#64748B] self-center px-2">No incidents recorded.</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-
-    </div>
+</div>
 
 </div>
 
@@ -135,16 +93,28 @@
         }
 
         // If safeZones layer requested, ensure it's visible
-        if (layer === 'safeZones') {
+        if (layer === 'safeZones' || params.get('toggle') === 'safeZones') {
             const trySafe = setInterval(() => {
                 if (window.SpectralMap && window.SpectralMap.map && window.SpectralMap.layerGroups?.safeZones) {
                     clearInterval(trySafe);
-                    if (!window.SpectralMap.map.hasLayer(window.SpectralMap.layerGroups.safeZones)) {
-                        window.SpectralMap.layerGroups.safeZones.addTo(window.SpectralMap.map);
-                    }
+                    window.SpectralMap.activeFilters.safeZones = true;
+                    window.SpectralMap.renderAllLayers();
+                    window.SpectralMap.updateLayerToggleButtons();
+                    // zoom to San Francisco hub where safe zones are located
+                    window.SpectralMap.jumpTo('san_francisco');
                 }
             }, 200);
             setTimeout(() => clearInterval(trySafe), 5000);
+        } else if (params.get('toggle') === 'incidents') {
+            const tryInc = setInterval(() => {
+                if (window.SpectralMap && window.SpectralMap.map) {
+                    clearInterval(tryInc);
+                    window.SpectralMap.activeFilters.incidents = true;
+                    window.SpectralMap.renderAllLayers();
+                    window.SpectralMap.updateLayerToggleButtons();
+                }
+            }, 200);
+            setTimeout(() => clearInterval(tryInc), 5000);
         }
     })();
 

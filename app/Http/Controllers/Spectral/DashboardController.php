@@ -83,8 +83,8 @@ class DashboardController extends Controller
 
         $stats = [
             'total_incidents'    => $incidents->count(),
-            'active_incidents'   => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
-            'investigating'      => $incidents->where('status', 'UNDER INVESTIGATION')->count(),
+            'active_incidents'   => $incidents->whereNotIn('status', ['RESOLVED', 'REJECTED', 'ARCHIVED'])->count(),
+            'investigating'      => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
             'critical_incidents' => $incidents->where('severity', 'CRITICAL')->count(),
             'ward_stations'      => $wardStations->count(),
             'resources'          => $resources->count(),

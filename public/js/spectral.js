@@ -1650,33 +1650,50 @@ const SpectralMap = {
     updateLayerToggleButtons() {
         ['incidents', 'wards', 'resources', 'safeZones'].forEach(key => {
             const btn = document.getElementById(`layer-btn-${key}`);
-            if (btn) btn.classList.toggle('active', !!this.activeFilters[key]);
+            const statusEl = document.getElementById(`layer-status-${key}`);
+            const isActive = !!this.activeFilters[key];
+
+            if (btn) btn.classList.toggle('active', isActive);
+
+            if (statusEl) {
+                statusEl.textContent = isActive ? 'ON' : 'OFF';
+                if (key === 'incidents') {
+                    statusEl.className = isActive
+                        ? 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30 font-bold'
+                        : 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-500 border border-slate-700/50 font-bold';
+                } else if (key === 'safeZones') {
+                    statusEl.className = isActive
+                        ? 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold'
+                        : 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-500 border border-slate-700/50 font-bold';
+                }
+            }
         });
     },
 
     updateStatsCounters() {
-        const totalIncidents     = SpectralData.incidents.length;
-        const underInvestigation = SpectralData.incidents.filter(i => i.status === 'UNDER INVESTIGATION').length;
-        const totalWards         = SpectralData.wardStations.length;
-        const totalResources     = SpectralData.spectralResources.length;
+        const incidents = SpectralData.incidents || [];
+        const activeIncidents = incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'REJECTED' && i.status !== 'ARCHIVED').length;
+        const underReview = incidents.filter(i => i.status === 'UNDER INVESTIGATION' || i.status === 'PENDING' || i.status === 'VERIFIED').length;
+        const totalWards = (SpectralData.wardStations && SpectralData.wardStations.length > 0) ? SpectralData.wardStations.length : (SpectralData.safeZones ? SpectralData.safeZones.length : 2);
+        const resolved = incidents.filter(i => i.status === 'RESOLVED').length;
 
         const elInc  = document.getElementById('stat-active-incidents');
         const elInv  = document.getElementById('stat-investigating');
         const elWard = document.getElementById('stat-ward-stations');
-        const elRes  = document.getElementById('stat-resources');
+        const elRes  = document.getElementById('stat-resolved');
 
-        if (elInc)  elInc.textContent  = String(totalIncidents).padStart(2, '0');
-        if (elInv)  elInv.textContent  = String(underInvestigation).padStart(2, '0');
+        if (elInc && incidents.length > 0)  elInc.textContent  = String(activeIncidents).padStart(2, '0');
+        if (elInv && incidents.length > 0)  elInv.textContent  = String(underReview).padStart(2, '0');
         if (elWard) elWard.textContent = String(totalWards).padStart(2, '0');
-        if (elRes)  elRes.textContent  = String(totalResources).padStart(2, '0');
+        if (elRes && incidents.length > 0)  elRes.textContent  = String(resolved).padStart(2, '0');
 
-        const elMapInc  = document.getElementById('map-hud-incidents');
+        const elMapInc   = document.getElementById('map-hud-incidents');
         const elMapWards = document.getElementById('map-hud-wards');
-        const elMapRes  = document.getElementById('map-hud-resources');
+        const elMapRes   = document.getElementById('map-hud-resources');
 
-        if (elMapInc)  elMapInc.textContent  = totalIncidents;
+        if (elMapInc)   elMapInc.textContent   = activeIncidents;
         if (elMapWards) elMapWards.textContent = totalWards;
-        if (elMapRes)  elMapRes.textContent  = totalResources;
+        if (elMapRes)   elMapRes.textContent   = (SpectralData.spectralResources || []).length;
     }
 };
 

@@ -1673,7 +1673,7 @@ const SpectralMap = {
     updateStatsCounters() {
         const incidents = SpectralData.incidents || [];
         const activeIncidents = incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'REJECTED' && i.status !== 'ARCHIVED').length;
-        const underReview = incidents.filter(i => i.status === 'UNDER INVESTIGATION' || i.status === 'PENDING' || i.status === 'VERIFIED').length;
+        const underReview = incidents.filter(i => i.status === 'UNDER INVESTIGATION').length;
         const totalWards = (SpectralData.wardStations && SpectralData.wardStations.length > 0) ? SpectralData.wardStations.length : (SpectralData.safeZones ? SpectralData.safeZones.length : 2);
         const resolved = incidents.filter(i => i.status === 'RESOLVED').length;
 
@@ -1682,10 +1682,11 @@ const SpectralMap = {
         const elWard = document.getElementById('stat-ward-stations');
         const elRes  = document.getElementById('stat-resolved');
 
-        if (elInc && incidents.length > 0)  elInc.textContent  = String(activeIncidents).padStart(2, '0');
-        if (elInv && incidents.length > 0)  elInv.textContent  = String(underReview).padStart(2, '0');
+        // Always update — even if 0, the stat should reflect reality (don't guard on incidents.length)
+        if (elInc)  elInc.textContent  = String(activeIncidents).padStart(2, '0');
+        if (elInv)  elInv.textContent  = String(underReview).padStart(2, '0');
         if (elWard) elWard.textContent = String(totalWards).padStart(2, '0');
-        if (elRes && incidents.length > 0)  elRes.textContent  = String(resolved).padStart(2, '0');
+        if (elRes)  elRes.textContent  = String(resolved).padStart(2, '0');
 
         const elMapInc   = document.getElementById('map-hud-incidents');
         const elMapWards = document.getElementById('map-hud-wards');

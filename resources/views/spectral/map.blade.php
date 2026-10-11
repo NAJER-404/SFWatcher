@@ -41,8 +41,6 @@
 
 </div>
 
-</div>
-
 <!-- RIGHT INFORMATION PANEL -->
 @include('spectral.partials.infopanel')
 

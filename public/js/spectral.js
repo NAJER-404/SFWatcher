@@ -1081,11 +1081,22 @@ const SpectralMap = {
             const pct = maxHp > 0 ? Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100))) : 100;
             const barColor = pct <= 25 ? '#22C55E' : (pct <= 60 ? '#EAB308' : '#EF4444');
 
-            // Investigator-perspective status: Pending, Under Investigation, Verified, Resolved, Escalated
-            const statusLabel = (inc.status || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+            const isResponderAssigned = !!(assignment && assignment.responder_id);
+            const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status) || isResponderAssigned;
+            const isInvestigating = isVerified || ['UNDER INVESTIGATION'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
 
-            // HP/progress only revealed once the anomaly is verified — hidden while PENDING / unverified
-            const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status);
+            let statusLabel = 'Pending';
+            if (inc.status === 'RESOLVED') {
+                statusLabel = 'Resolved';
+            } else if (isResponderAssigned) {
+                statusLabel = 'Responder Assigned';
+            } else if (isVerified) {
+                statusLabel = 'Verified';
+            } else if (isInvestigating) {
+                statusLabel = 'Under Investigation';
+            } else {
+                statusLabel = 'Pending';
+            }
 
             const conditionHtml = isVerified ? `
                 <div style="margin-top:8px; padding-top:8px; border-top:1px solid #2A3440; font-family:'JetBrains Mono',monospace;">
@@ -1826,14 +1837,16 @@ const SpectralUI = {
         const defaultOverview = document.getElementById('panel-default-overview');
         const inspectorView   = document.getElementById('panel-incident-inspector');
 
-        if (defaultOverview) defaultOverview.classList.add('hidden');
-        if (inspectorView)   inspectorView.classList.remove('hidden');
+        if (inspectorView) {
+            if (defaultOverview) defaultOverview.classList.add('hidden');
+            inspectorView.classList.remove('hidden');
 
-        // On mobile, expand infopanel so the user sees the details immediately
-        if (window.innerWidth < 768) {
-            this.expandMobileInfoPanel();
-            const mobTitle = document.getElementById('mobile-infopanel-title');
-            if (mobTitle) mobTitle.textContent = 'Incident: ' + (inc.incident_code || inc.id);
+            // On mobile, expand infopanel so the user sees the details immediately
+            if (window.innerWidth < 768) {
+                this.expandMobileInfoPanel();
+                const mobTitle = document.getElementById('mobile-infopanel-title');
+                if (mobTitle) mobTitle.textContent = 'Incident: ' + (inc.incident_code || inc.id);
+            }
         }
 
         // Store current incident coords for focusOnInspected and zoom in on map
@@ -1846,52 +1859,84 @@ const SpectralUI = {
             SpectralMap.map.flyTo([inc.latitude, inc.longitude], targetZoom, { duration: 0.7 });
         }
 
-        document.getElementById('insp-id').textContent       = inc.incident_code || inc.id;
-        document.getElementById('insp-type').textContent     = inc.type;
-        document.getElementById('insp-title').textContent    = inc.title;
+        const idEl = document.getElementById('insp-id');
+        if (idEl) idEl.textContent = inc.incident_code || inc.id;
 
-        const locEl = document.getElementById('insp-location');
-        if (locEl) {
-            locEl.textContent = inc.real_address || `Brgy. ${inc.barangay}, ${inc.municipality}, ${inc.province}`;
+        const typeEl = document.getElementById('insp-type');
+        if (typeEl) typeEl.textContent = inc.type || 'Incident';
+
+        const titleEl = document.getElementById('insp-title');
+        if (titleEl) titleEl.textContent = inc.title;
+
+        // Assignments and status calculation from database values
+        const assignments = inc.responder_assignments || [];
+        const latestAssignment = assignments.length > 0 ? assignments[assignments.length - 1] : null;
+
+        // Exact 4 status stages: Pending -> Under Investigation -> Verified -> Responder Assigned
+        const isResponderAssigned = !!(latestAssignment && latestAssignment.responder_id);
+        const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status) || inc.investigation_result === 'CONFIRMED' || assignments.length > 0;
+        const isInvestigating = isVerified || ['UNDER INVESTIGATION'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
+
+        let currentStatusText = 'Pending';
+        let badgeClass = 'pending';
+        let activeStageIndex = 0; // 0: Pending, 1: Under Investigation, 2: Verified, 3: Responder Assigned
+
+        if (inc.status === 'RESOLVED') {
+            currentStatusText = 'Resolved';
+            badgeClass = 'resolved';
+            activeStageIndex = 3;
+        } else if (isResponderAssigned) {
+            currentStatusText = 'Responder Assigned';
+            badgeClass = 'verified';
+            activeStageIndex = 3;
+        } else if (isVerified) {
+            currentStatusText = 'Verified';
+            badgeClass = 'verified';
+            activeStageIndex = 2;
+        } else if (isInvestigating) {
+            currentStatusText = 'Under Investigation';
+            badgeClass = 'investigating';
+            activeStageIndex = 1;
+        } else {
+            currentStatusText = 'Pending';
+            badgeClass = 'pending';
+            activeStageIndex = 0;
         }
 
-        // Asynchronously reverse-geocode real road / purok address if not yet cached
-        if (!inc.real_address && window.SpectralMap && window.SpectralMap.reverseGeocode && inc.latitude && inc.longitude) {
-            window.SpectralMap.reverseGeocode(inc.latitude, inc.longitude).then(geo => {
-                if (geo && geo.address) {
-                    inc.real_address = geo.address;
-                    if (geo.barangay_name) inc.barangay = geo.barangay_name;
-                    const curLoc = document.getElementById('insp-location');
-                    if (curLoc && SpectralUI.selectedIncidentId === inc.id) {
-                        curLoc.textContent = geo.address;
-                    }
-                    const popupEl = document.getElementById(`popup-addr-${inc.db_id || inc.id}`);
-                    if (popupEl) popupEl.textContent = geo.address;
-                }
-            }).catch(() => {});
-        }
-
-        document.getElementById('insp-coords').textContent   = `${parseFloat(inc.latitude).toFixed(6)}° N, ${parseFloat(inc.longitude).toFixed(6)}° E`;
-        document.getElementById('insp-date').textContent     = inc.reported_at;
-        document.getElementById('insp-reporter').textContent = inc.reported_by;
-
-        const sevBadge  = document.getElementById('insp-severity-badge');
         const statBadge = document.getElementById('insp-status-badge');
-
-        if (sevBadge) {
-            sevBadge.className   = `inline-block badge-${inc.severity.toLowerCase()} text-[10px] font-bold px-2.5 py-1 rounded-md font-mono`;
-            sevBadge.textContent = `${inc.severity} SEVERITY`;
-        }
-
         if (statBadge) {
-            statBadge.className   = `badge-${this.getStatusBadgeClass(inc.status)} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono`;
-            statBadge.textContent = inc.status;
+            statBadge.className   = `badge-${badgeClass} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono`;
+            statBadge.textContent = currentStatusText;
         }
 
+        // Response Progress calculation from actual database values
+        let progress = 0;
+        if (latestAssignment && latestAssignment.response_progress !== null && latestAssignment.response_progress !== undefined) {
+            progress = parseInt(latestAssignment.response_progress, 10) || 0;
+        } else if (inc.response_progress !== null && inc.response_progress !== undefined) {
+            progress = parseInt(inc.response_progress, 10) || 0;
+        }
+        if (inc.status === 'RESOLVED') {
+            progress = 100;
+        }
+        progress = Math.max(0, Math.min(100, progress));
 
+        const progressPctEl = document.getElementById('insp-progress-pct');
+        if (progressPctEl) {
+            progressPctEl.textContent = `${progress}%`;
+        }
+        const progressBarEl = document.getElementById('insp-progress-bar');
+        if (progressBarEl) {
+            progressBarEl.style.width = `${progress}%`;
+        }
 
-        // Status Timeline
-        this._buildTimeline(inc);
+        const stageCounterEl = document.getElementById('insp-stage-counter');
+        if (stageCounterEl) {
+            stageCounterEl.textContent = `STAGE ${activeStageIndex + 1} OF 4`;
+        }
+
+        // Status Timeline: Pending -> Under Investigation -> Verified -> Responder Assigned
+        this._buildTimeline(inc, activeStageIndex);
 
         // Investigator actions
         const investigatorSection = document.getElementById('insp-investigator-actions');
@@ -1910,48 +1955,69 @@ const SpectralUI = {
         }
     },
 
-    _buildTimeline(inc) {
+    _buildTimeline(inc, activeStageIndex) {
         const container = document.getElementById('insp-timeline');
         if (!container) return;
 
-        const isReported = true;
-        const isInvestigating = ['UNDER INVESTIGATION', 'VERIFIED', 'RESOLVED'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
-        const isConfirmed = inc.investigation_result === 'CONFIRMED' || ['VERIFIED', 'RESOLVED'].includes(inc.status) || (inc.responder_assignments && inc.responder_assignments.length > 0);
-        const latestAssignment = (inc.responder_assignments && inc.responder_assignments.length > 0) ? inc.responder_assignments[inc.responder_assignments.length - 1] : null;
-        const isResponderAssigned = !!(latestAssignment && latestAssignment.responder_id);
-        const isUnderResponse = (latestAssignment && ['ACTIVE', 'COMPLETED', 'CRITICAL', 'SUPPORT_REQUIRED'].includes(latestAssignment.status)) || inc.status === 'RESOLVED';
+        if (activeStageIndex === undefined) {
+            const assignments = inc.responder_assignments || [];
+            const latestAssignment = assignments.length > 0 ? assignments[assignments.length - 1] : null;
+            const isResponderAssigned = !!(latestAssignment && latestAssignment.responder_id);
+            const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status) || inc.investigation_result === 'CONFIRMED' || assignments.length > 0;
+            const isInvestigating = isVerified || ['UNDER INVESTIGATION'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
 
-        container.innerHTML = `
-            <div class="space-y-2 text-xs pt-1 font-mono">
+            if (isResponderAssigned) {
+                activeStageIndex = 3;
+            } else if (isVerified) {
+                activeStageIndex = 2;
+            } else if (isInvestigating) {
+                activeStageIndex = 1;
+            } else {
+                activeStageIndex = 0;
+            }
+        }
+
+        const stages = [
+            { label: 'Pending', order: 0 },
+            { label: 'Under Investigation', order: 1 },
+            { label: 'Verified', order: 2 },
+            { label: 'Responder Assigned', order: 3 }
+        ];
+
+        let html = '<div class="space-y-2 text-xs pt-1 font-mono">';
+        stages.forEach((stage, idx) => {
+            const isCompleted = activeStageIndex > idx;
+            const isCurrent   = activeStageIndex === idx;
+
+            let dotClass = 'bg-slate-600';
+            let textClass = 'text-slate-500';
+            let tagHtml = '';
+
+            if (isCompleted) {
+                dotClass = 'bg-emerald-400 ring-2 ring-emerald-500/20';
+                textClass = 'text-white font-bold';
+                tagHtml = '<span class="text-[9px] text-emerald-400 font-bold ml-auto">✓</span>';
+            } else if (isCurrent) {
+                dotClass = 'bg-[#8B5CF6] ring-2 ring-[#8B5CF6]/40 animate-pulse';
+                textClass = 'text-[#A78BFA] font-bold';
+                tagHtml = '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#8B5CF6]/20 text-[#A78BFA] ml-auto">CURRENT</span>';
+            }
+
+            html += `
                 <div class="flex items-center gap-3">
-                    <span class="w-2.5 h-2.5 rounded-full ${isReported ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
-                    <span class="${isReported ? 'text-white font-bold' : 'text-slate-500'}">Reported</span>
-                    <span class="text-[10px] text-slate-500 ml-auto">${inc.reported_at || ''}</span>
+                    <span class="w-2.5 h-2.5 rounded-full ${dotClass}"></span>
+                    <span class="${textClass}">${stage.label}</span>
+                    ${tagHtml}
                 </div>
-                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
-                <div class="flex items-center gap-3">
-                    <span class="w-2.5 h-2.5 rounded-full ${isInvestigating ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
-                    <span class="${isInvestigating ? 'text-white font-bold' : 'text-slate-500'}">Under Investigation</span>
-                </div>
-                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
-                <div class="flex items-center gap-3">
-                    <span class="w-2.5 h-2.5 rounded-full ${isConfirmed ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
-                    <span class="${isConfirmed ? 'text-white font-bold' : 'text-slate-500'}">Confirmed</span>
-                </div>
-                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
-                <div class="flex items-center gap-3">
-                    <span class="w-2.5 h-2.5 rounded-full ${isResponderAssigned ? 'bg-emerald-400 ring-2 ring-emerald-500/20' : 'bg-slate-600'}"></span>
-                    <span class="${isResponderAssigned ? 'text-white font-bold' : 'text-slate-500'}">Responder Assigned</span>
-                </div>
-                <div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>
-                <div class="flex items-center gap-3">
-                    <span class="w-2.5 h-2.5 rounded-full ${isUnderResponse ? 'bg-[#8B5CF6] ring-2 ring-[#8B5CF6]/30 animate-pulse' : 'bg-slate-600'}"></span>
-                    <span class="${isUnderResponse ? (inc.status === 'RESOLVED' ? 'text-emerald-400 font-bold' : 'text-[#A78BFA] font-bold') : 'text-slate-500'}">
-                        ${inc.status === 'RESOLVED' ? 'Neutralized / Resolved' : 'Under Response'}
-                    </span>
-                </div>
-            </div>
-        `;
+            `;
+
+            if (idx < stages.length - 1) {
+                html += '<div class="pl-1 text-slate-600 text-[10px] leading-none">↓</div>';
+            }
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
     },
 
     closeInspector() {

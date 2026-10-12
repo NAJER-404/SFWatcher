@@ -241,18 +241,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = L.divIcon({ className: '', html: markerHtml, iconSize: [26, 26], iconAnchor: [13, 13] });
         const marker = L.marker([lat, lng], { icon, zIndexOffset: 800 });
 
-        const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status) || inc.response_status === 'ACTIVE' || inc.investigation_result === 'CONFIRMED';
-        const defaultHpMap = { CRITICAL: 150, HIGH: 110, MEDIUM: 80, LOW: 50 };
-        const defaultHp = defaultHpMap[inc.severity] || 80;
-        const assignment = inc.responder_assignments && inc.responder_assignments.length > 0 ? inc.responder_assignments[0] : null;
-        const maxHp   = assignment && assignment.anomaly_max_hp ? assignment.anomaly_max_hp : (inc.anomaly_max_hp || defaultHp);
-        const hp      = assignment && assignment.anomaly_hp !== null && assignment.anomaly_hp !== undefined ? assignment.anomaly_hp : (inc.anomaly_hp !== null && inc.anomaly_hp !== undefined ? inc.anomaly_hp : maxHp);
-        const progress = assignment && assignment.response_progress !== undefined && assignment.response_progress !== null ? assignment.response_progress : (inc.response_progress || 0);
-        const pct      = maxHp > 0 ? Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100))) : 100;
-        const barColor = pct <= 25 ? '#22C55E' : (pct <= 60 ? '#EAB308' : '#EF4444');
-        const statusLabel = (inc.status || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        const assignments = inc.responder_assignments || [];
+        const assignment = assignments.length > 0 ? assignments[assignments.length - 1] : null;
+        const isResponderAssigned = !!(assignment && assignment.responder_id);
+        const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status) || inc.response_status === 'ACTIVE' || inc.investigation_result === 'CONFIRMED' || isResponderAssigned;
+        const isInvestigating = isVerified || ['UNDER INVESTIGATION'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
 
-        const conditionHtml = isVerified ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2A3440;font-family:'JetBrains Mono',monospace;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:10px;font-weight:700;color:#CBD5E1;text-transform:uppercase;">ANOMALY CONDITION</span><span style="font-size:11px;font-weight:800;color:${barColor};">${hp} / ${maxHp} HP</span></div><div style="width:100%;height:6px;background:#11161D;border-radius:3px;overflow:hidden;border:1px solid #2A3440;margin-bottom:6px;"><div style="width:${pct}%;height:100%;background:${barColor};transition:width 0.5s;"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;">RESPONSE PROGRESS</span><span style="font-size:11px;font-weight:700;color:#10B981;">${progress}%</span></div><div style="width:100%;height:5px;background:#11161D;border-radius:3px;overflow:hidden;border:1px solid #2A3440;"><div style="width:${progress}%;height:100%;background:#10B981;transition:width 0.5s;"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;">STATUS</span><span style="font-size:11px;font-weight:700;color:#A78BFA;">${statusLabel}</span></div></div>` : `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2A3440;font-family:'JetBrains Mono',monospace;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;">STATUS</span><span style="font-size:11px;font-weight:700;color:#EAB308;">${statusLabel}</span></div>`;
+        let statusLabel = 'Pending';
+        if (inc.status === 'RESOLVED') {
+            statusLabel = 'Resolved';
+        } else if (isResponderAssigned) {
+            statusLabel = 'Responder Assigned';
+        } else if (isVerified) {
+            statusLabel = 'Verified';
+        } else if (isInvestigating) {
+            statusLabel = 'Under Investigation';
+        } else {
+            statusLabel = 'Pending';
+        }
+
+        const progress = assignment && assignment.response_progress !== undefined && assignment.response_progress !== null ? assignment.response_progress : (inc.response_progress || (inc.status === 'RESOLVED' ? 100 : 0));
+
+        const statusColor = inc.status === 'RESOLVED' ? '#38BDF8' : '#A78BFA';
+        const conditionHtml = isVerified ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2A3440;font-family:'JetBrains Mono',monospace;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;">RESPONSE PROGRESS</span><span style="font-size:11px;font-weight:700;color:#10B981;">${progress}%</span></div><div style="width:100%;height:5px;background:#11161D;border-radius:3px;overflow:hidden;border:1px solid #2A3440;margin-bottom:6px;"><div style="width:${progress}%;height:100%;background:#10B981;transition:width 0.5s;"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;"><span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;">STATUS</span><span style="font-size:11px;font-weight:700;color:${statusColor};">${statusLabel}</span></div></div>` : `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2A3440;font-family:'JetBrains Mono',monospace;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;">STATUS</span><span style="font-size:11px;font-weight:700;color:#EAB308;">${statusLabel}</span></div>`;
 
         const bName  = inc.barangay ? (inc.barangay.name || inc.barangay) : 'San Francisco';
         const addr   = `Brgy. ${bName}, San Francisco, Agusan del Sur`;
@@ -262,9 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         marker.on('click', () => {
             map.flyTo([lat, lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
-            if (typeof SpectralUI !== 'undefined' && typeof SpectralUI.inspectIncident === 'function') {
-                SpectralUI.inspectIncident(inc.id || inc.incident_code);
-            }
         });
 
         return marker;

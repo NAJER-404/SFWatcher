@@ -49,7 +49,7 @@
 <!-- Mobile overlay backdrop -->
 <div id="sidebar-mobile-overlay" onclick="SpectralSidebar.closeMobile()"></div>
 
-<aside id="spectral-sidebar" class="w-full md:w-52 lg:w-52 bg-[#0d1117] border-r border-[#1a2130] flex flex-col md:h-full flex-shrink-0 z-20 select-none overflow-hidden transition-all duration-300">
+<aside id="spectral-sidebar" class="w-full md:w-52 lg:w-52 bg-[#0d1117] border-r border-[#1a2130] flex flex-col md:h-full flex-shrink-0 z-20 select-none overflow-hidden transition-[width] duration-300">
 
     <!-- Location Header + Toggle -->
     <div class="sb-header px-4 pt-4 pb-3 border-b border-[#1a2130]">

@@ -942,6 +942,9 @@ const SpectralMap = {
     },
 
     init() {
+        // Reporter map page handles its own initialization — skip to avoid conflicts
+        if (window.SPECTRAL_REPORTER_MAP) return;
+
         const mapElement = document.getElementById('spectral-map');
         if (!mapElement) return;
 

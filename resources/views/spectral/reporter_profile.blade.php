@@ -23,7 +23,7 @@
 @section('content')
 @include('spectral.partials.sidebar')
 
-<main class="flex-1 h-full overflow-y-auto bg-[#06090D] p-4 sm:p-6 lg:p-8">
+<main class="flex-1 h-full overflow-y-auto bg-[#06090D] p-4 sm:p-6 lg:p-8 min-w-0">
     <div class="max-w-5xl mx-auto space-y-5">
 
         {{-- ── Flash messages ── --}}

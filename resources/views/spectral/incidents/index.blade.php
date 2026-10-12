@@ -4,7 +4,7 @@
 
 @section('content')
 @include('spectral.partials.sidebar')
-<main class="flex-1 h-full overflow-y-auto bg-[#0B0F14] p-3.5 sm:p-6">
+<main class="flex-1 h-full overflow-y-auto bg-[#0B0F14] p-3.5 sm:p-6 min-w-0">
     <div class="max-w-7xl mx-auto space-y-5 sm:space-y-6">
 
         <!-- Top Navigation & Actions -->

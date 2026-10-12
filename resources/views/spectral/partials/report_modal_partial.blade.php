@@ -57,24 +57,77 @@
                 <input type="text" id="report-title" name="title" class="ecto-input bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none placeholder-slate-500" placeholder="e.g. Energy surge detected near Hubang..." required>
             </div>
 
-            <!-- Location Picker & Barangay Selector -->
-            <div class="p-3 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-2.5">
+            <!-- Location Picker, Readable Address & Barangay Selector -->
+            <div class="p-3.5 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-2.5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="text-[11px] font-semibold text-slate-300">Coordinates</span>
-                        <span id="report-geocode-status" class="text-[10px] font-mono text-[#9CA3AF]"></span>
+                        <span class="text-[11px] font-semibold text-slate-200">Incident Location</span>
+                        <span id="report-geocode-status" class="text-[10px] font-mono text-[#34D399]"></span>
                     </div>
                     <button type="button" onclick="SpectralMap.startLocationPicking()" class="px-2.5 py-1 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold text-[11px] rounded-md transition flex items-center gap-1.5 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
                         <span>Select on Map</span>
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <!-- Address Lookup Loading Indicator -->
+                <div id="report-geocode-loading" class="hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 text-[#A78BFA] text-[11px]">
+                    <svg class="animate-spin h-3.5 w-3.5 text-[#8B5CF6] flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Retrieving address via OpenStreetMap Nominatim...</span>
+                </div>
+
+                <!-- Address Lookup Fallback/Error Alert -->
+                <div id="report-geocode-error" class="hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px]">
+                    <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span id="report-geocode-error-text">Address lookup unavailable. Exact coordinates retained.</span>
+                </div>
+
+                <!-- Readable Address & Location Review Card -->
+                <div id="report-location-review-card" class="rounded-lg bg-[#151B23] border border-[#2A3440] p-2.5 space-y-2">
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[10px] text-[#9CA3AF] font-mono">Readable Address</label>
+                            <span id="report-geocode-badge" class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Verified</span>
+                        </div>
+                        <input type="text" id="report-address" name="resolved_address" readonly
+                            class="ecto-input bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:outline-none placeholder-slate-500 font-sans cursor-default"
+                            placeholder="Address will be resolved automatically after picking location...">
+                    </div>
+
+                    <!-- Location Hierarchy Review -->
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-[#11161D] p-2 rounded border border-[#2A3440]">
+                            <span class="text-[9px] text-[#9CA3AF] block font-mono">Barangay</span>
+                            <span id="report-review-barangay" class="text-slate-200 font-medium truncate block">Brgy. Hubang</span>
+                        </div>
+                        <div class="bg-[#11161D] p-2 rounded border border-[#2A3440]">
+                            <span class="text-[9px] text-[#9CA3AF] block font-mono">Municipality & Province</span>
+                            <span id="report-review-municipality" class="text-slate-200 font-medium truncate block">San Francisco, Agusan del Sur</span>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Checkbox & Coordinates Display -->
+                    <div class="pt-1.5 border-t border-[#2A3440] flex items-center justify-between gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="report-location-confirmed" checked class="w-3.5 h-3.5 rounded bg-[#11161D] border-[#2A3440] text-[#8B5CF6] focus:ring-[#8B5CF6] focus:ring-offset-0">
+                            <span class="text-[11px] text-slate-300 font-medium">I have reviewed and confirmed this location</span>
+                        </label>
+                        <span id="report-review-coords" class="text-[10px] font-mono text-[#9CA3AF] flex-shrink-0">8.531000, 125.973000</span>
+                    </div>
+                </div>
+
+                <!-- Manual Fine-Tuning Coordinates & Barangay Selector -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                     <div class="space-y-1">
                         <label class="text-[10px] text-[#9CA3AF] font-mono">Barangay</label>
                         <select id="report-barangay" name="barangay_id" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" required>
                             @foreach(isset($barangays) ? $barangays : \App\Models\Barangay::orderBy('name')->get() as $b)
-                                <option class="bg-[#151B23] text-slate-200" value="{{ $b->id }}" data-id="{{ $b->id }}" data-name="{{ $b->name }}" {{ $b->name === 'Hubang' ? 'selected' : '' }}>
+                                <option class="bg-[#151B23] text-slate-200" value="{{ $b->id }}" data-id="{{ $b->id }}" data-name="{{ $b->name }}" data-lat="{{ $b->latitude }}" data-lng="{{ $b->longitude }}" {{ $b->name === 'Hubang' ? 'selected' : '' }}>
                                     Brgy. {{ $b->name }}
                                 </option>
                             @endforeach

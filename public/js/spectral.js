@@ -1242,13 +1242,18 @@ const SpectralMap = {
     },
 
     startLocationPicking() {
+        const mapEl = document.getElementById('spectral-map');
+        if (!mapEl || (window.location.pathname !== '/map' && !mapEl.offsetParent)) {
+            window.location.href = '/map?pick=1';
+            return;
+        }
+
         this.isPickingLocation = true;
         // Remove any anomaly marker while picking
         if (this.anomalyMarker && this.map) {
             this.map.removeLayer(this.anomalyMarker);
             this.anomalyMarker = null;
         }
-        const mapEl = document.getElementById('spectral-map');
         const hudEl = document.getElementById('location-picker-hud');
         if (mapEl) mapEl.classList.add('picking-location');
         if (hudEl) {
@@ -1358,19 +1363,10 @@ const SpectralMap = {
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.remove('hidden');
 
-        // Async: High-precision reverse geocode
-        this.reverseGeocode(lat, lng).then(geo => {
-            if (resolvedInput) {
-                resolvedInput.value = geo.address || geo.display;
-            }
-            if (geocodeStatus) {
-                geocodeStatus.textContent = 'Location matched: Brgy. ' + (geo.barangay_name || barangay.name);
-                geocodeStatus.className = 'text-[9px] font-mono text-emerald-400';
-            }
-            if (barangaySelect && (geo.barangay_id || geo.barangay_name)) {
-                this.selectBarangayOption(barangaySelect, geo.barangay_id || geo.barangay_name);
-            }
-        });
+        // Retrieve and display readable address & location review
+        if (typeof SpectralUI !== 'undefined' && typeof SpectralUI.lookupAddress === 'function') {
+            SpectralUI.lookupAddress(lat, lng);
+        }
     },
 
     // ── Left-Side Street View Reconnaissance & 360 Engine ────────────────
@@ -1820,6 +1816,8 @@ const SpectralUI = {
             opt.value = b.id;
             opt.dataset.id = b.id;
             opt.dataset.name = b.name;
+            opt.dataset.lat = b.latitude || b.lat || '';
+            opt.dataset.lng = b.longitude || b.lng || '';
             opt.textContent = `Brgy. ${b.name}`;
             if (b.name === 'Hubang' || b.id === 9) opt.selected = true;
             select.appendChild(opt);
@@ -2116,9 +2114,192 @@ const SpectralUI = {
         this.showToast(`Incident ${inc.id} updated to ${newStatus}`);
     },
 
+    async lookupAddress(lat, lng) {
+        lat = parseFloat(lat);
+        lng = parseFloat(lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        const loadingEl = document.getElementById('report-geocode-loading');
+        const errorEl   = document.getElementById('report-geocode-error');
+        const errTextEl = document.getElementById('report-geocode-error-text');
+        const statusEl  = document.getElementById('report-geocode-status');
+        const badgeEl   = document.getElementById('report-geocode-badge');
+        const addrInput = document.getElementById('report-address') || document.getElementById('report-resolved-location');
+        const bReview   = document.getElementById('report-review-barangay');
+        const mReview   = document.getElementById('report-review-municipality');
+        const cReview   = document.getElementById('report-review-coords');
+        const bSelect   = document.getElementById('report-barangay');
+        const confirmCb = document.getElementById('report-location-confirmed');
+
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (errorEl)   errorEl.classList.add('hidden');
+        if (statusEl) {
+            statusEl.textContent = 'Resolving address...';
+            statusEl.style.color = '#A78BFA';
+        }
+        if (badgeEl) {
+            badgeEl.textContent = 'Looking up...';
+            badgeEl.className = 'px-1.5 py-0.5 rounded text-[9px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20';
+        }
+        if (addrInput) addrInput.value = `Looking up address for (${lat.toFixed(5)}, ${lng.toFixed(5)})...`;
+        if (cReview)   cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+        try {
+            const res = await fetch(`/api/spectral/reverse-geocode?lat=${lat}&lng=${lng}`, {
+                headers: { 'Accept': 'application/json' },
+                signal: AbortSignal.timeout(6500)
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    if (addrInput) addrInput.value = data.address || '';
+                    const bName = data.barangay_name || data.barangay || 'San Francisco';
+                    const bDisplay = bName.startsWith('Barangay ') ? bName : `Brgy. ${bName}`;
+                    if (bReview)   bReview.textContent = bDisplay;
+                    if (mReview)   mReview.textContent = `${data.municipality || 'San Francisco'}, ${data.province || 'Agusan del Sur'}`;
+                    if (cReview)   cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    if (statusEl) {
+                        statusEl.textContent = `✓ ${bDisplay}`;
+                        statusEl.style.color = '#34D399';
+                    }
+                    if (badgeEl) {
+                        badgeEl.textContent = 'Verified';
+                        badgeEl.className = 'px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    }
+                    if (confirmCb) confirmCb.checked = true;
+
+                    // Match option in barangay dropdown
+                    if (bSelect && data.barangay_id) {
+                        for (let opt of bSelect.options) {
+                            if (opt.value == data.barangay_id || (opt.dataset && opt.dataset.id == data.barangay_id)) {
+                                bSelect.value = opt.value;
+                                break;
+                            }
+                        }
+                    } else if (bSelect && bName) {
+                        for (let opt of bSelect.options) {
+                            if (opt.text && opt.text.toLowerCase().includes(bName.toLowerCase())) {
+                                bSelect.value = opt.value;
+                                break;
+                            }
+                        }
+                    }
+                    return data;
+                }
+            }
+            throw new Error('Reverse geocode returned unsuccessful');
+        } catch (err) {
+            console.warn('[SpectralUI] Reverse geocode lookup fallback:', err.message);
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (errorEl) {
+                if (errTextEl) errTextEl.textContent = `Address lookup unavailable. Kept exact coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)}).`;
+                errorEl.classList.remove('hidden');
+            }
+            if (badgeEl) {
+                badgeEl.textContent = 'Coordinates Kept';
+                badgeEl.className = 'px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20';
+            }
+            if (statusEl) {
+                statusEl.textContent = '⚠ Offline fallback';
+                statusEl.style.color = '#FBBF24';
+            }
+
+            // Fallback: match nearest barangay using local municipal data
+            let fallbackName = 'San Francisco';
+            if (window.SpectralData && window.SpectralData.barangays && window.SpectralData.barangays.length > 0) {
+                let closest = null;
+                let minDist = Infinity;
+                window.SpectralData.barangays.forEach(b => {
+                    const bLat = parseFloat(b.latitude || b.lat);
+                    const bLng = parseFloat(b.longitude || b.lng);
+                    if (!isNaN(bLat) && !isNaN(bLng)) {
+                        const d = Math.pow(bLat - lat, 2) + Math.pow(bLng - lng, 2);
+                        if (d < minDist) { minDist = d; closest = b; }
+                    }
+                });
+                if (closest) {
+                    fallbackName = closest.name;
+                    if (bSelect) {
+                        for (let opt of bSelect.options) {
+                            if (opt.value == closest.id || (opt.text && opt.text.includes(closest.name))) {
+                                bSelect.value = opt.value;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else if (bSelect && bSelect.selectedIndex >= 0) {
+                fallbackName = bSelect.options[bSelect.selectedIndex].text.replace(/^Brgy\.?\s*/i, '');
+            }
+
+            const fallbackDisplay = fallbackName.startsWith('Barangay ') ? fallbackName : `Brgy. ${fallbackName}`;
+            const fallbackAddress = `${fallbackDisplay}, San Francisco, Agusan del Sur, Philippines`;
+            if (addrInput) addrInput.value = fallbackAddress;
+            if (bReview)   bReview.textContent = fallbackDisplay;
+            if (mReview)   mReview.textContent = 'San Francisco, Agusan del Sur';
+            if (cReview)   cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            if (confirmCb) confirmCb.checked = true;
+        }
+    },
+
     openReportModal() {
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.remove('hidden');
+
+        const bSelect = document.getElementById('report-barangay');
+        const latInp  = document.getElementById('report-lat');
+        const lngInp  = document.getElementById('report-lng');
+
+        // Wire barangay change → update coordinates + lookup address (attach once)
+        if (bSelect && !bSelect._spectralCoordListenerAttached) {
+            bSelect._spectralCoordListenerAttached = true;
+            bSelect.addEventListener('change', () => {
+                const opt = bSelect.options[bSelect.selectedIndex];
+                if (opt && opt.dataset.lat && opt.dataset.lng) {
+                    const lat = parseFloat(opt.dataset.lat);
+                    const lng = parseFloat(opt.dataset.lng);
+                    if (latInp) latInp.value = lat.toFixed(6);
+                    if (lngInp) lngInp.value = lng.toFixed(6);
+                    this.lookupAddress(lat, lng);
+                }
+            });
+        }
+
+        // Wire lat/lng change → lookup address (debounced, attach once)
+        const _onCoordChange = (() => {
+            let timer = null;
+            return () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    const lat = parseFloat(document.getElementById('report-lat')?.value);
+                    const lng = parseFloat(document.getElementById('report-lng')?.value);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        this.lookupAddress(lat, lng);
+                    }
+                }, 500);
+            };
+        })();
+
+        if (latInp && !latInp._spectralCoordListenerAttached) {
+            latInp._spectralCoordListenerAttached = true;
+            latInp.addEventListener('change', _onCoordChange);
+        }
+        if (lngInp && !lngInp._spectralCoordListenerAttached) {
+            lngInp._spectralCoordListenerAttached = true;
+            lngInp.addEventListener('change', _onCoordChange);
+        }
+
+        // Initialize address lookup on open if not already populated
+        const resolvedInput = document.getElementById('report-address') || document.getElementById('report-resolved-location');
+        if (!resolvedInput || !resolvedInput.value || resolvedInput.value.startsWith('Looking up')) {
+            const curLat = parseFloat(latInp?.value);
+            const curLng = parseFloat(lngInp?.value);
+            if (!isNaN(curLat) && !isNaN(curLng)) {
+                this.lookupAddress(curLat, curLng);
+            }
+        }
     },
 
     closeReportModal() {
@@ -2152,6 +2333,18 @@ const SpectralUI = {
 
     async submitReport(e) {
         e.preventDefault();
+
+        // Validate location confirmation
+        const locationConfirmed = document.getElementById('report-location-confirmed');
+        if (locationConfirmed && !locationConfirmed.checked) {
+            if (typeof this.showToast === 'function') {
+                this.showToast('Please review and confirm the incident location before submitting.');
+            } else {
+                alert('Please review and confirm the incident location before submitting.');
+            }
+            locationConfirmed.focus();
+            return;
+        }
 
         const type        = document.getElementById('report-type').value;
         const title       = document.getElementById('report-title').value;

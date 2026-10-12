@@ -321,7 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (latInp) latInp.value = lat.toFixed(6);
             if (lngInp) lngInp.value = lng.toFixed(6);
 
-            // Auto-select nearest barangay
             if (window.SpectralData && window.SpectralData.barangays && window.SpectralData.barangays.length > 0) {
                 let closest = null;
                 let minDist = Infinity;
@@ -343,6 +342,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                     }
+                    // Update geocode status label
+                    const statusEl = document.getElementById('report-geocode-status');
+                    if (statusEl) {
+                        statusEl.textContent = `📍 ${closest.name} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                        statusEl.style.color = '#34D399';
+                    }
                 }
             }
 
@@ -360,15 +365,28 @@ document.addEventListener('DOMContentLoaded', () => {
             // Re-open report modal with coordinates filled
             const modal = document.getElementById('report-modal');
             if (modal) modal.classList.remove('hidden');
+
+            // Automatically retrieve readable address and update location review card
+            if (window.SpectralUI && typeof window.SpectralUI.lookupAddress === 'function') {
+                window.SpectralUI.lookupAddress(lat, lng);
+            }
         }
     });
 
-    // ── 8. URL PARAM: zoom to specific incident or layer ───────────────────
+    // ── 8. URL PARAM: zoom to specific incident, layer or pick location ───
     const params = new URLSearchParams(window.location.search);
     const zoomLat = parseFloat(params.get('zoom_lat'));
     const zoomLng = parseFloat(params.get('zoom_lng'));
     const zoomIncidentId = params.get('zoom_incident');
     const layerParam = params.get('layer');
+
+    if (params.get('pick') === '1') {
+        setTimeout(() => {
+            if (window.SpectralMap && typeof window.SpectralMap.startLocationPicking === 'function') {
+                window.SpectralMap.startLocationPicking();
+            }
+        }, 350);
+    }
 
     if (!isNaN(zoomLat) && !isNaN(zoomLng)) {
         setTimeout(() => {

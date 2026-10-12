@@ -84,9 +84,8 @@ class SpectralApiController extends Controller
                     $dist = 6371000 * 2 * atan2(sqrt($a), sqrt(1 - $a));
 
                     // If candidate is a Poblacion barangay, must be within Poblacion reach (1200m)
-                    // If candidate is a rural barangay (Hubang, Pisa-an, Lucac, etc.) outside Poblacion:
-                    // accept it within municipal boundary (up to 25km)!
-                    if ($isPoblacionCandidate ? ($dist <= 1200) : ($dist <= 25000)) {
+                    // If candidate is a rural barangay, accept it if within reasonable reach (1500m)
+                    if ($isPoblacionCandidate ? ($dist <= 1200) : ($dist <= 1500)) {
                         return $candidate;
                     }
                 }
@@ -177,7 +176,8 @@ class SpectralApiController extends Controller
         // Format friendly address with road/purok if discovered
         $roadParts = array_filter([$road, ($purok && $purok !== $road) ? $purok : null]);
         $prefix = !empty($roadParts) ? implode(', ', $roadParts) . ', ' : '';
-        $address = "{$prefix}Brgy. {$barangayName}, {$municipality}, {$province}, {$country}";
+        $bDisplay = str_starts_with($barangayName, 'Barangay ') ? $barangayName : "Brgy. {$barangayName}";
+        $address = "{$prefix}{$bDisplay}, {$municipality}, {$province}, {$country}";
 
         return response()->json([
             'success'       => true,
@@ -190,6 +190,8 @@ class SpectralApiController extends Controller
             'country'       => $country,
             'latitude'      => $lat,
             'longitude'     => $lng,
+            'road'          => $road,
+            'purok'         => $purok,
         ]);
     }
 

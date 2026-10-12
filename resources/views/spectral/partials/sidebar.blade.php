@@ -252,13 +252,48 @@ const SpectralSidebar = {
 };
 
 /* ===== Layer Toggle from Sidebar ===== */
+function updateSidebarBadge(key, isActive) {
+    const statusEl = document.getElementById(`layer-status-${key}`);
+    const btn = document.getElementById(`layer-btn-${key}`);
+    if (btn) btn.classList.toggle('active', isActive);
+    if (statusEl) {
+        statusEl.textContent = isActive ? 'ON' : 'OFF';
+        if (key === 'incidents') {
+            statusEl.className = isActive
+                ? 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30 font-bold'
+                : 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-500 border border-slate-700/50 font-bold';
+        } else if (key === 'safeZones') {
+            statusEl.className = isActive
+                ? 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold'
+                : 'sb-label text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-500 border border-slate-700/50 font-bold';
+        }
+    }
+}
+
 function handleSidebarLayerToggle(layer) {
     if (window.SpectralMap && window.SpectralMap.map) {
         window.SpectralMap.toggleLayer(layer);
     } else {
-        window.location.href = "{{ route('spectral.map') }}?toggle=" + encodeURIComponent(layer);
+        const key = 'spectral_layer_' + layer;
+        let current = true;
+        try { current = localStorage.getItem(key) !== '0'; } catch (_) {}
+        const next = !current;
+        try { localStorage.setItem(key, next ? '1' : '0'); } catch (_) {}
+        updateSidebarBadge(layer, next);
     }
 }
+
+// Restore sidebar layer toggle ON/OFF badges across all pages on initial load
+(function() {
+    ['incidents', 'safeZones'].forEach(key => {
+        let active = true;
+        try {
+            const saved = localStorage.getItem('spectral_layer_' + key);
+            if (saved !== null) active = (saved !== '0');
+        } catch (_) {}
+        updateSidebarBadge(key, active);
+    });
+})();
 
 /* ===== Desktop collapse logic ===== */
 (function () {

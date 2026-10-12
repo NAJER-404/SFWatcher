@@ -91,7 +91,10 @@
 
     <!-- Description & Anomaly Telemetry -->
     <div class="p-5 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-4 font-mono text-xs">
-        <h2 class="text-xs uppercase font-bold text-slate-400 tracking-wider">Incident Briefing &amp; Telemetry</h2>
+        <div class="flex items-center justify-between">
+            <h2 class="text-xs uppercase font-bold text-slate-400 tracking-wider">Incident Briefing &amp; Telemetry</h2>
+            <span class="text-[10px] font-mono text-[#8B5CF6] uppercase font-bold tracking-wider">ANOMALY CONDITION</span>
+        </div>
         <p class="p-3.5 rounded-xl bg-[#11161D] border border-[#2A3440] text-slate-200 leading-relaxed whitespace-pre-line">{{ $incident->description }}</p>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
@@ -150,9 +153,12 @@
 
         <!-- Investigation History -->
         <div class="p-5 rounded-2xl bg-[#151B23] border border-[#2A3440] space-y-3">
-            <h2 class="text-xs uppercase font-bold text-white tracking-wider border-b border-[#2A3440] pb-2">
-                Investigation Assessment History ({{ $incident->investigations->count() }})
-            </h2>
+            <div class="flex items-center justify-between border-b border-[#2A3440] pb-2">
+                <h2 class="text-xs uppercase font-bold text-white tracking-wider">
+                    Investigation Assessment History ({{ $incident->investigations->count() }})
+                </h2>
+                <span class="text-[10px] font-mono text-[#64748B] uppercase">STATUS TIMELINE</span>
+            </div>
 
             @forelse($incident->investigations->sortByDesc('investigation_date') as $inv)
                 <div class="p-3 rounded-xl bg-[#11161D] border border-[#2A3440] space-y-1">

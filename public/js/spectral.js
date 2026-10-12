@@ -76,8 +76,37 @@ const SpectralData = {
         }
     ],
 
+    findClosestBarangay(lat, lng) {
+        if (!this.barangays || this.barangays.length === 0) return null;
+        let closest = null;
+        let minDist = Infinity;
+        this.barangays.forEach(b => {
+            const bLat = parseFloat(b.latitude || b.lat);
+            const bLng = parseFloat(b.longitude || b.lng);
+            if (isNaN(bLat) || isNaN(bLng)) return;
+            const d = (bLat - lat) ** 2 + (bLng - lng) ** 2;
+            if (d < minDist) {
+                minDist = d;
+                closest = b;
+            }
+        });
+        return closest;
+    },
+
+    _initialized: false,
+
     init() {
+        if (this._initialized) return;
+        this._initialized = true;
         if (window.INITIAL_SPECTRAL_STATE) {
+            if (window.INITIAL_SPECTRAL_STATE.barangays && window.INITIAL_SPECTRAL_STATE.barangays.length > 0) {
+                this.barangays = window.INITIAL_SPECTRAL_STATE.barangays.map(b => ({
+                    id: b.id,
+                    name: b.name,
+                    lat: parseFloat(b.latitude || b.lat),
+                    lng: parseFloat(b.longitude || b.lng)
+                }));
+            }
             if (window.INITIAL_SPECTRAL_STATE.incidents && window.INITIAL_SPECTRAL_STATE.incidents.length > 0) {
                 this.incidents = window.INITIAL_SPECTRAL_STATE.incidents.map(inc => {
                     // Format date nicely: "April 13, 2026 · 11:13 AM"
@@ -88,18 +117,26 @@ const SpectralData = {
                             + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                     } catch (_) {}
 
+                    const lat = parseFloat(inc.latitude);
+                    const lng = parseFloat(inc.longitude);
+                    let bName = inc.barangay ? inc.barangay.name : null;
+                    if (!bName && !isNaN(lat) && !isNaN(lng)) {
+                        const closest = this.findClosestBarangay(lat, lng);
+                        if (closest) bName = closest.name;
+                    }
+
                     return {
                         id:            inc.incident_code || `SF-INC-${inc.id}`,
-                        incident_code: inc.incident_code || `SF-INC-${inc.id}`,  // Bug #6 fix
+                        incident_code: inc.incident_code || `SF-INC-${inc.id}`,
                         db_id:         inc.id,
                         type:          inc.incident_type,
                         title:         inc.title,
                         description:   inc.description,
-                        barangay:      inc.barangay ? inc.barangay.name : 'Hubang',
-                        municipality:  inc.barangay ? inc.barangay.municipality : 'San Francisco',
-                        province:      inc.barangay ? inc.barangay.province : 'Agusan del Sur',
-                        latitude:      parseFloat(inc.latitude),
-                        longitude:     parseFloat(inc.longitude),
+                        barangay:      bName || 'Hubang',
+                        municipality:  inc.barangay ? (inc.barangay.municipality || 'San Francisco') : 'San Francisco',
+                        province:      inc.barangay ? (inc.barangay.province || 'Agusan del Sur') : 'Agusan del Sur',
+                        latitude:      lat,
+                        longitude:     lng,
                         severity:      inc.severity,
                         status:        inc.status,
                         anomaly_hp:            inc.anomaly_hp,
@@ -107,15 +144,16 @@ const SpectralData = {
                         response_progress:     inc.response_progress,
                         response_status:       inc.response_status,
                         responder_assignments: inc.responder_assignments || [],
-                        reported_at:   reportedAt,       // Bug #5 fix — human-readable date
+                        reported_at:   reportedAt,
                         reported_by:   inc.reporter ? inc.reporter.name : 'Civilian Observer',
                         evidence:      (inc.evidence && inc.evidence.length > 0 && inc.evidence[0] && inc.evidence[0].file_path)
                                           ? (String(inc.evidence[0].file_path).startsWith('http')
                                               ? inc.evidence[0].file_path
                                               : '/storage/' + inc.evidence[0].file_path)
                                           : null,
-                        investigations: inc.investigations || [],  // Bug #7 fix
-                        notes:         inc.notes
+                        investigations: inc.investigations || [],
+                        notes:         inc.notes,
+                        real_address:  null
                     };
                 });
             }
@@ -150,17 +188,18 @@ const SpectralData = {
                     icon: 'resource'
                 }));
             }
-            if (window.INITIAL_SPECTRAL_STATE.barangays && window.INITIAL_SPECTRAL_STATE.barangays.length > 0) {
-                this.barangays = window.INITIAL_SPECTRAL_STATE.barangays.map(b => ({
-                    id: b.id,
-                    name: b.name,
-                    lat: parseFloat(b.latitude || b.lat),
-                    lng: parseFloat(b.longitude || b.lng)
-                }));
+
+            // If map is already initialized, immediately render layers and counters
+            if (window.SpectralMap && window.SpectralMap.map) {
+                try {
+                    window.SpectralMap.renderAllLayers();
+                    window.SpectralMap.updateLayerToggleButtons();
+                } catch (_) {}
             }
         }
     }
 };
+
 
 // ════════════════════════════════════════════════════════════════════════════
 // 1B. STREET VIEW 360 PANORAMA ENGINE (Interactive Left/Right Road Watcher)
@@ -906,68 +945,48 @@ const SpectralMap = {
         const mapElement = document.getElementById('spectral-map');
         if (!mapElement) return;
 
-        if (this.map) {
-            try { this.map.invalidateSize(); } catch (_) {}
+        // Restore persisted filter states from localStorage
+        try {
+            const savedInc = localStorage.getItem('spectral_layer_incidents');
+            if (savedInc !== null) this.activeFilters.incidents = (savedInc !== '0');
+            const savedSafe = localStorage.getItem('spectral_layer_safeZones');
+            if (savedSafe !== null) this.activeFilters.safeZones = (savedSafe !== '0');
+        } catch (_) {}
+
+        if (this.map || (window.SpectralMap && window.SpectralMap.map) || (mapElement && mapElement._leaflet_id)) {
+            this.map = this.map || (window.SpectralMap ? window.SpectralMap.map : null);
+            try {
+                if (this.map) {
+                    this.map.invalidateSize();
+                    this.updateLayerToggleButtons();
+                }
+            } catch (_) {}
             return;
         }
 
         try {
             const initialCenter = (SpectralData.node && SpectralData.node.coordinates) ? SpectralData.node.coordinates : [8.5100, 125.9750];
-            const initialZoom = 15; // Start zoomed into San Francisco
+            const initialZoom = 14;
 
             this.map = L.map('spectral-map', {
                 center: initialCenter,
                 zoom: initialZoom,
-                minZoom: 2,
-                maxZoom: 21,
                 zoomControl: false,
-                preferCanvas: true
+                attributionControl: true
             });
 
-            // ── Google Satellite (only tile layer) ───────────────────────────
+            // ── Satellite Imagery Layer (Same tile source & setup as Investigator map) ──
             this.baseLayers.satellite = L.tileLayer(
                 'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-                attribution: 'Imagery &copy; <a href="https://maps.google.com">Google</a>',
-                maxZoom: 21,
-                subdomains: ['0','1','2','3'],
-                tileSize: 256
+                attribution: 'OpenStreetMap',
+                subdomains: ['0', '1', '2', '3'],
+                maxZoom: 20
             }).addTo(this.map);
 
             this.activeBaseMap = 'satellite';
 
-            // ── OSM Fallback tile layer (hidden by default) ──────────────────
-            this.baseLayers.osm = L.tileLayer(
-                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19
-            });
-
-            // ── Tile error handling ──────────────────────────────────────────
-            const tileErrorEl = document.getElementById('map-tile-error');
-            let tileErrors = 0;
-            let switchedToOsm = false;
-            this.map.on('tileerror', () => {
-                tileErrors++;
-                if (tileErrors >= 3 && !switchedToOsm) {
-                    switchedToOsm = true;
-                    // Switch to OSM fallback
-                    this.baseLayers.satellite.remove();
-                    this.baseLayers.osm.addTo(this.map);
-                    this.activeBaseMap = 'osm';
-                    console.warn('[SpectralMap] Google tiles failed — switched to OpenStreetMap');
-                }
-                if (tileErrors >= 3 && tileErrorEl) {
-                    tileErrorEl.classList.add('visible');
-                    clearTimeout(this.tileErrorTimer);
-                    this.tileErrorTimer = setTimeout(() => {
-                        tileErrorEl.classList.remove('visible');
-                        tileErrors = 0;
-                    }, 6000);
-                }
-            });
-            this.map.on('tileload', () => { tileErrors = 0; });
-
             L.control.zoom({ position: 'topright' }).addTo(this.map);
+            L.control.scale({ imperial: true, metric: true, position: 'bottomleft' }).addTo(this.map);
 
             // Initialize Layer Groups
             this.layerGroups.incidents = L.layerGroup().addTo(this.map);
@@ -976,14 +995,17 @@ const SpectralMap = {
             this.layerGroups.safeZones = L.layerGroup().addTo(this.map);
 
             this.renderAllLayers();
+            this.updateLayerToggleButtons();
 
             // ── Map click: street view mode OR picker mode OR anomaly drop ───
             this.map.on('click', (e) => this.handleMapClick(e));
 
-            // Invalidate size once DOM layout is fully computed
+            // Invalidate size and ensure layers are rendered once layout computes
             setTimeout(() => {
                 if (this.map) {
                     this.map.invalidateSize();
+                    this.renderAllLayers();
+                    this.updateLayerToggleButtons();
                 }
             }, 250);
         } catch (err) {
@@ -1004,29 +1026,42 @@ const SpectralMap = {
         if (!this.activeFilters.incidents) return;
 
         SpectralData.incidents.forEach(inc => {
+            if (!inc.latitude || !inc.longitude) return;
+            const lat = parseFloat(inc.latitude);
+            const lng = parseFloat(inc.longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+
             if (this.activeFilters.severity !== 'ALL' && inc.severity !== this.activeFilters.severity) return;
 
-            const sevLower = inc.severity.toLowerCase();
-            const pulseHtml = (inc.severity === 'CRITICAL' || inc.severity === 'HIGH')
-                ? `<div class="marker-incident-pulse"></div>` : '';
+            const sevColors = {
+                CRITICAL: '#000000',
+                HIGH:     '#EF4444',
+                MEDIUM:   '#EAB308',
+                LOW:      '#22C55E'
+            };
+            const color = sevColors[inc.severity] || '#22C55E';
+            const isHigh = inc.severity === 'HIGH' || inc.severity === 'CRITICAL';
+            const isCritical = inc.severity === 'CRITICAL';
+            const pulseBg = isCritical ? 'rgba(0,0,0,0.6)' : `${color}44`;
+            const markerBorder = isCritical ? '#9CA3AF' : '#FFFFFF';
+            const markerShadow = isCritical ? '0 0 12px rgba(0,0,0,0.95)' : `0 0 10px ${color}`;
 
-            const iconHtml = `
-                <div class="gis-marker-wrapper" title="${inc.id}: ${inc.title}">
-                    <div class="marker-incident ${sevLower}">
-                        ${pulseHtml}
-                        <span style="font-size:11px;font-weight:bold;color:#FFFFFF;">â—</span>
+            const markerHtml = `
+                <div style="position:relative; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="${inc.id}: ${inc.title}">
+                    ${isHigh ? `<div style="position:absolute; inset:-4px; border-radius:50%; background:${pulseBg}; animation:ping 2s cubic-bezier(0,0,0.2,1) infinite;"></div>` : ''}
+                    <div style="position:relative; width:20px; height:20px; border-radius:50%; background:${color}; border:2px solid ${markerBorder}; box-shadow:${markerShadow}; display:flex; align-items:center; justify-content:center;">
+                        <div style="width:6px; height:6px; border-radius:50%; background:#FFFFFF;"></div>
                     </div>
                 </div>`;
 
             const icon = L.divIcon({
                 className: '',
-                html: iconHtml,
-                iconSize: [28, 28],
-                iconAnchor: [14, 14],
-                popupAnchor: [0, -16]
+                html: markerHtml,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
             });
 
-            const marker = L.marker([inc.latitude, inc.longitude], { icon, zIndexOffset: 800 });
+            const marker = L.marker([lat, lng], { icon, zIndexOffset: 800 });
 
             // ── Anomaly condition (HP / progress / status) — mirrors investigator dashboard ──
             const defaultHpMap = { CRITICAL: 150, HIGH: 100, MEDIUM: 60, LOW: 30 };
@@ -1083,7 +1118,7 @@ const SpectralMap = {
                         <span class="badge-${sevLower}" style="font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; flex-shrink:0;">${inc.severity}</span>
                     </div>
                     <h4 style="font-size:12px; font-weight:800; color:#FFFFFF; line-height:1.3; margin-bottom:4px; padding-right: 12px;">${inc.title}</h4>
-                    <p style="font-size:11px; color:#9CA3AF; margin-bottom:8px;">${inc.barangay}, ${inc.municipality}</p>
+                    <p id="popup-addr-${inc.db_id || inc.id}" style="font-size:11px; color:#9CA3AF; margin-bottom:8px;">${inc.real_address || ('Brgy. ' + inc.barangay + ', ' + inc.municipality + ', ' + inc.province)}</p>
                     ${conditionHtml}
                     <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; padding-top:8px; margin-top:8px; border-top:1px solid #2A3440;">
                         <a href="/incidents/${inc.db_id || inc.id}" style="background:#8B5CF6; color:#FFFFFF; border:none; padding:6px 12px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:5px; text-decoration:none;" onmouseover="this.style.background='#7C3AED'" onmouseout="this.style.background='#8B5CF6'">
@@ -1102,6 +1137,22 @@ const SpectralMap = {
                     SpectralMap.map.flyTo([inc.latitude, inc.longitude], targetZoom, { duration: 0.7 });
                 }
                 SpectralUI.inspectIncident(inc.id);
+
+                // Fetch real address on click if not yet cached
+                if (!inc.real_address && SpectralMap.reverseGeocode && inc.latitude && inc.longitude) {
+                    SpectralMap.reverseGeocode(inc.latitude, inc.longitude).then(geo => {
+                        if (geo && geo.address) {
+                            inc.real_address = geo.address;
+                            if (geo.barangay_name) inc.barangay = geo.barangay_name;
+                            const popupEl = document.getElementById(`popup-addr-${inc.db_id || inc.id}`);
+                            if (popupEl) popupEl.textContent = geo.address;
+                            const locEl = document.getElementById('insp-location');
+                            if (locEl && SpectralUI.selectedIncidentId === inc.id) {
+                                locEl.textContent = geo.address;
+                            }
+                        }
+                    }).catch(() => {});
+                }
             });
             if (inc.db_id) this.incidentMarkers[inc.db_id] = marker;
             if (inc.id) this.incidentMarkers[inc.id] = marker;
@@ -1643,6 +1694,9 @@ const SpectralMap = {
 
     toggleLayer(layerName) {
         this.activeFilters[layerName] = !this.activeFilters[layerName];
+        try {
+            localStorage.setItem('spectral_layer_' + layerName, this.activeFilters[layerName] ? '1' : '0');
+        } catch (_) {}
         this.renderAllLayers();
         this.updateLayerToggleButtons();
     },
@@ -1674,7 +1728,7 @@ const SpectralMap = {
         const incidents = SpectralData.incidents || [];
         const activeIncidents = incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'REJECTED' && i.status !== 'ARCHIVED').length;
         const underReview = incidents.filter(i => i.status === 'UNDER INVESTIGATION').length;
-        const totalWards = (SpectralData.wardStations && SpectralData.wardStations.length > 0) ? SpectralData.wardStations.length : (SpectralData.safeZones ? SpectralData.safeZones.length : 2);
+        const totalWards = (SpectralData.safeZones && SpectralData.safeZones.length > 0) ? SpectralData.safeZones.length : 2;
         const resolved = incidents.filter(i => i.status === 'RESOLVED').length;
 
         const elInc  = document.getElementById('stat-active-incidents');
@@ -1789,7 +1843,28 @@ const SpectralUI = {
         document.getElementById('insp-id').textContent       = inc.incident_code || inc.id;
         document.getElementById('insp-type').textContent     = inc.type;
         document.getElementById('insp-title').textContent    = inc.title;
-        document.getElementById('insp-location').textContent = `${inc.barangay}, ${inc.municipality}, ${inc.province}`;
+
+        const locEl = document.getElementById('insp-location');
+        if (locEl) {
+            locEl.textContent = inc.real_address || `Brgy. ${inc.barangay}, ${inc.municipality}, ${inc.province}`;
+        }
+
+        // Asynchronously reverse-geocode real road / purok address if not yet cached
+        if (!inc.real_address && window.SpectralMap && window.SpectralMap.reverseGeocode && inc.latitude && inc.longitude) {
+            window.SpectralMap.reverseGeocode(inc.latitude, inc.longitude).then(geo => {
+                if (geo && geo.address) {
+                    inc.real_address = geo.address;
+                    if (geo.barangay_name) inc.barangay = geo.barangay_name;
+                    const curLoc = document.getElementById('insp-location');
+                    if (curLoc && SpectralUI.selectedIncidentId === inc.id) {
+                        curLoc.textContent = geo.address;
+                    }
+                    const popupEl = document.getElementById(`popup-addr-${inc.db_id || inc.id}`);
+                    if (popupEl) popupEl.textContent = geo.address;
+                }
+            }).catch(() => {});
+        }
+
         document.getElementById('insp-coords').textContent   = `${parseFloat(inc.latitude).toFixed(6)}° N, ${parseFloat(inc.longitude).toFixed(6)}° E`;
         document.getElementById('insp-date').textContent     = inc.reported_at;
         document.getElementById('insp-reporter').textContent = inc.reported_by;
@@ -2236,13 +2311,21 @@ window.SpectralUI  = SpectralUI;
 
 function bootSpectralApp() {
     try {
+        if (typeof SpectralData !== 'undefined') SpectralData.init();
+    } catch (e) {
+        console.error('[SpectralData] init error:', e);
+    }
+
+    try {
         if (window.SpectralUI) SpectralUI.init();
     } catch (e) {
         console.error('[SpectralUI] init error:', e);
     }
 
     try {
-        if (window.SpectralMap) SpectralMap.init();
+        if (window.SpectralMap) {
+            SpectralMap.init();
+        }
     } catch (e) {
         console.error('[SpectralMap] init error:', e);
     }

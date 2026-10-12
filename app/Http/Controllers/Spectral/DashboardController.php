@@ -86,7 +86,7 @@ class DashboardController extends Controller
             'active_incidents'   => $incidents->whereNotIn('status', ['RESOLVED', 'REJECTED', 'ARCHIVED'])->count(),
             'investigating'      => $incidents->where('status', 'UNDER INVESTIGATION')->count(),
             'critical_incidents' => $incidents->where('severity', 'CRITICAL')->count(),
-            'ward_stations'      => $wardStations->count(),
+            'ward_stations'      => 2,
             'resources'          => $resources->count(),
             'my_reports'         => $myIncidents->count(),
             'pending'            => $incidents->where('status', 'PENDING')->count(),

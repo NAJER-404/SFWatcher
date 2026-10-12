@@ -279,7 +279,7 @@
             @endphp
             <section class="{{ $card }} p-5 space-y-4 font-mono" aria-labelledby="anomaly-heading">
                 <div class="flex items-center justify-between border-b border-[#1E2631] pb-2.5">
-                    <h2 id="anomaly-heading" class="text-xs font-bold uppercase tracking-wider text-white">Anomaly Condition</h2>
+                    <h2 id="anomaly-heading" class="text-xs font-bold uppercase tracking-wider text-white">ANOMALY CONDITION</h2>
                     <span class="text-[10px] text-slate-500">{{ $responseStatusText }}</span>
                 </div>
 
@@ -317,8 +317,8 @@
             <!-- Activity log -->
             <section class="{{ $card }} p-5 space-y-3" aria-labelledby="log-heading">
                 <div class="flex items-baseline justify-between gap-3">
-                    <h2 id="log-heading" class="text-xs font-mono font-bold uppercase tracking-wider text-white">Investigation &amp; Action Log</h2>
-                    <span class="text-[10px] text-slate-500">Investigator notes are private</span>
+                    <h2 id="log-heading" class="text-xs font-mono font-bold uppercase tracking-wider text-white">STATUS TIMELINE</h2>
+                    <span class="text-[10px] text-slate-500">STAGE PROGRESSION</span>
                 </div>
 
                 <ul class="divide-y divide-[#1E2631]">

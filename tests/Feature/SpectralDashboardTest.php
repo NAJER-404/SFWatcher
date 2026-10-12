@@ -179,5 +179,30 @@ class SpectralDashboardTest extends TestCase
 
         $this->assertDatabaseHas('incidents', ['id' => $incident->id]);
     }
+
+    public function test_reporter_interactive_map_renders_with_same_satellite_layer_and_safe_ward_stations(): void
+    {
+        $reporter = User::where('email', 'reporter@ectonet.gov')->first();
+
+        $response = $this->actingAs($reporter)->get('/map');
+        $response->assertStatus(200);
+        $response->assertSee('id="spectral-map"', false);
+        $response->assertSee('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', false);
+        $response->assertSee('San Francisco Municipal Gymnasium Sanctuary');
+        $response->assertSee('Hubang Transport Safe Haven');
+        $response->assertSee('unpkg.com/leaflet', false);
+    }
+
+    public function test_investigator_dashboard_renders_with_working_satellite_map(): void
+    {
+        $investigator = User::where('role', 'investigator')->first();
+
+        $response = $this->actingAs($investigator, 'investigator')->get('/investigator/dashboard');
+        $response->assertStatus(200);
+        $response->assertSee('id="investigator-dashboard-map"', false);
+        $response->assertSee('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', false);
+        $response->assertSee('San Francisco Municipal Gymnasium Sanctuary');
+        $response->assertSee('Hubang Transport Safe Haven');
+    }
 }
 

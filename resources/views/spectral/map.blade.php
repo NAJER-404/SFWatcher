@@ -55,6 +55,7 @@
     window.INITIAL_SPECTRAL_STATE = {
         incidents: @json($incidents),
         wards: @json($wardStations),
+        safeWardStations: @json($safeWardStations),
         resources: @json($resources),
         barangays: @json($barangays),
     };
@@ -65,6 +66,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const RAW_INCIDENTS = @json($incidents);
+    const RAW_WARDS     = @json($wardStations);
 
     // Initialize SpectralData store so sidebar notifications / address resolver work
     if (typeof SpectralData !== 'undefined') {
@@ -80,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!mapElement) return;
 
     // ── 1. RESTORE PERSISTED LAYER STATES ──────────────────────────────────
-    //    Default = ON (null means first visit). '0' means user explicitly turned it OFF.
     let incidentsOn = true;
     let safeZonesOn = true;
     try {
@@ -108,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     L.control.scale({ imperial: true, metric: true, position: 'bottomleft' }).addTo(map);
 
-    // ── 3. LAYER GROUPS — only add to map if the saved state is ON ─────────
+    // ── 3. LAYER GROUPS ────────────────────────────────────────────────────
     const layers = {
         incidents: L.layerGroup(),
         safeZones: L.layerGroup()
@@ -116,8 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (incidentsOn) map.addLayer(layers.incidents);
     if (safeZonesOn) map.addLayer(layers.safeZones);
 
-    // ── 4. EXPOSE TO WINDOW SO SPECTRAL.JS UI HELPERS STILL WORK ──────────
-    //    We replace toggleLayer with our direct implementation.
+    // ── 4. EXPOSE TO WINDOW ────────────────────────────────────────────────
     window.SpectralMap = window.SpectralMap || {};
     window.SpectralMap.map           = map;
     window.SpectralMap.layerGroups   = layers;
@@ -129,8 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         severity: 'ALL'
     };
 
-    // The ONLY correct toggleLayer for the reporter map:
-    // directly adds/removes layer groups from the Leaflet map instance.
     window.SpectralMap.toggleLayer = function(name) {
         if (!layers[name]) return;
         const nowOn = !map.hasLayer(layers[name]);
@@ -156,6 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.SpectralMap.startLocationPicking = function() {
         this.isPickingLocation = true;
+        const modal = document.getElementById('report-modal');
+        if (modal) modal.classList.add('hidden');
         const hud = document.getElementById('location-picker-hud');
         if (hud) hud.style.display = 'flex';
         const mapEl = document.getElementById('spectral-map');
@@ -168,40 +168,67 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hud) hud.style.display = 'none';
         const mapEl = document.getElementById('spectral-map');
         if (mapEl) mapEl.classList.remove('picking-location');
+        const modal = document.getElementById('report-modal');
+        if (modal) modal.classList.remove('hidden');
     };
 
-    // ── 5. SAFE ZONE MARKERS (always rendered into layer group) ────────────
+    // ── 5. SAFE WARD STATIONS (Matching Investigator Map Exactly) ───────────
     const safeWardStations = [
-        { name: "San Francisco Municipal Gymnasium Sanctuary", lat: 8.5098, lng: 125.9780, radius: 450, capacity: 2500 },
-        { name: "Hubang Transport Safe Haven",                  lat: 8.5310, lng: 125.9730, radius: 550, capacity: 1200 }
+        { name: "San Francisco Municipal Gymnasium Sanctuary", lat: 8.5098, lng: 125.9780, radius: 450 },
+        { name: "Hubang Transport Safe Haven",                  lat: 8.5310, lng: 125.9730, radius: 550 }
     ];
 
     safeWardStations.forEach(sz => {
-        const circle = L.circle([sz.lat, sz.lng], {
+        // Green Safe Ward Station perimeter circle (radius matched to Investigator)
+        const safeZoneCircle = L.circle([sz.lat, sz.lng], {
             radius: Math.round(sz.radius * 0.30),
-            color: '#22C55E', weight: 1.5, fillColor: '#22C55E', fillOpacity: 0.08
+            color: '#22C55E',
+            weight: 1.5,
+            fillColor: '#22C55E',
+            fillOpacity: 0.08
         });
-        const szHtml = `<div style="width:28px;height:28px;border-radius:50%;background:#10B981;border:2px solid #34D399;box-shadow:0 0 10px rgba(16,185,129,0.8);display:flex;align-items:center;justify-content:center;cursor:pointer;" title="${sz.name}"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>`;
+
+        // Safe Ward Station Marker (Shield icon)
+        const szHtml = `
+            <div style="width:28px;height:28px;border-radius:50%;background:#10B981;border:2px solid #34D399;box-shadow:0 0 10px rgba(16,185,129,0.8);display:flex;align-items:center;justify-content:center;cursor:pointer;" title="${sz.name}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>`;
         const szIcon = L.divIcon({ className: '', html: szHtml, iconSize: [28, 28], iconAnchor: [14, 14] });
         const m = L.marker([sz.lat, sz.lng], { icon: szIcon, zIndexOffset: 700 });
-        const popupHtml = `<div class="gis-custom-popup"><span class="popup-code" style="color:#22C55E;">SAFE WARD STATION</span><h4 class="popup-title">${sz.name}</h4><p class="popup-meta">Active Safe Ward Station Perimeter &bull; Capacity: ${sz.capacity} civilians</p></div>`;
+
+        const popupHtml = `
+            <div class="gis-custom-popup" style="padding:10px 12px;min-width:240px;box-sizing:border-box;">
+                <div style="margin-bottom:2px;">
+                    <span class="popup-code" style="color:#22C55E;font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;">SAFE WARD STATION</span>
+                </div>
+                <h4 class="popup-title" style="font-size:12px;font-weight:800;color:#FFFFFF;margin-bottom:2px;">${sz.name}</h4>
+                <p class="popup-meta" style="font-size:11px;color:#9CA3AF;">Active Safe Ward Station Perimeter</p>
+            </div>`;
+
         m.bindPopup(popupHtml, { className: 'gis-leaflet-popup' });
         m.bindTooltip(sz.name, { direction: 'top', offset: [0, -14] });
-        circle.on('click', () => { m.openPopup(); map.flyTo([sz.lat, sz.lng], Math.max(map.getZoom(), 16), { duration: 0.7 }); });
-        m.on('click', () => { map.flyTo([sz.lat, sz.lng], Math.max(map.getZoom(), 16), { duration: 0.7 }); });
-        layers.safeZones.addLayer(circle);
+
+        safeZoneCircle.on('click', () => {
+            m.openPopup();
+            map.flyTo([sz.lat, sz.lng], Math.max(map.getZoom(), 16), { duration: 0.7 });
+        });
+        m.on('click', () => {
+            map.flyTo([sz.lat, sz.lng], Math.max(map.getZoom(), 16), { duration: 0.7 });
+        });
+
+        layers.safeZones.addLayer(safeZoneCircle);
         layers.safeZones.addLayer(m);
     });
 
-    // ── 6. INCIDENT MARKERS ─────────────────────────────────────────────────
+    // ── 6. INCIDENT MARKERS CREATION & HELPER ──────────────────────────────
     const sevColors = { CRITICAL: '#000000', HIGH: '#EF4444', MEDIUM: '#EAB308', LOW: '#22C55E' };
     const incidentMarkers = {};
 
-    RAW_INCIDENTS.forEach(inc => {
-        if (!inc.latitude || !inc.longitude) return;
+    function createIncidentMarker(inc) {
+        if (!inc.latitude || !inc.longitude) return null;
         const lat = parseFloat(inc.latitude);
         const lng = parseFloat(inc.longitude);
-        if (isNaN(lat) || isNaN(lng)) return;
+        if (isNaN(lat) || isNaN(lng)) return null;
 
         const color      = sevColors[inc.severity] || '#22C55E';
         const isHigh     = inc.severity === 'HIGH' || inc.severity === 'CRITICAL';
@@ -235,29 +262,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
         marker.on('click', () => {
             map.flyTo([lat, lng], Math.max(map.getZoom(), 17), { duration: 0.7 });
+            if (typeof SpectralUI !== 'undefined' && typeof SpectralUI.inspectIncident === 'function') {
+                SpectralUI.inspectIncident(inc.id || inc.incident_code);
+            }
         });
 
-        layers.incidents.addLayer(marker);
-        incidentMarkers[inc.id] = marker;
-        if (inc.incident_code) incidentMarkers[inc.incident_code] = marker;
+        return marker;
+    }
+
+    RAW_INCIDENTS.forEach(inc => {
+        const marker = createIncidentMarker(inc);
+        if (marker) {
+            layers.incidents.addLayer(marker);
+            incidentMarkers[inc.id] = marker;
+            if (inc.incident_code) incidentMarkers[inc.incident_code] = marker;
+        }
     });
 
     window.SpectralMap.incidentMarkers = incidentMarkers;
+
+    // Callable hook for when a new incident is submitted via the report modal
+    window.SpectralMap.addIncidentMarker = function(inc) {
+        if (!inc) return;
+        const marker = createIncidentMarker(inc);
+        if (marker) {
+            layers.incidents.addLayer(marker);
+            incidentMarkers[inc.id] = marker;
+            if (inc.incident_code) incidentMarkers[inc.incident_code] = marker;
+            const lat = parseFloat(inc.latitude);
+            const lng = parseFloat(inc.longitude);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.flyTo([lat, lng], 16, { duration: 0.8 });
+                setTimeout(() => marker.openPopup(), 850);
+            }
+            const elInc = document.getElementById('stat-active-incidents');
+            if (elInc) {
+                const current = parseInt(elInc.textContent, 10) || 0;
+                elInc.textContent = String(current + 1).padStart(2, '0');
+            }
+        }
+    };
 
     // ── 7. MAP CLICK: Location picker (for Report Incident modal) ──────────
     map.on('click', function(e) {
         if (window.SpectralMap && window.SpectralMap.isPickingLocation) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
-            const latInp = document.getElementById('report-latitude');
-            const lngInp = document.getElementById('report-longitude');
+            const latInp = document.getElementById('report-lat');
+            const lngInp = document.getElementById('report-lng');
             if (latInp) latInp.value = lat.toFixed(6);
             if (lngInp) lngInp.value = lng.toFixed(6);
+
+            // Auto-select nearest barangay
+            if (window.SpectralData && window.SpectralData.barangays && window.SpectralData.barangays.length > 0) {
+                let closest = null;
+                let minDist = Infinity;
+                window.SpectralData.barangays.forEach(b => {
+                    const bLat = parseFloat(b.latitude || b.lat);
+                    const bLng = parseFloat(b.longitude || b.lng);
+                    if (!isNaN(bLat) && !isNaN(bLng)) {
+                        const d = Math.pow(bLat - lat, 2) + Math.pow(bLng - lng, 2);
+                        if (d < minDist) { minDist = d; closest = b; }
+                    }
+                });
+                if (closest) {
+                    const bSelect = document.getElementById('report-barangay');
+                    if (bSelect) {
+                        for (let opt of bSelect.options) {
+                            if (opt.value == closest.id || (opt.text && opt.text.includes(closest.name))) {
+                                bSelect.value = opt.value;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             if (window.SpectralMap.pickingMarker) map.removeLayer(window.SpectralMap.pickingMarker);
             window.SpectralMap.pickingMarker = L.marker([lat, lng], {
                 icon: L.divIcon({ className: '', html: '<div style="width:22px;height:22px;border-radius:50%;background:#8B5CF6;border:3px solid #FFFFFF;box-shadow:0 0 12px #8B5CF6;"></div>', iconSize: [22, 22], iconAnchor: [11, 11] })
             }).addTo(map);
-            window.SpectralMap.cancelLocationPicking();
+
+            window.SpectralMap.isPickingLocation = false;
+            const hud = document.getElementById('location-picker-hud');
+            if (hud) hud.style.display = 'none';
+            const mapEl = document.getElementById('spectral-map');
+            if (mapEl) mapEl.classList.remove('picking-location');
+
+            // Re-open report modal with coordinates filled
             const modal = document.getElementById('report-modal');
             if (modal) modal.classList.remove('hidden');
         }
@@ -291,10 +383,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     }
 
-    // ── 9. RIGHT PANEL STAT COUNTERS ────────────────────────────────────────
-    const activeIncCount   = RAW_INCIDENTS.filter(i => i.status !== 'RESOLVED' && i.status !== 'REJECTED' && i.status !== 'ARCHIVED').length;
-    const underReviewCount = RAW_INCIDENTS.filter(i => i.status === 'UNDER INVESTIGATION').length;
-    const resolvedCount    = RAW_INCIDENTS.filter(i => i.status === 'RESOLVED').length;
+    // ── 9. RIGHT PANEL STAT COUNTERS (Direct database counts) ───────────────
+    // Active Incidents = All non-resolved incidents in database (PENDING, UNDER INVESTIGATION, VERIFIED)
+    // Under Review     = Under Investigation incidents in database
+    // Safe Ward Status = Safe Ward Stations matching investigator map
+    // Resolved         = Visible Resolved incidents on map
+    const activeIncCount    = RAW_INCIDENTS.filter(i => ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'].includes(i.status)).length;
+    const underReviewCount  = RAW_INCIDENTS.filter(i => i.status === 'UNDER INVESTIGATION').length;
+    const resolvedCount     = RAW_INCIDENTS.filter(i => i.status === 'RESOLVED').length;
+    const wardStationsCount = safeWardStations.length;
 
     const elInc  = document.getElementById('stat-active-incidents');
     const elInv  = document.getElementById('stat-investigating');
@@ -303,12 +400,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (elInc)  elInc.textContent  = String(activeIncCount).padStart(2, '0');
     if (elInv)  elInv.textContent  = String(underReviewCount).padStart(2, '0');
-    if (elWard) elWard.textContent = String(safeWardStations.length).padStart(2, '0');
+    if (elWard) elWard.textContent = String(wardStationsCount).padStart(2, '0');
     if (elRes)  elRes.textContent  = String(resolvedCount).padStart(2, '0');
 
-    // ── 10. SYNC SIDEBAR BADGES to restored toggle state ───────────────────
-    //    (sidebar.blade.php IIFE already reads localStorage, but this ensures
-    //     the badges are accurate even if they rendered before localStorage was set)
+    // ── 10. SYNC SIDEBAR BADGES ─────────────────────────────────────────────
     if (typeof updateSidebarBadge === 'function') {
         updateSidebarBadge('incidents', incidentsOn);
         updateSidebarBadge('safeZones', safeZonesOn);

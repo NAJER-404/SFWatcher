@@ -32,6 +32,25 @@ class DashboardController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $safeWardStations = [
+            (object)[
+                'name'     => 'San Francisco Municipal Gymnasium Sanctuary',
+                'lat'      => 8.5098,
+                'lng'      => 125.9780,
+                'radius'   => 450,
+                'status'   => 'active',
+                'barangay' => 'Barangay 1',
+            ],
+            (object)[
+                'name'     => 'Hubang Transport Safe Haven',
+                'lat'      => 8.5310,
+                'lng'      => 125.9730,
+                'radius'   => 550,
+                'status'   => 'active',
+                'barangay' => 'Hubang',
+            ],
+        ];
+
         $wardStations = WardStation::with('barangay')->get();
         $resources    = Resource::with('barangay')->get();
         $barangays    = Barangay::orderBy('name')->get();
@@ -83,10 +102,10 @@ class DashboardController extends Controller
 
         $stats = [
             'total_incidents'    => $incidents->count(),
-            'active_incidents'   => $incidents->whereNotIn('status', ['RESOLVED', 'REJECTED', 'ARCHIVED'])->count(),
+            'active_incidents'   => $incidents->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count(),
             'investigating'      => $incidents->where('status', 'UNDER INVESTIGATION')->count(),
             'critical_incidents' => $incidents->where('severity', 'CRITICAL')->count(),
-            'ward_stations'      => 2,
+            'ward_stations'      => count($safeWardStations),
             'resources'          => $resources->count(),
             'my_reports'         => $myIncidents->count(),
             'pending'            => $incidents->where('status', 'PENDING')->count(),
@@ -95,7 +114,7 @@ class DashboardController extends Controller
         ];
 
         return compact(
-            'incidents', 'wardStations', 'resources', 'barangays', 'equipment', 'stats', 'notifications'
+            'incidents', 'wardStations', 'safeWardStations', 'resources', 'barangays', 'equipment', 'stats', 'notifications'
         );
     }
 

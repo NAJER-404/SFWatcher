@@ -52,28 +52,9 @@ const SpectralData = {
 
     incidents: [],
     wardStations: [],
-    spectralResources: [],
     safeZones: [
-        {
-            id: "SAFE-01",
-            name: "San Francisco Municipal Gymnasium Sanctuary",
-            barangay: "Barangay 1",
-            latitude: 8.5098,
-            longitude: 125.9780,
-            capacity: 2500,
-            barrier_integrity: "100%",
-            radius: 350
-        },
-        {
-            id: "SAFE-02",
-            name: "Hubang Transport Safe Haven",
-            barangay: "Hubang",
-            latitude: 8.5310,
-            longitude: 125.9730,
-            capacity: 1200,
-            barrier_integrity: "98%",
-            radius: 400
-        }
+        { id: "SAFE-01", name: "San Francisco Municipal Gymnasium Sanctuary", barangay: "Barangay 1", latitude: 8.5098, longitude: 125.9780, radius: 450, status: "active" },
+        { id: "SAFE-02", name: "Hubang Transport Safe Haven",                  barangay: "Hubang",     latitude: 8.5310, longitude: 125.9730, radius: 550, status: "active" }
     ],
 
     findClosestBarangay(lat, lng) {
@@ -162,7 +143,7 @@ const SpectralData = {
                     id: w.code || `WS-${w.id}`,
                     code: w.code,
                     name: w.name,
-                    barangay: w.barangay ? w.barangay.name : 'San Francisco',
+                    barangay: w.barangay ? (w.barangay.name || w.barangay) : 'San Francisco',
                     latitude: parseFloat(w.latitude),
                     longitude: parseFloat(w.longitude),
                     power: w.energy_level || 90,
@@ -171,6 +152,24 @@ const SpectralData = {
                     status: w.status || 'active',
                     frequency: w.frequency || '432.8 THz'
                 }));
+            } else {
+                this.wardStations = [];
+            }
+            if (window.INITIAL_SPECTRAL_STATE.safeWardStations && window.INITIAL_SPECTRAL_STATE.safeWardStations.length > 0) {
+                this.safeZones = window.INITIAL_SPECTRAL_STATE.safeWardStations.map(sz => ({
+                    id: sz.name,
+                    name: sz.name,
+                    barangay: sz.barangay || 'San Francisco',
+                    latitude: parseFloat(sz.lat || sz.latitude),
+                    longitude: parseFloat(sz.lng || sz.longitude),
+                    radius: sz.radius || 450,
+                    status: sz.status || 'active'
+                }));
+            } else {
+                this.safeZones = [
+                    { id: "SAFE-01", name: "San Francisco Municipal Gymnasium Sanctuary", barangay: "Barangay 1", latitude: 8.5098, longitude: 125.9780, radius: 450, status: "active" },
+                    { id: "SAFE-02", name: "Hubang Transport Safe Haven",                  barangay: "Hubang",     latitude: 8.5310, longitude: 125.9730, radius: 550, status: "active" }
+                ];
             }
             if (window.INITIAL_SPECTRAL_STATE.resources && window.INITIAL_SPECTRAL_STATE.resources.length > 0) {
                 this.spectralResources = window.INITIAL_SPECTRAL_STATE.resources.map(r => ({
@@ -1114,6 +1113,8 @@ const SpectralMap = {
                     <span style="font-size:11px; font-weight:700; color:#EAB308;">${statusLabel}</span>
                 </div>`;
 
+            const sevLower = (inc.severity || 'low').toLowerCase();
+
             marker.bindPopup(`
                 <div style="padding: 12px 14px; min-width: 270px; font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px; gap: 8px; padding-right: 24px;">
@@ -1729,9 +1730,11 @@ const SpectralMap = {
 
     updateStatsCounters() {
         const incidents = SpectralData.incidents || [];
-        const activeIncidents = incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'REJECTED' && i.status !== 'ARCHIVED').length;
+        const activeIncidents = incidents.filter(i => ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'].includes(i.status)).length;
         const underReview = incidents.filter(i => i.status === 'UNDER INVESTIGATION').length;
-        const totalWards = (SpectralData.safeZones && SpectralData.safeZones.length > 0) ? SpectralData.safeZones.length : 2;
+        const totalWards = (SpectralData.wardStations && SpectralData.wardStations.length > 0)
+            ? SpectralData.wardStations.length
+            : ((SpectralData.safeZones && SpectralData.safeZones.length > 0) ? SpectralData.safeZones.length : 0);
         const resolved = incidents.filter(i => i.status === 'RESOLVED').length;
 
         const elInc  = document.getElementById('stat-active-incidents');
@@ -2225,13 +2228,19 @@ const SpectralUI = {
 
         SpectralData.incidents.unshift(newIncident);
 
-        SpectralMap.renderIncidents();
-        SpectralMap.updateStatsCounters();
-
-        if (SpectralMap.map) {
-            SpectralMap.map.flyTo([lat, lng], 15, { duration: 1.0 });
+        // If on interactive map and addIncidentMarker is available, add it cleanly
+        if (window.SpectralMap && typeof window.SpectralMap.addIncidentMarker === 'function') {
+            window.SpectralMap.addIncidentMarker(newIncident);
+        } else {
+            try {
+                if (typeof SpectralMap.renderIncidents === 'function') SpectralMap.renderIncidents();
+                if (typeof SpectralMap.updateStatsCounters === 'function') SpectralMap.updateStatsCounters();
+            } catch (_) {}
+            if (SpectralMap.map) {
+                SpectralMap.map.flyTo([lat, lng], 15, { duration: 1.0 });
+            }
         }
-        this.inspectIncident(newIncident.id);
+        try { this.inspectIncident(newIncident.id); } catch (_) {}
         this.showToast(`Incident ${newIncident.id} recorded in San Francisco Node.`);
     },
 

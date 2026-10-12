@@ -48,14 +48,14 @@
         <div class="p-3 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-2 text-xs">
             <p class="text-[10px] font-mono font-bold text-[#64748B] uppercase tracking-wider">Safe Ward Stations</p>
             <div class="space-y-1.5 font-mono text-[11px]">
+                @forelse($safeWardStations ?? [] as $ws)
                 <div class="flex justify-between text-slate-300">
-                    <span class="truncate pr-2">SF Gymnasium Sanctuary:</span>
-                    <span class="text-emerald-400 font-semibold flex-shrink-0">Active</span>
+                    <span class="truncate pr-2" title="{{ $ws->name }}">{{ $ws->name }}:</span>
+                    <span class="{{ ($ws->status ?? 'active') === 'active' ? 'text-emerald-400' : 'text-amber-400' }} font-semibold flex-shrink-0 capitalize">{{ $ws->status ?? 'active' }}</span>
                 </div>
-                <div class="flex justify-between text-slate-300">
-                    <span class="truncate pr-2">Hubang Transport Haven:</span>
-                    <span class="text-emerald-400 font-semibold flex-shrink-0">Active</span>
-                </div>
+                @empty
+                <div class="text-slate-500 text-[10px]">No ward stations registered</div>
+                @endforelse
             </div>
         </div>
 

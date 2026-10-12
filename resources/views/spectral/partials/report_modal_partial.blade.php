@@ -21,7 +21,7 @@
         </div>
 
         <!-- Form Body -->
-        <form id="report-form" onsubmit="SpectralUI.submitReport(event)" class="p-3.5 sm:p-5 overflow-y-auto space-y-3 sm:space-y-3.5 text-xs">
+        <form id="report-form" action="{{ route('spectral.incidents.store') }}" method="POST" enctype="multipart/form-data" onsubmit="SpectralUI.submitReport(event)" class="p-3.5 sm:p-5 overflow-y-auto space-y-3 sm:space-y-3.5 text-xs">
             @csrf
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
             
@@ -29,7 +29,7 @@
                 <!-- Incident Type -->
                 <div class="space-y-1">
                     <label class="text-[11px] font-semibold text-slate-300">Incident Type</label>
-                    <select id="report-type" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" required>
+                    <select id="report-type" name="incident_type" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" required>
                         <option class="bg-[#151B23] text-slate-200" value="Ectoplasmic Anomaly">Ectoplasmic Anomaly</option>
                         <option class="bg-[#151B23] text-slate-200" value="Spirit Activity">Spirit Activity</option>
                         <option class="bg-[#151B23] text-slate-200" value="Spectral Residue">Spectral Residue</option>
@@ -42,7 +42,7 @@
                 <!-- Severity -->
                 <div class="space-y-1">
                     <label class="text-[11px] font-semibold text-slate-300">Severity</label>
-                    <select id="report-severity" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" required>
+                    <select id="report-severity" name="severity" class="ecto-select bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" required>
                         <option class="bg-[#151B23] text-slate-200" value="LOW">Low</option>
                         <option class="bg-[#151B23] text-slate-200" value="MEDIUM" selected>Medium</option>
                         <option class="bg-[#151B23] text-slate-200" value="HIGH">High</option>
@@ -54,7 +54,7 @@
             <!-- Incident Title -->
             <div class="space-y-1">
                 <label class="text-[11px] font-semibold text-slate-300">Title</label>
-                <input type="text" id="report-title" class="ecto-input bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none placeholder-slate-500" placeholder="e.g. Energy surge detected near Hubang..." required>
+                <input type="text" id="report-title" name="title" class="ecto-input bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none placeholder-slate-500" placeholder="e.g. Energy surge detected near Hubang..." required>
             </div>
 
             <!-- Location Picker & Barangay Selector -->
@@ -82,11 +82,11 @@
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] text-[#9CA3AF] font-mono">Latitude</label>
-                        <input type="number" step="0.000001" id="report-lat" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="8.5310" value="8.5310" required>
+                        <input type="number" step="0.000001" id="report-lat" name="latitude" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="8.5310" value="8.5310" required>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] text-[#9CA3AF] font-mono">Longitude</label>
-                        <input type="number" step="0.000001" id="report-lng" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="125.9730" value="125.9730" required>
+                        <input type="number" step="0.000001" id="report-lng" name="longitude" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="125.9730" value="125.9730" required>
                     </div>
                 </div>
             </div>
@@ -94,13 +94,13 @@
             <!-- Description -->
             <div class="space-y-1">
                 <label class="text-[11px] font-semibold text-slate-300">Description</label>
-                <textarea id="report-desc" rows="3" class="ecto-input bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg p-2.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none placeholder-slate-500" placeholder="Provide incident details, observations, or warnings..." required></textarea>
+                <textarea id="report-desc" name="description" rows="3" class="ecto-input bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg p-2.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none placeholder-slate-500" placeholder="Provide incident details, observations, or warnings..." required></textarea>
             </div>
 
             <!-- Evidence Photo Upload -->
             <div class="space-y-2">
                 <label class="text-[11px] font-semibold text-slate-300">Evidence Photo (Optional)</label>
-                <input type="file" id="report-evidence-file" accept="image/*" onchange="SpectralUI.handleEvidenceUpload(this)" class="ecto-input file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#8B5CF6] file:text-white hover:file:bg-[#7C3AED]">
+                <input type="file" id="report-evidence-file" name="evidence" accept="image/*" onchange="SpectralUI.handleEvidenceUpload(this)" class="ecto-input file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#8B5CF6] file:text-white hover:file:bg-[#7C3AED]">
                 
                 <!-- Image Preview Card -->
                 <div id="report-evidence-preview-container" class="hidden relative rounded-lg border border-[#2A3440] bg-[#11161D] p-2 flex items-center justify-between gap-3">

@@ -160,6 +160,7 @@
     window.INITIAL_SPECTRAL_STATE = {
         incidents: @json($incidents),
         wards: @json($wardStations),
+        safeWardStations: @json($safeWardStations),
         resources: @json($resources),
         barangays: @json($barangays),
     };

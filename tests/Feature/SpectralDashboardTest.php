@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Incident;
 use App\Models\User;
+use App\Models\WardStation;
 use Database\Seeders\SpectralSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -203,6 +205,42 @@ class SpectralDashboardTest extends TestCase
         $response->assertSee('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', false);
         $response->assertSee('San Francisco Municipal Gymnasium Sanctuary');
         $response->assertSee('Hubang Transport Safe Haven');
+    }
+
+    public function test_reporter_can_submit_incident_and_active_incidents_count_is_accurate(): void
+    {
+        $reporter = User::where('email', 'reporter@ectonet.gov')->first();
+
+        // 1. Map endpoint accurately provides database counts
+        $mapResponse = $this->actingAs($reporter)->get('/map');
+        $mapResponse->assertStatus(200);
+
+        $dbActiveCount = Incident::activeOnMap()->whereIn('status', ['PENDING', 'UNDER INVESTIGATION', 'VERIFIED'])->count();
+        $this->assertEquals($dbActiveCount, $mapResponse->viewData('stats')['active_incidents']);
+        $this->assertEquals(2, $mapResponse->viewData('stats')['ward_stations']);
+
+        // 2. Submit incident via reporter endpoint
+        $storeResponse = $this->actingAs($reporter)->postJson(route('spectral.incidents.store'), [
+            'incident_type' => 'Ectoplasmic Anomaly',
+            'title'         => 'Test Automated Submission Verification',
+            'description'   => 'Testing the report incident submission pipeline and database persistence.',
+            'latitude'      => 8.5285,
+            'longitude'     => 126.0150,
+            'severity'      => 'MEDIUM',
+        ]);
+
+        $storeResponse->assertStatus(200);
+        $storeResponse->assertJson(['success' => true]);
+
+        $newIncidentId = $storeResponse->json('data.id');
+        $this->assertNotNull($newIncidentId);
+        $this->assertDatabaseHas('incidents', [
+            'id'    => $newIncidentId,
+            'title' => 'Test Automated Submission Verification',
+        ]);
+
+        // Clean up test record to keep database pristine
+        Incident::where('id', $newIncidentId)->delete();
     }
 }
 

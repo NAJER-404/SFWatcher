@@ -221,6 +221,38 @@ class AdminUserController extends Controller
     /**
      * Update User Role with security safeguards
      */
+        /**
+     * Show the form for creating a new user.
+     */
+    public function create()
+    {
+        return view('admin.users.create');
+    }
+
+    /**
+     * Store a newly created user in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role'     => 'required|string|in:admin,investigator,reporter,responder',
+        ]);
+
+        \App\Models\User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'role'     => $request->role,
+        ]);
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'User created successfully!');
+    }
+
     public function updateRole(Request $request, User $user)
     {
         $currentAdmin = Auth::guard('admin')->user() ?? Auth::user();

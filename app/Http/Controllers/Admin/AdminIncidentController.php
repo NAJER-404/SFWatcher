@@ -75,6 +75,56 @@ class AdminIncidentController extends Controller
     /**
      * Resolved Incidents view with map archiving controls
      */
+
+        /**
+     * Bulk archive all resolved incidents from the live map.
+     */
+        /**
+     * Bulk archive all resolved incidents.
+     */
+        /**
+     * Bulk archive all resolved incidents from the live map.
+     */
+    public function archiveAllResolved()
+    {
+        // Only archive resolved incidents that haven't been archived yet
+        $count = \App\Models\Incident::where('status', 'RESOLVED')
+            ->whereNull('archived_from_map_at')
+            ->update([
+                'archived_from_map_at' => now(),
+                'archived_by'          => auth()->id(),
+                'archive_notes'        => 'Bulk archived all resolved incidents by Administrator.',
+                'updated_at'           => now(),
+            ]);
+
+        if ($count === 0) {
+            return redirect()->back()->with('info', 'No resolved incidents needed archiving.');
+        }
+
+        return redirect()->back()->with('success', "Successfully archived {$count} resolved incidents from the live map.");
+    }
+
+        /**
+     * Bulk restore all archived incidents back to the live map.
+     */
+    public function restoreAllToMap()
+    {
+        // Only restore incidents that are currently archived
+        $count = \App\Models\Incident::whereNotNull('archived_from_map_at')
+            ->update([
+                'archived_from_map_at' => null,
+                'archived_by'          => null,
+                'archive_notes'        => null,
+                'updated_at'           => now(),
+            ]);
+
+        if ($count === 0) {
+            return redirect()->back()->with('info', 'No archived incidents found to restore.');
+        }
+
+        return redirect()->back()->with('success', "Successfully restored {$count} incidents to the live map.");
+    }
+
     public function resolved(Request $request)
     {
         $query = Incident::with([

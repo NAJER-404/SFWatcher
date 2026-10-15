@@ -21,10 +21,24 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-2 text-xs">
+        <div class="flex flex-wrap items-center gap-2 text-xs">
             <span class="px-3 py-1.5 rounded-lg bg-[#151B23] border border-amber-500/40 text-amber-300">
                 Archived: <strong>{{ $archivedCount }}</strong>
             </span>
+
+            {{-- NEW RESTORE ALL BUTTON --}}
+            @if($archivedCount > 0)
+                <button type="button"
+                        data-modal-open="restore-all"
+                        data-action="{{ route('admin.incidents.restore-all') }}"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-300 transition hover:bg-emerald-500 hover:text-white">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"/>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                    </svg>
+                    Restore All to Map
+                </button>
+            @endif
         </div>
     </div>
 
@@ -193,4 +207,74 @@
     </div>
 
 </main>
+
+{{-- ═════════════════ MODALS ═════════════════ --}}
+
+{{-- Restore All to Map (green) --}}
+<div id="modal-restore-all" data-modal-backdrop class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/75 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="restore-all-title">
+    <div class="w-full max-w-md space-y-4 rounded-2xl border border-emerald-500/40 bg-[#151B23] p-5 shadow-2xl sm:p-6">
+        <div class="flex items-start gap-3">
+            <div class="shrink-0 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-emerald-300">
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            </div>
+            <div>
+                <h3 id="restore-all-title" class="text-base font-bold text-white">Restore all archived incidents?</h3>
+                <p class="mt-1 text-sm text-slate-400">This will make <strong>all</strong> currently archived incidents visible on the live GIS map again. This action can be undone by archiving them individually.</p>
+            </div>
+        </div>
+        <form method="POST" action="" data-modal-form>
+            @csrf
+            <div class="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+                <button type="button" data-modal-close class="min-h-[40px] rounded-xl border border-[#2A3440] bg-[#11161D] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:text-white">Cancel</button>
+                <button type="submit" class="min-h-[40px] rounded-xl bg-emerald-500 px-5 py-2 text-sm font-bold text-white transition hover:bg-emerald-400">Restore All to Map</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    let openModal = null;
+
+    function show(type, data) {
+        const modal = document.getElementById('modal-' + type);
+        if (!modal) return;
+        modal.querySelectorAll('[data-fill]').forEach(function (el) {
+            el.textContent = data[el.dataset.fill] || '';
+        });
+        modal.querySelector('[data-modal-form]').action = data.action;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        openModal = modal;
+        var cancel = modal.querySelector('[data-modal-close]');
+        if (cancel) cancel.focus();
+    }
+
+    function hide() {
+        if (!openModal) return;
+        openModal.classList.add('hidden');
+        openModal.classList.remove('flex');
+        openModal = null;
+    }
+
+    document.addEventListener('click', function (e) {
+        var opener = e.target.closest('[data-modal-open]');
+        if (opener) {
+            show(opener.dataset.modalOpen, {
+                code: opener.dataset.code,
+                title: opener.dataset.title,
+                action: opener.dataset.action
+            });
+            return;
+        }
+        if (e.target.closest('[data-modal-close]') || e.target.hasAttribute('data-modal-backdrop')) {
+            hide();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') hide();
+    });
+})();
+</script>
 @endsection

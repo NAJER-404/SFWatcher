@@ -1,0 +1,524 @@
+<svg id="flowchart-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1840 1720" width="1840" height="1720" style="background:#ffffff; font-family:'Segoe UI', Arial, -apple-system, sans-serif;">
+  <defs>
+    <!-- Arrowhead markers -->
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ea580c"/>
+    </marker>
+
+    <!-- Drop shadow filter -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <style>
+    .title-main { font-size: 26px; font-weight: 800; fill: #0f172a; text-anchor: middle; letter-spacing: 0.5px; }
+    .title-sub  { font-size: 14px; font-weight: 500; fill: #64748b; text-anchor: middle; }
+    
+    /* Shapes */
+    .shape-oval { fill: #e0f2fe; stroke: #0284c7; stroke-width: 2; filter: url(#shadow); }
+    .shape-rect { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.8; rx: 6; filter: url(#shadow); }
+    .shape-rect-logout { fill: #ffe4e6; stroke: #e11d48; stroke-width: 1.8; rx: 6; filter: url(#shadow); }
+    .shape-diamond { fill: #fef3c7; stroke: #d97706; stroke-width: 1.8; filter: url(#shadow); }
+    .shape-para { fill: #f3e8ff; stroke: #9333ea; stroke-width: 1.8; filter: url(#shadow); }
+    
+    /* Typography inside shapes */
+    .txt-primary   { font-size: 12.5px; font-weight: 700; fill: #0f172a; text-anchor: middle; }
+    .txt-secondary { font-size: 11px; font-weight: 500; fill: #334155; text-anchor: middle; }
+    .txt-start-end { font-size: 14px; font-weight: 800; fill: #0369a1; text-anchor: middle; letter-spacing: 1.5px; }
+
+    /* Lines and connectors */
+    .flow-line { stroke: #64748b; stroke-width: 2; fill: none; marker-end: url(#arrow); stroke-linejoin: round; }
+    .flow-line-dashed { stroke: #64748b; stroke-width: 2; stroke-dasharray: 5,4; fill: none; marker-end: url(#arrow); stroke-linejoin: round; }
+    .flow-line-green { stroke: #16a34a; stroke-width: 2; fill: none; marker-end: url(#arrow-green); stroke-linejoin: round; }
+    .flow-line-red { stroke: #dc2626; stroke-width: 2; fill: none; marker-end: url(#arrow-red); stroke-linejoin: round; }
+    .flow-line-purple { stroke: #7c3aed; stroke-width: 2; fill: none; marker-end: url(#arrow-purple); stroke-linejoin: round; }
+    .flow-line-orange { stroke: #ea580c; stroke-width: 2; fill: none; marker-end: url(#arrow-orange); stroke-linejoin: round; }
+
+    /* Decision badges */
+    .badge-bg-green  { fill: #ffffff; stroke: #16a34a; stroke-width: 1.5; rx: 4; }
+    .badge-bg-red    { fill: #ffffff; stroke: #dc2626; stroke-width: 1.5; rx: 4; }
+    .badge-bg-purple { fill: #ffffff; stroke: #7c3aed; stroke-width: 1.5; rx: 4; }
+    .badge-bg-orange { fill: #ffffff; stroke: #ea580c; stroke-width: 1.5; rx: 4; }
+    .badge-txt-green  { font-size: 11px; font-weight: 800; fill: #16a34a; text-anchor: middle; }
+    .badge-txt-red    { font-size: 11px; font-weight: 800; fill: #dc2626; text-anchor: middle; }
+    .badge-txt-purple { font-size: 11px; font-weight: 800; fill: #7c3aed; text-anchor: middle; }
+    .badge-txt-orange { font-size: 11px; font-weight: 800; fill: #ea580c; text-anchor: middle; }
+
+    /* Column Headers */
+    .col-header-bg { rx: 6; }
+    .col-header-txt { font-size: 12.5px; font-weight: 800; text-anchor: middle; letter-spacing: 0.5px; }
+  </style>
+
+  <!-- ============================================================
+       TOP HEADER & LEGEND
+  ============================================================ -->
+  <text x="920" y="34" class="title-main">SFWatch System Flowchart</text>
+  <text x="920" y="54" class="title-sub">Complete System Architecture &amp; Workflow: Reporter, Investigator, Responder, and Admin</text>
+
+  <!-- Legend Box -->
+  <g transform="translate(440, 68)">
+    <rect x="0" y="0" width="960" height="34" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    
+    <!-- Legend Oval -->
+    <ellipse cx="60" cy="17" rx="35" ry="11" class="shape-oval"/>
+    <text x="108" y="21" font-size="11.5" font-weight="600" fill="#334155">Start / End</text>
+
+    <!-- Legend Rect -->
+    <rect x="210" y="7" width="46" height="20" rx="3" class="shape-rect"/>
+    <text x="268" y="21" font-size="11.5" font-weight="600" fill="#334155">Action / Button</text>
+
+    <!-- Legend Diamond -->
+    <polygon points="415,7 435,17 415,27 395,17" class="shape-diamond"/>
+    <text x="448" y="21" font-size="11.5" font-weight="600" fill="#334155">Decision (Yes/No)</text>
+
+    <!-- Legend Para -->
+    <polygon points="590,7 630,7 618,27 578,27" class="shape-para"/>
+    <text x="642" y="21" font-size="11.5" font-weight="600" fill="#334155">Input / Output</text>
+
+    <!-- Legend Logout -->
+    <rect x="765" y="7" width="46" height="20" rx="3" class="shape-rect-logout"/>
+    <text x="823" y="21" font-size="11.5" font-weight="600" fill="#334155">Logout Action</text>
+  </g>
+
+  <!-- ============================================================
+       SECTION 1: START, OPEN & WELCOME (Center X = 920)
+  ============================================================ -->
+
+  <!-- 1. START (Oval) -->
+  <ellipse cx="920" cy="132" rx="80" ry="24" class="shape-oval"/>
+  <text x="920" y="137" class="txt-start-end">START</text>
+
+  <!-- Line: Start -> Open SFWatch -->
+  <line x1="920" y1="156" x2="920" y2="182" class="flow-line"/>
+
+  <!-- 2. Open SFWatch (Rect) -->
+  <rect x="800" y="182" width="240" height="42" class="shape-rect"/>
+  <text x="920" y="208" class="txt-primary">Open SFWatch Application</text>
+
+  <!-- Line: Open SFWatch -> Welcome Page -->
+  <line x1="920" y1="224" x2="920" y2="252" class="flow-line"/>
+
+  <!-- 3. Welcome Page (Parallelogram - Output) -->
+  <polygon points="820,252 1040,252 1020,296 800,296" class="shape-para"/>
+  <text x="920" y="278" class="txt-primary">Show Welcome Page</text>
+
+  <!-- Line: Welcome Page -> Choice Diamond -->
+  <line x1="920" y1="296" x2="920" y2="326" class="flow-line"/>
+
+  <!-- 4. Choice: Login or Register? (Diamond) -->
+  <polygon points="920,326 1025,366 920,406 815,366" class="shape-diamond"/>
+  <text x="920" y="362" class="txt-primary">User Clicks</text>
+  <text x="920" y="377" class="txt-primary">Login or Register?</text>
+
+  <!-- ============================================================
+       SECTION 2: REGISTER BRANCH (Left of Center, Center X = 480)
+  ============================================================ -->
+  <!-- Line from Diamond left to Register column -->
+  <path d="M 815 366 L 480 366 L 480 404" class="flow-line-purple"/>
+  <rect x="620" y="356" width="64" height="20" class="badge-bg-purple"/>
+  <text x="652" y="370" class="badge-txt-purple">Register</text>
+
+  <!-- 5a. Show Registration Form (Rect) -->
+  <rect x="360" y="404" width="240" height="42" class="shape-rect"/>
+  <text x="480" y="430" class="txt-primary">Show Registration Form</text>
+
+  <!-- Line down -->
+  <line x1="480" y1="446" x2="480" y2="474" class="flow-line"/>
+
+  <!-- 5b. Enter Required Details (Parallelogram - Input) -->
+  <polygon points="380,474 600,474 580,518 360,518" class="shape-para"/>
+  <text x="480" y="495" class="txt-primary">Enter Required Details</text>
+  <text x="480" y="509" class="txt-secondary">(Name, Email, Password, etc.)</text>
+
+  <!-- Line down -->
+  <line x1="480" y1="518" x2="480" y2="546" class="flow-line"/>
+
+  <!-- 5c. Submit Registration (Rect) -->
+  <rect x="360" y="546" width="240" height="42" class="shape-rect"/>
+  <text x="480" y="572" class="txt-primary">Submit Registration</text>
+
+  <!-- Line down -->
+  <line x1="480" y1="588" x2="480" y2="616" class="flow-line"/>
+
+  <!-- 5d. Check Info Valid? (Diamond) -->
+  <polygon points="480,616 575,654 480,692 385,654" class="shape-diamond"/>
+  <text x="480" y="650" class="txt-primary">Information</text>
+  <text x="480" y="664" class="txt-primary">Valid?</text>
+
+  <!-- No Loopback: Left, up, and back into Form Details -->
+  <path d="M 385 654 L 305 654 L 305 496 L 360 496" class="flow-line-red"/>
+  <rect x="325" y="644" width="34" height="20" class="badge-bg-red"/>
+  <text x="342" y="658" class="badge-txt-red">No</text>
+
+  <!-- Yes: Down to Account Created -->
+  <line x1="480" y1="692" x2="480" y2="722" class="flow-line-green"/>
+  <rect x="486" y="698" width="36" height="20" class="badge-bg-green"/>
+  <text x="504" y="712" class="badge-txt-green">Yes</text>
+
+  <!-- 5e. Account Created (Parallelogram - Output) -->
+  <polygon points="380,722 600,722 580,766 360,766" class="shape-para"/>
+  <text x="480" y="743" class="txt-primary">Account Created Successfully!</text>
+  <text x="480" y="757" class="txt-secondary">Show Success Confirmation</text>
+
+  <!-- Connect Account Created -> Go to Login Page -->
+  <path d="M 600 744 L 710 744 L 710 495 L 795 495" class="flow-line-dashed"/>
+  <rect x="640" y="734" width="76" height="20" class="badge-bg-purple"/>
+  <text x="678" y="748" class="badge-txt-purple">Go to Login</text>
+
+  <!-- ============================================================
+       SECTION 3: LOGIN BRANCH (Center X = 920)
+  ============================================================ -->
+  <!-- Line from Choice Diamond straight down to Login -->
+  <line x1="920" y1="406" x2="920" y2="474" class="flow-line-purple"/>
+  <rect x="926" y="425" width="48" height="20" class="badge-bg-purple"/>
+  <text x="950" y="439" class="badge-txt-purple">Login</text>
+
+  <!-- 6a. Enter Email and Password (Parallelogram - Input) -->
+  <polygon points="820,474 1040,474 1020,518 800,518" class="shape-para"/>
+  <text x="920" y="501" class="txt-primary">Enter Email and Password</text>
+
+  <!-- Line down -->
+  <line x1="920" y1="518" x2="920" y2="546" class="flow-line"/>
+
+  <!-- 6b. Click Login Button (Rect) -->
+  <rect x="800" y="546" width="240" height="42" class="shape-rect"/>
+  <text x="920" y="572" class="txt-primary">Click Login Button</text>
+
+  <!-- Line down -->
+  <line x1="920" y1="588" x2="920" y2="616" class="flow-line"/>
+
+  <!-- 7. Login Correct? (Diamond) -->
+  <polygon points="920,616 1025,654 920,692 815,654" class="shape-diamond"/>
+  <text x="920" y="650" class="txt-primary">Login Details</text>
+  <text x="920" y="664" class="txt-primary">Correct?</text>
+
+  <!-- Login Correct? NO -> Show Error Message & Loop back -->
+  <path d="M 1025 654 L 1120 654" class="flow-line-red"/>
+  <rect x="1040" y="644" width="34" height="20" class="badge-bg-red"/>
+  <text x="1057" y="658" class="badge-txt-red">No</text>
+
+  <!-- Show Error Message (Parallelogram) -->
+  <polygon points="1135,632 1305,632 1290,676 1120,676" class="shape-para"/>
+  <text x="1212" y="653" class="txt-primary">Show Error Message</text>
+  <text x="1212" y="667" class="txt-secondary">(Invalid credentials)</text>
+
+  <!-- Loop back from Error to Enter Email/Password -->
+  <path d="M 1212 632 L 1212 496 L 1035 496" class="flow-line-red"/>
+
+  <!-- Login Correct? YES -> Check Role -->
+  <line x1="920" y1="692" x2="920" y2="724" class="flow-line-green"/>
+  <rect x="926" y="698" width="36" height="20" class="badge-bg-green"/>
+  <text x="944" y="712" class="badge-txt-green">Yes</text>
+
+  <!-- 8. Check User Role? (Diamond) -->
+  <polygon points="920,724 1030,764 920,804 810,764" class="shape-diamond"/>
+  <text x="920" y="759" class="txt-primary">Check</text>
+  <text x="920" y="774" class="txt-primary">User Role?</text>
+
+  <!-- ============================================================
+       SECTION 4: FOUR ROLE BRANCHES
+       1. Reporter:    Center X = 240
+       2. Investigator:Center X = 640 (Rejection to X=850)
+       3. Responder:   Center X = 1180
+       4. Admin:       Center X = 1600
+  ============================================================ -->
+
+  <!-- Branch lines from "Check User Role?" -->
+  <!-- 1. To Reporter (Far Left) -->
+  <path d="M 810 764 L 240 764 L 240 816" class="flow-line-purple"/>
+  <rect x="360" y="754" width="70" height="20" class="badge-bg-purple"/>
+  <text x="395" y="768" class="badge-txt-purple">Reporter</text>
+
+  <!-- 2. To Investigator (Mid Left) -->
+  <path d="M 810 764 L 640 764 L 640 816" class="flow-line-purple"/>
+  <rect x="680" y="754" width="86" height="20" class="badge-bg-purple"/>
+  <text x="723" y="768" class="badge-txt-purple">Investigator</text>
+
+  <!-- 3. To Responder (Mid Right) -->
+  <path d="M 1030 764 L 1180 764 L 1180 816" class="flow-line-orange"/>
+  <rect x="1070" y="754" width="80" height="20" class="badge-bg-orange"/>
+  <text x="1110" y="768" class="badge-txt-orange">Responder</text>
+
+  <!-- 4. To Admin (Far Right) -->
+  <path d="M 1030 764 L 1600 764 L 1600 816" class="flow-line-purple"/>
+  <rect x="1380" y="754" width="60" height="20" class="badge-bg-purple"/>
+  <text x="1410" y="768" class="badge-txt-purple">Admin</text>
+
+  <!-- ------------------------------------------------------------
+       COLUMN 1: REPORTER FLOW (Center X = 240)
+  ------------------------------------------------------------ -->
+  <rect x="125" y="816" width="230" height="24" class="col-header-bg" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2"/>
+  <text x="240" y="832" class="col-header-txt" fill="#0369a1">👤 REPORTER DASHBOARD</text>
+
+  <!-- R1. Open Reporter Dashboard (Rect) -->
+  <rect x="125" y="848" width="230" height="42" class="shape-rect"/>
+  <text x="240" y="874" class="txt-primary">Open Reporter Dashboard</text>
+
+  <!-- Line down -->
+  <line x1="240" y1="890" x2="240" y2="916" class="flow-line"/>
+
+  <!-- R2. View Map and Active Incidents (Parallelogram - Output) -->
+  <polygon points="145,916 355,916 335,960 125,960" class="shape-para"/>
+  <text x="240" y="937" class="txt-primary">View Interactive Map</text>
+  <text x="240" y="951" class="txt-secondary">&amp; Active Incidents</text>
+
+  <!-- Line down -->
+  <line x1="240" y1="960" x2="240" y2="988" class="flow-line"/>
+
+  <!-- R3. Click Report Incident (Rect) -->
+  <rect x="125" y="988" width="230" height="42" class="shape-rect"/>
+  <text x="240" y="1014" class="txt-primary">Click "Report Incident"</text>
+
+  <!-- Line down -->
+  <line x1="240" y1="1030" x2="240" y2="1058" class="flow-line"/>
+
+  <!-- R4. Enter Details & Select Location (Parallelogram - Input) -->
+  <polygon points="145,1058 355,1058 335,1114 125,1114" class="shape-para"/>
+  <text x="240" y="1080" class="txt-primary">Enter Incident Details</text>
+  <text x="240" y="1094" class="txt-primary">&amp; Select Location on Map</text>
+  <text x="240" y="1108" class="txt-secondary">(Automatic address lookup)</text>
+
+  <!-- Line down -->
+  <line x1="240" y1="1114" x2="240" y2="1142" class="flow-line"/>
+
+  <!-- R5. Click Submit Report (Rect) -->
+  <rect x="125" y="1142" width="230" height="42" class="shape-rect"/>
+  <text x="240" y="1168" class="txt-primary">Submit Incident Report</text>
+
+  <!-- Line down -->
+  <line x1="240" y1="1184" x2="240" y2="1212" class="flow-line"/>
+
+  <!-- R6. Save Report & Show Result (Parallelogram - Output) -->
+  <polygon points="145,1212 355,1212 335,1256 125,1256" class="shape-para"/>
+  <text x="240" y="1233" class="txt-primary">Save Report to Database</text>
+  <text x="240" y="1247" class="txt-secondary">&amp; Show Result to User</text>
+
+  <!-- Line down -->
+  <line x1="240" y1="1256" x2="240" y2="1284" class="flow-line"/>
+
+  <!-- R7. View My Reports and Account (Rect) -->
+  <rect x="125" y="1284" width="230" height="42" class="shape-rect"/>
+  <text x="240" y="1303" class="txt-primary">View Submitted Reports</text>
+  <text x="240" y="1317" class="txt-secondary">&amp; Profile Account</text>
+
+  <!-- Line down -->
+  <line x1="240" y1="1326" x2="240" y2="1358" class="flow-line"/>
+
+  <!-- R8. Reporter Logout (Rect - Red) -->
+  <rect x="125" y="1358" width="230" height="42" class="shape-rect-logout"/>
+  <text x="240" y="1384" class="txt-primary" fill="#9f1239">Logout (Reporter)</text>
+
+  <!-- ------------------------------------------------------------
+       COLUMN 2: INVESTIGATOR FLOW (Center X = 640)
+  ------------------------------------------------------------ -->
+  <rect x="525" y="816" width="230" height="24" class="col-header-bg" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.2"/>
+  <text x="640" y="832" class="col-header-txt" fill="#6b21a8">🔍 INVESTIGATOR DASHBOARD</text>
+
+  <!-- I1. Open Investigator Dashboard (Rect) -->
+  <rect x="525" y="848" width="230" height="42" class="shape-rect"/>
+  <text x="640" y="874" class="txt-primary">Open Investigator Dashboard</text>
+
+  <!-- Line down -->
+  <line x1="640" y1="890" x2="640" y2="916" class="flow-line"/>
+
+  <!-- I2. View & Review Reports + Proof (Parallelogram - Output) -->
+  <polygon points="545,916 755,916 735,964 525,964" class="shape-para"/>
+  <text x="640" y="938" class="txt-primary">View &amp; Review Incidents</text>
+  <text x="640" y="952" class="txt-secondary">Inspect Details &amp; Evidence</text>
+
+  <!-- Line down -->
+  <line x1="640" y1="964" x2="640" y2="992" class="flow-line"/>
+
+  <!-- I3. Can Report Be Verified? (Diamond) -->
+  <polygon points="640,992 745,1034 640,1076 535,1034" class="shape-diamond"/>
+  <text x="640" y="1030" class="txt-primary">Can Report</text>
+  <text x="640" y="1044" class="txt-primary">Be Verified?</text>
+
+  <!-- YES Path: Assign Responder (Straight Down) -->
+  <line x1="640" y1="1076" x2="640" y2="1110" class="flow-line-green"/>
+  <rect x="646" y="1082" width="36" height="20" class="badge-bg-green"/>
+  <text x="664" y="1096" class="badge-txt-green">Yes</text>
+
+  <!-- I4. Assign Responder (Rect) -->
+  <rect x="525" y="1110" width="230" height="42" class="shape-rect"/>
+  <text x="640" y="1136" class="txt-primary">Assign Emergency Responder</text>
+
+  <!-- Line down -->
+  <line x1="640" y1="1152" x2="640" y2="1180" class="flow-line"/>
+
+  <!-- I5. Responder Notified (Parallelogram - Output) -->
+  <polygon points="545,1180 755,1180 735,1228 525,1228" class="shape-para"/>
+  <text x="640" y="1201" class="txt-primary">Responder is Notified</text>
+  <text x="640" y="1215" class="txt-secondary">&amp; Status: "Responder Assigned"</text>
+
+  <!-- NO Path: Reject / Review (Branch Right to X = 785) -->
+  <path d="M 745 1034 L 785 1034" class="flow-line-red"/>
+  <rect x="750" y="1024" width="34" height="20" class="badge-bg-red"/>
+  <text x="767" y="1038" class="badge-txt-red">No</text>
+
+  <!-- Rejection Action (Rect) -->
+  <rect x="785" y="1013" width="160" height="42" class="shape-rect"/>
+  <text x="865" y="1032" class="txt-primary">Mark as Rejected</text>
+  <text x="865" y="1046" class="txt-secondary">or Request Review</text>
+
+  <!-- Line down to Rejection Output -->
+  <line x1="865" y1="1055" x2="865" y2="1083" class="flow-line"/>
+
+  <!-- Rejection Output (Parallelogram) -->
+  <polygon points="800,1083 940,1083 925,1127 785,1127" class="shape-para"/>
+  <text x="865" y="1102" class="txt-primary">Notify Reporter</text>
+  <text x="865" y="1116" class="txt-secondary">of Rejection Reason</text>
+
+  <!-- Rejection branch merges back into Investigator Flow -->
+  <path d="M 865 1127 L 865 1250 L 640 1250" class="flow-line"/>
+
+  <!-- Line from both paths down to Logout -->
+  <line x1="640" y1="1228" x2="640" y2="1358" class="flow-line"/>
+
+  <!-- I6. Investigator Logout (Rect - Red) -->
+  <rect x="525" y="1358" width="230" height="42" class="shape-rect-logout"/>
+  <text x="640" y="1384" class="txt-primary" fill="#9f1239">Logout (Investigator)</text>
+
+  <!-- ------------------------------------------------------------
+       COLUMN 3: RESPONDER FLOW (Center X = 1180) - NEW ADDITION!
+  ------------------------------------------------------------ -->
+  <rect x="1065" y="816" width="230" height="24" class="col-header-bg" fill="#ffedd5" stroke="#ea580c" stroke-width="1.2"/>
+  <text x="1180" y="832" class="col-header-txt" fill="#c2410c">🚨 RESPONDER DASHBOARD</text>
+
+  <!-- Res1. Open Responder Dashboard (Rect) -->
+  <rect x="1065" y="848" width="230" height="42" class="shape-rect"/>
+  <text x="1180" y="874" class="txt-primary">Open Responder Dashboard</text>
+
+  <!-- Line down -->
+  <line x1="1180" y1="890" x2="1180" y2="916" class="flow-line"/>
+
+  <!-- Res2. View Assigned Incidents (Parallelogram - Output) -->
+  <polygon points="1085,916 1295,916 1275,960 1065,960" class="shape-para"/>
+  <text x="1180" y="937" class="txt-primary">View Assigned Incidents</text>
+  <text x="1180" y="951" class="txt-secondary">&amp; Emergency Dispatches</text>
+
+  <!-- Line down -->
+  <line x1="1180" y1="960" x2="1180" y2="988" class="flow-line"/>
+
+  <!-- Res3. View Location & Route (Parallelogram - Output) -->
+  <polygon points="1085,988 1295,988 1275,1040 1065,1040" class="shape-para"/>
+  <text x="1180" y="1009" class="txt-primary">View Incident Location</text>
+  <text x="1180" y="1023" class="txt-primary">&amp; Response Route on Map</text>
+  <text x="1180" y="1035" class="txt-secondary">(Barangay &amp; GPS Coordinates)</text>
+
+  <!-- Line down -->
+  <line x1="1180" y1="1040" x2="1180" y2="1068" class="flow-line"/>
+
+  <!-- Res4. Accept & Start Response (Rect) -->
+  <rect x="1065" y="1068" width="230" height="42" class="shape-rect"/>
+  <text x="1180" y="1088" class="txt-primary">Accept &amp; Start Response</text>
+  <text x="1180" y="1102" class="txt-secondary">(Status: "In Progress" / On Scene)</text>
+
+  <!-- Line down -->
+  <line x1="1180" y1="1110" x2="1180" y2="1138" class="flow-line"/>
+
+  <!-- Res5. Complete Response & Mark Resolved (Rect) -->
+  <rect x="1065" y="1138" width="230" height="42" class="shape-rect"/>
+  <text x="1180" y="1158" class="txt-primary">Complete Response Action</text>
+  <text x="1180" y="1172" class="txt-secondary">&amp; Submit Incident Resolution</text>
+
+  <!-- Line down -->
+  <line x1="1180" y1="1180" x2="1180" y2="1208" class="flow-line"/>
+
+  <!-- Res6. Status Updated to Resolved (Parallelogram - Output) -->
+  <polygon points="1085,1208 1295,1208 1275,1252 1065,1252" class="shape-para"/>
+  <text x="1180" y="1229" class="txt-primary">Status Updated to "Resolved"</text>
+  <text x="1180" y="1243" class="txt-secondary">&amp; Response Logs Saved</text>
+
+  <!-- Line down to Responder Logout -->
+  <line x1="1180" y1="1252" x2="1180" y2="1358" class="flow-line"/>
+
+  <!-- Res7. Responder Logout (Rect - Red) -->
+  <rect x="1065" y="1358" width="230" height="42" class="shape-rect-logout"/>
+  <text x="1180" y="1384" class="txt-primary" fill="#9f1239">Logout (Responder)</text>
+
+  <!-- ------------------------------------------------------------
+       COLUMN 4: ADMIN FLOW (Center X = 1600)
+  ------------------------------------------------------------ -->
+  <rect x="1485" y="816" width="230" height="24" class="col-header-bg" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/>
+  <text x="1600" y="832" class="col-header-txt" fill="#92400e">⚙️ ADMIN DASHBOARD</text>
+
+  <!-- A1. Open Admin Dashboard (Rect) -->
+  <rect x="1485" y="848" width="230" height="42" class="shape-rect"/>
+  <text x="1600" y="874" class="txt-primary">Open Admin Dashboard</text>
+
+  <!-- Line down -->
+  <line x1="1600" y1="890" x2="1600" y2="916" class="flow-line"/>
+
+  <!-- A2. View Users & Stats (Parallelogram - Output) -->
+  <polygon points="1505,916 1715,916 1695,972 1485,972" class="shape-para"/>
+  <text x="1600" y="938" class="txt-primary">View Users, Investigators,</text>
+  <text x="1600" y="952" class="txt-primary">Responders &amp; Statistics</text>
+  <text x="1600" y="966" class="txt-secondary">(System Overview &amp; Logs)</text>
+
+  <!-- Line down -->
+  <line x1="1600" y1="972" x2="1600" y2="1002" class="flow-line"/>
+
+  <!-- A3. Manage System Functions (Rect) -->
+  <rect x="1485" y="1002" width="230" height="44" class="shape-rect"/>
+  <text x="1600" y="1022" class="txt-primary">Manage System Functions</text>
+  <text x="1600" y="1036" class="txt-secondary">&amp; Account Controls</text>
+
+  <!-- Line down from Admin process straight to Logout -->
+  <line x1="1600" y1="1046" x2="1600" y2="1358" class="flow-line"/>
+
+  <!-- A4. Admin Logout (Rect - Red) -->
+  <rect x="1485" y="1358" width="230" height="42" class="shape-rect-logout"/>
+  <text x="1600" y="1384" class="txt-primary" fill="#9f1239">Logout (Admin)</text>
+
+  <!-- ============================================================
+       SECTION 5: MERGE ALL 4 LOGOUT PATHS -> RETURN & END
+  ============================================================ -->
+  <!-- Reporter Logout line down -->
+  <line x1="240" y1="1400" x2="240" y2="1436" class="flow-line"/>
+  <path d="M 240 1436 L 920 1436" class="flow-line"/>
+
+  <!-- Investigator Logout line down -->
+  <line x1="640" y1="1400" x2="640" y2="1436" class="flow-line"/>
+  <path d="M 640 1436 L 920 1436" class="flow-line"/>
+
+  <!-- Responder Logout line down -->
+  <line x1="1180" y1="1400" x2="1180" y2="1436" class="flow-line"/>
+  <path d="M 1180 1436 L 920 1436" class="flow-line"/>
+
+  <!-- Admin Logout line down -->
+  <line x1="1600" y1="1400" x2="1600" y2="1436" class="flow-line"/>
+  <path d="M 1600 1436 L 920 1436" class="flow-line"/>
+
+  <!-- Merge notification badge -->
+  <rect x="830" y="1424" width="180" height="24" rx="4" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+  <text x="920" y="1440" font-size="11" font-weight="700" fill="#475569" text-anchor="middle">All User Roles Log Out</text>
+
+  <!-- Line down to Return Page -->
+  <line x1="920" y1="1448" x2="920" y2="1480" class="flow-line"/>
+
+  <!-- 12. Return to Welcome / Login Page (Rect) -->
+  <rect x="780" y="1480" width="280" height="42" class="shape-rect"/>
+  <text x="920" y="1506" class="txt-primary">Return to Welcome / Login Page</text>
+
+  <!-- Line down to END -->
+  <line x1="920" y1="1522" x2="920" y2="1558" class="flow-line"/>
+
+  <!-- 13. END (Oval) -->
+  <ellipse cx="920" cy="1584" rx="80" ry="24" class="shape-oval"/>
+  <text x="920" y="1589" class="txt-start-end">END</text>
+
+</svg>

@@ -103,8 +103,17 @@
             </div>
             @endif
 
-            <!-- Action Button: Accept Assignment -->
-            <div class="flex items-center justify-end pt-2">
+            <!-- Action Buttons: Check Map Location & Accept Assignment -->
+            <div class="flex flex-col sm:flex-row items-center justify-end gap-2 pt-2">
+                <a href="{{ route('responder.map', ['incident' => $assignment->incident->id]) }}" class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-[#1B222C] hover:bg-[#222B38] border border-[#38BDF8]/40 hover:border-[#38BDF8] text-[#38BDF8] hover:text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                        <line x1="8" y1="2" x2="8" y2="18"/>
+                        <line x1="16" y1="6" x2="16" y2="22"/>
+                    </svg>
+                    CHECK MAP LOCATION
+                </a>
+
                 <form method="POST" action="{{ route('responder.assignments.accept', $assignment) }}" class="w-full sm:w-auto">
                     @csrf
                     <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold text-xs rounded-lg transition font-mono shadow-md shadow-[#8B5CF6]/30">
@@ -173,7 +182,16 @@
             </div>
             @endif
 
-            <div class="flex items-center justify-end pt-2">
+            <div class="flex flex-col sm:flex-row items-center justify-end gap-2 pt-2">
+                <a href="{{ route('responder.map', ['incident' => $assignment->incident->id]) }}" class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-[#11161D] hover:bg-[#1B222C] border border-[#38BDF8]/40 hover:border-[#38BDF8] text-[#38BDF8] hover:text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                        <line x1="8" y1="2" x2="8" y2="18"/>
+                        <line x1="16" y1="6" x2="16" y2="22"/>
+                    </svg>
+                    CHECK MAP LOCATION
+                </a>
+
                 <a href="{{ route('responder.assignments.show', $assignment) }}" class="w-full sm:w-auto text-center px-5 py-2.5 bg-[#1B222C] hover:bg-[#222B38] text-white border border-[#2A3440] hover:border-[#8B5CF6] font-bold text-xs rounded-lg transition font-mono">
                     OPEN RESPONSE SCREEN
                 </a>

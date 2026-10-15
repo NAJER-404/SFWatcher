@@ -56,6 +56,8 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
 
     // User Management
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
     Route::get('/users/investigators', [AdminUserController::class, 'investigators'])->name('users.investigators');
     Route::get('/users/responders', [AdminUserController::class, 'responders'])->name('users.responders');
     Route::get('/users/reporters', [AdminUserController::class, 'reporters'])->name('users.reporters');
@@ -87,7 +89,9 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/profile', [AdminDashboardController::class, 'updateProfile'])->name('profile.update');
     Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
     Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
-});
+    Route::post('/incidents/archive-resolved', [AdminIncidentController::class, 'archiveAllResolved'])->name('incidents.archive-resolved');
+    Route::post('/incidents/restore-all', [AdminIncidentController::class, 'restoreAllToMap'])->name('incidents.restore-all');
+    });
 
 // ─── Protected Investigator Portal Routes ─────────────────────────────────
 Route::get('/investigator/login',  [AuthController::class, 'showInvestigatorLoginForm'])->name('investigator.login');
@@ -118,6 +122,7 @@ Route::post('/responder/logout', [AuthController::class, 'responderLogout'])->na
 
 Route::middleware('responder')->prefix('responder')->name('responder.')->group(function () {
     Route::get('/dashboard', [ResponderDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/map', [ResponderDashboardController::class, 'map'])->name('map');
     Route::get('/assignments/{assignment}', [ResponderDashboardController::class, 'show'])->name('assignments.show');
     Route::get('/response/{incident}', [ResponderDashboardController::class, 'showByIncident'])->name('response.incident');
     Route::post('/assignments/{assignment}/accept', [ResponderDashboardController::class, 'accept'])->name('assignments.accept');
@@ -126,6 +131,8 @@ Route::middleware('responder')->prefix('responder')->name('responder.')->group(f
     Route::post('/assignments/{assignment}/request-support', [ResponderDashboardController::class, 'requestSupport'])->name('assignments.request-support');
     Route::put('/assignments/{assignment}/progress', [ResponderDashboardController::class, 'progress'])->name('assignments.progress');
     Route::match(['get', 'post'], '/assignments/{assignment}/sync', [ResponderDashboardController::class, 'sync'])->name('assignments.sync');
+    Route::get('/profile', [ResponderDashboardController::class, 'profile'])->name('profile');
+    Route::put('/profile/status', [ResponderDashboardController::class, 'updateStatus'])->name('profile.status');
 });
 
 // ─── Protected Spectral Routes (Auth Required) ───────────────────────────
@@ -149,9 +156,9 @@ Route::middleware('auth')->group(function () {
             $userId = \Illuminate\Support\Facades\Auth::id();
             $allIds = \App\Models\Incident::where(function ($query) use ($userId) {
                 $query->where('reported_by', $userId)
-                      ->orWhereHas('evidence', function ($q) use ($userId) {
-                          $q->where('uploaded_by', $userId);
-                      });
+                    ->orWhereHas('evidence', function ($q) use ($userId) {
+                        $q->where('uploaded_by', $userId);
+                    });
             })->pluck('id')->toArray();
             $read = array_values(array_unique(array_merge($read, $allIds)));
         } elseif ($request->filled('incident_id')) {
@@ -186,5 +193,4 @@ Route::middleware('auth')->group(function () {
     // ─── Legacy Classroom CRUD (Preserved) ─────────────────────────────────
     Route::get('/library', [LibraryController::class, 'index']);
     Route::resource('librarys', LibraryController::class);
-
 });

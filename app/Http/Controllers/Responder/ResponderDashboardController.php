@@ -59,6 +59,82 @@ class ResponderDashboardController extends Controller
         ));
     }
 
+    public function profile()
+    {
+        $user = Auth::guard('responder')->user() ?? Auth::user();
+
+        $assignments = ResponderAssignment::where('responder_id', $user->id)->get();
+
+        $stats = [
+            'total'     => $assignments->count(),
+            'new'       => $assignments->where('status', 'ASSIGNED')->count(),
+            'active'    => $assignments->whereIn('status', ['ACCEPTED', 'ACTIVE', 'SUPPORT_REQUIRED', 'CRITICAL'])->count(),
+            'completed' => $assignments->where('status', 'COMPLETED')->count(),
+        ];
+
+        return view('responder.profile', compact('user', 'stats'));
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $user = Auth::guard('responder')->user() ?? Auth::user();
+
+        $data = $request->validate([
+            'responder_status' => 'required|in:AVAILABLE,BUSY,ON_DUTY',
+        ]);
+
+        // Don't allow "Available" while a response is still in progress
+        $hasOngoing = ResponderAssignment::where('responder_id', $user->id)
+            ->whereIn('status', ['ACCEPTED', 'ACTIVE', 'SUPPORT_REQUIRED', 'CRITICAL'])
+            ->exists();
+
+        if ($data['responder_status'] === 'AVAILABLE' && $hasOngoing) {
+            return back()->with('error', 'Finish your current response before setting yourself as available.');
+        }
+
+        $user->responder_status = $data['responder_status'];
+        $user->save();
+
+        return back()->with('success', 'Status updated.');
+    }
+
+
+
+    public function map(Request $request)
+    {
+        $user = Auth::guard('responder')->user() ?? Auth::user();
+
+        $myAssignments = ResponderAssignment::with(['incident.barangay', 'investigator'])
+            ->where('responder_id', $user->id)
+            ->get();
+
+        $myIncidentIds = $myAssignments->pluck('incident_id')->toArray();
+
+        $incidents = Incident::with(['barangay', 'reporter', 'evidence', 'investigations', 'responderAssignments.responder'])
+            ->activeOnMap()
+            ->orderByDesc('created_at')
+            ->get();
+
+        $wardStations = WardStation::with('barangay')->get();
+        $resources    = Resource::with('barangay')->get();
+        $barangays    = \App\Models\Barangay::orderBy('name')->get();
+
+        $focusId = $request->query('incident');
+        $focusCode = $request->query('focus');
+
+        return view('responder.map', compact(
+            'user',
+            'myAssignments',
+            'myIncidentIds',
+            'incidents',
+            'wardStations',
+            'resources',
+            'barangays',
+            'focusId',
+            'focusCode'
+        ));
+    }
+
     public function show(ResponderAssignment $assignment, ?ResponderResponseService $service = null)
     {
         $user = Auth::guard('responder')->user() ?? Auth::user();
@@ -121,6 +197,7 @@ class ResponderDashboardController extends Controller
         // DPS metrics for real-time frontend (responder condition decreases per second at combat DPS)
         $dps = config("spectral_response.dps.{$severity}", 0.25);
         $responderDps = $dps;
+
 
         return view('responder.show', compact(
             'assignment',

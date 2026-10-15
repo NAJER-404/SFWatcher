@@ -109,4 +109,48 @@ class ResponderAssignmentWorkflowTest extends TestCase
         $assignment->refresh();
         $this->assertSame(20, $assignment->responder_hp);
     }
+
+    public function test_responder_can_access_tactical_map_and_controls(): void
+    {
+        $this->seed(SpectralSeeder::class);
+        $responder = User::where('role', 'responder')->firstOrFail();
+
+        // Guest is redirected
+        $this->get('/responder/map')->assertRedirect(route('responder.login'));
+
+        // Reporter is blocked
+        $reporter = User::where('role', 'reporter')->firstOrFail();
+        $this->actingAs($reporter)->get('/responder/map')->assertRedirect(route('responder.login'));
+
+        // Responder can access and see full map + layer controls + dashboard link
+        $response = $this->actingAs($responder, 'responder')->get('/responder/map');
+        $response->assertOk();
+        $response->assertDontSee('id="responder-sidebar"', false);
+        $response->assertSee('id="full-responder-map"', false);
+        $response->assertSee('Tactical Response Map');
+        $response->assertSee('My Assignments');
+        $response->assertSee('Safe Ward Stations');
+        $response->assertSee(route('responder.dashboard'));
+    }
+
+    public function test_responder_dashboard_renders_check_map_location_button_without_sidebar(): void
+    {
+        $this->seed(SpectralSeeder::class);
+        $responder = User::where('role', 'responder')->firstOrFail();
+        $incident = Incident::where('status', 'PENDING')->firstOrFail();
+
+        $assignment = ResponderAssignment::create([
+            'incident_id'     => $incident->id,
+            'investigator_id' => User::where('role', 'investigator')->first()->id,
+            'responder_id'    => $responder->id,
+            'assigned_at'     => now(),
+            'status'          => 'ASSIGNED',
+        ]);
+
+        $response = $this->actingAs($responder, 'responder')->get(route('responder.dashboard'));
+        $response->assertOk();
+        $response->assertDontSee('id="responder-sidebar"', false);
+        $response->assertSee('CHECK MAP LOCATION');
+        $response->assertSee(route('responder.map', ['incident' => $incident->id]));
+    }
 }

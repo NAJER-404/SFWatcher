@@ -290,4 +290,86 @@ class DashboardController extends Controller
 
         return redirect()->back()->with('success', 'Password updated successfully.');
     }
+
+        /**
+     * Full notification center for reporters.
+     */
+    public function notifications(Request $request)
+    {
+        $userId = Auth::id();
+        $readNotifs = session('read_notifications', []);
+
+        // ── 1. Get user's incidents ─────────────────────────────────
+        $incidents = Incident::with(['barangay', 'investigations.investigator'])
+            ->where(function ($query) use ($userId) {
+                $query->where('reported_by', $userId)
+                      ->orWhereHas('evidence', function ($q) use ($userId) {
+                          $q->where('uploaded_by', $userId);
+                      });
+            })
+            ->orderByDesc('updated_at')
+            ->get();
+
+        // ── 2. Build notifications from incidents ─────────────────────
+        $notifications = $incidents
+            ->filter(fn($inc) => $inc->investigations->isNotEmpty())
+            ->map(function ($inc) use ($readNotifs) {
+                $latest = $inc->investigations->sortByDesc('investigation_date')->first();
+                return (object) [
+                    'id'            => 'incident-' . $inc->id,
+                    'type'          => strtolower($inc->status) === 'under investigation' ? 'investigation' : strtolower($inc->status),
+                    'title'         => 'Update on ' . $inc->incident_code,
+                    'message'       => $latest?->notes ?? 'Status changed to ' . $inc->status,
+                    'incident_code' => $inc->incident_code,
+                    'link'          => route('spectral.incidents.show', $inc->id),
+                    'created_at'    => $latest?->investigation_date ?? $inc->updated_at,
+                    'read'          => in_array($inc->id, $readNotifs),
+                ];
+            });
+
+        // ── 3. Merge rejected notifications from cache ────────────────
+        $rejectedCached = collect(Cache::get("user_notifications_{$userId}", []))
+            ->map(function ($n) use ($readNotifs) {
+                return (object) [
+                    'id'            => 'rejected-' . ($n['incident_id'] ?? uniqid()),
+                    'type'          => 'rejected',
+                    'title'         => 'Report Rejected',
+                    'message'       => $n['notes'] ?? 'Your report was rejected by an investigator.',
+                    'incident_code' => $n['incident_code'] ?? 'N/A',
+                    'link'          => isset($n['incident_id']) ? route('spectral.incidents.show', $n['incident_id']) : null,
+                    'created_at'    => \Carbon\Carbon::parse($n['updated_at'] ?? now()),
+                    'read'          => in_array((string)($n['incident_id'] ?? ''), array_map('strval', $readNotifs)),
+                ];
+            });
+
+        $all = $notifications->concat($rejectedCached)->sortByDesc('created_at')->values();
+
+        // ── 4. Counts (before filtering) ──────────────────────────────
+        $totalCount  = $all->count();
+        $unreadCount = $all->where('read', false)->count();
+
+        // ── 5. Apply filter tab ────────────────────────────────────────
+        $filter = $request->input('filter');
+        if ($filter === 'unread') {
+            $all = $all->where('read', false)->values();
+        } elseif ($filter === 'read') {
+            $all = $all->where('read', true)->values();
+        }
+
+        // ── 6. Manual Pagination ───────────────────────────────────────
+        $perPage = 20;
+        $page    = (int) $request->input('page', 1);
+        $sliced  = $all->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $notifications = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sliced,
+            $all->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('spectral.notifications', compact('notifications', 'totalCount', 'unreadCount'));
+    }
 }
+

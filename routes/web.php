@@ -145,12 +145,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/ecto',       fn() => redirect()->route('spectral.dashboard'));
     Route::get('/my-reports', [DashboardController::class, 'myReports'])->name('spectral.my-reports');
 
+
     // Profile & Credentials Update Routes
     Route::get('/profile',          [DashboardController::class, 'profile'])->name('spectral.profile');
     Route::put('/profile/update',   [DashboardController::class, 'updateProfile'])->name('spectral.profile.update');
     Route::put('/profile/password', [DashboardController::class, 'updatePassword'])->name('spectral.profile.password');
+    Route::get('/notifications', [DashboardController::class, 'notifications'])->name('spectral.notifications.index');
 
-    Route::post('/notifications/mark-as-read', function (\Illuminate\Http\Request $request) {
+
+        Route::post('/notifications/mark-as-read', function (\Illuminate\Http\Request $request) {
         $read = session('read_notifications', []);
         if ($request->boolean('all')) {
             $userId = \Illuminate\Support\Facades\Auth::id();
@@ -168,7 +171,14 @@ Route::middleware('auth')->group(function () {
         }
         session(['read_notifications' => $read]);
 
-        return response()->json(['success' => true, 'read_notifications' => $read]);
+        // AJAX (from dropdown) → JSON response
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'read_notifications' => $read]);
+        }
+
+        // Normal form submit (from notifications page) → redirect back
+        return redirect()->route('spectral.notifications.index')
+            ->with('success', 'All notifications marked as read.');
     })->name('spectral.notifications.read');
 
     // ─── Spectral Incident Management ──────────────────────────────────────

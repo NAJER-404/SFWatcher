@@ -162,7 +162,7 @@
                 <span class="sb-label">My Reports</span>
             </a>
 
-            <!-- All Reports (renamed from Incident Reports) -->
+            <!-- All Reports -->
             <a href="{{ route('spectral.incidents.index') }}" data-label="All Reports"
                onclick="SpectralSidebar.closeMobile()"
                class="sb-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('spectral.incidents.*') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60 font-semibold' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} transition">
@@ -173,11 +173,12 @@
                 <span class="sb-label">All Reports</span>
             </a>
 
-            <!-- Notifications -->
-            <button onclick="SpectralNotif.toggle(); SpectralSidebar.closeMobile();" data-label="Notifications"
-                    class="sb-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-400 hover:bg-[#161d27] hover:text-white transition">
+            <!-- Notifications (now clickable link) -->
+            <a href="{{ route('spectral.notifications.index') }}" data-label="Notifications"
+               onclick="SpectralSidebar.closeMobile()"
+               class="sb-item w-full flex items-center justify-between px-3 py-2 rounded-lg {{ request()->routeIs('spectral.notifications.*') ? 'bg-[#1a2540] text-white border border-[#2a3a60]/60 font-semibold' : 'text-slate-400 hover:bg-[#161d27] hover:text-white' }} transition">
                 <span class="flex items-center gap-2.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 {{ request()->routeIs('spectral.notifications.*') ? 'text-[#3B82F6]' : 'text-slate-500' }} flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                     </svg>
                     <span class="sb-label">Notifications</span>
@@ -189,7 +190,7 @@
                 @else
                 <span id="sidebar-notif-count" class="sb-label hidden text-[9px] font-mono font-bold text-white bg-[#3B82F6] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1"></span>
                 @endif
-            </button>
+            </a>
         </div>
 
         <!-- ACCOUNT -->

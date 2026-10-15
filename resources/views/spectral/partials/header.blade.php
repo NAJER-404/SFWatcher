@@ -51,36 +51,36 @@
     }
 </style>
 
-<header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-3 sm:px-4 flex items-center justify-between flex-shrink-0 z-30 select-none">
+<header class="h-14 bg-[#11161D] border-b border-[#2A3440] px-3 sm:px-4 flex items-center justify-between flex-shrink-0 z-30 select-none gap-2">
     <!-- Left: Hamburger (mobile) + Brand & Logo -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 min-w-0 flex-shrink">
         <!-- Mobile hamburger -->
         <button type="button"
                 id="mobile-menu-toggle"
                 onclick="SpectralSidebar.openMobile()"
-                class="flex md:hidden w-8 h-8 items-center justify-center rounded-lg bg-[#1B222C] border border-[#2A3440] text-[#9CA3AF] hover:text-white hover:border-[#8B5CF6]/50 transition-all"
+                class="flex md:hidden w-8 h-8 items-center justify-center rounded-lg bg-[#1B222C] border border-[#2A3440] text-[#9CA3AF] hover:text-white hover:border-[#8B5CF6]/50 transition-all flex-shrink-0"
                 aria-label="Open menu">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
             </svg>
         </button>
-        <a href="{{ route('spectral.dashboard') }}" class="flex items-center gap-[5px] hover:opacity-90 transition">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra" class="h-9 w-9 object-contain">
-            <span class="text-xl font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SFWatch</span>
+        <a href="{{ route('spectral.dashboard') }}" class="flex items-center gap-[5px] hover:opacity-90 transition min-w-0">
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra" class="h-9 w-9 object-contain flex-shrink-0">
+            <span class="text-xl font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent truncate">SFWatch</span>
         </a>
     </div>
 
     <!-- Right: Role Badge, Notification Bell, Quick Report, User Profile, Logout -->
-    <div class="flex items-center gap-2 sm:gap-3">
+    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
 
         <!-- Role Badge -->
         @auth
             @if(Auth::user()->isAdmin())
-                <div class="hidden sm:flex items-center px-2.5 py-1 rounded-md bg-[#1B222C] border border-[#EF4444]/30 text-[11px] font-semibold font-mono text-[#F87171]">
+                <div class="hidden lg:flex items-center px-2.5 py-1 rounded-md bg-[#1B222C] border border-[#EF4444]/30 text-[11px] font-semibold font-mono text-[#F87171]">
                     Administrator
                 </div>
             @elseif(Auth::user()->isInvestigator())
-                <a href="{{ route('investigator.dashboard') }}" title="Go to Investigator Portal" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1B222C] hover:bg-[#222B38] border border-[#8B5CF6]/40 text-[11px] font-semibold font-mono text-[#A78BFA] transition">
+                <a href="{{ route('investigator.dashboard') }}" title="Go to Investigator Portal" class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1B222C] hover:bg-[#222B38] border border-[#8B5CF6]/40 text-[11px] font-semibold font-mono text-[#A78BFA] transition">
                     <span>Investigator</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>
@@ -89,7 +89,7 @@
 
         <!-- Notification Bell -->
         @auth
-        <div class="relative" id="notif-wrapper">
+        <div class="relative flex-shrink-0" id="notif-wrapper">
             <button type="button"
                 id="notif-bell-btn"
                 onclick="SpectralNotif.toggle()"
@@ -236,32 +236,32 @@
         </div>
         @endauth
 
-        <!-- Quick Report Incident Button — shown on Interactive Map ONLY (not on dashboard) -->
+        <!-- Quick Report Incident Button — icon-only on mobile, text on sm+ -->
         @if(request()->routeIs('spectral.map'))
-        <button type="button" onclick="SpectralUI.openReportModal()" class="px-3 py-1.5 bg-[#38BDF8] hover:bg-[#0284C7] active:scale-95 text-[#070B12] hover:text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-sm shadow-[#38BDF8]/20 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <button type="button" onclick="SpectralUI.openReportModal()" class="flex-shrink-0 px-2.5 sm:px-3 py-1.5 bg-[#38BDF8] hover:bg-[#0284C7] active:scale-95 text-[#070B12] hover:text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-sm shadow-[#38BDF8]/20 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            <span>Report Incident</span>
+            <span class="hidden sm:inline">Report Incident</span>
         </button>
         @endif
 
         <!-- User Profile Dropdown Pill matching mockup -->
         @auth
-        <div class="relative" id="user-menu-wrapper">
+        <div class="relative flex-shrink-0" id="user-menu-wrapper">
             <button type="button"
                     id="user-menu-btn"
                     onclick="SpectralHeader.toggleUserMenu()"
                     class="flex items-center gap-2.5 py-1 px-2 rounded-lg hover:bg-[#1B222C] transition group cursor-pointer focus:outline-none">
-                <div class="w-8 h-8 rounded-full bg-[#1e293b] border border-[#334155] flex items-center justify-center text-xs font-bold text-slate-200">
+                <div class="w-8 h-8 rounded-full bg-[#1e293b] border border-[#334155] flex items-center justify-center text-xs font-bold text-slate-200 flex-shrink-0">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
-                <div class="text-left hidden sm:block">
+                <div class="text-left hidden lg:block">
                     <p class="text-xs font-bold text-slate-200 leading-tight group-hover:text-white transition">{{ Auth::user()->name }}</p>
                     <p class="text-[10px] text-slate-400 capitalize leading-tight">{{ Auth::user()->role ?? 'Reporter' }}</p>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition hidden sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
             </button>

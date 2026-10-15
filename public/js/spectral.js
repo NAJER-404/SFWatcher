@@ -8,7 +8,9 @@
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // 1. DATA STORE (Synchronized with Laravel Backend & Initial State)
+
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
 const SpectralData = {
     node: {
         name: "San Francisco Node",
@@ -2331,8 +2333,17 @@ const SpectralUI = {
         if (previewContainer) previewContainer.classList.add('hidden');
     },
 
-    async submitReport(e) {
+       async submitReport(e) {
         e.preventDefault();
+
+        const form        = document.getElementById('report-form');
+        const submitBtn   = document.getElementById('report-submit-btn');
+        const spinner     = document.getElementById('report-submit-spinner');
+        const label       = document.getElementById('report-submit-label');
+        const overlay     = document.getElementById('report-processing-overlay');
+
+        // 🛡️ Prevent double-submit: if already submitting, bail out
+        if (submitBtn && submitBtn.disabled) return false;
 
         // Validate location confirmation
         const locationConfirmed = document.getElementById('report-location-confirmed');
@@ -2345,6 +2356,32 @@ const SpectralUI = {
             locationConfirmed.focus();
             return;
         }
+
+        // 🔒 Lock button + show spinner + disable form inputs
+        if (submitBtn) submitBtn.disabled = true;
+        if (spinner)   spinner.classList.remove('hidden');
+        if (label)     label.textContent = 'Submitting...';
+        if (form) {
+            form.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = true;
+            });
+        }
+
+        // 🌫️ Show full-screen "Please Wait" overlay
+        if (overlay) overlay.classList.remove('hidden');
+
+        // Helper: unlock the UI (used on error)
+        const unlockUI = () => {
+            if (overlay)   overlay.classList.add('hidden');
+            if (submitBtn) submitBtn.disabled = false;
+            if (spinner)   spinner.classList.add('hidden');
+            if (label)     label.textContent = 'Submit Report';
+            if (form) {
+                form.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.disabled = false;
+                });
+            }
+        };
 
         const type        = document.getElementById('report-type').value;
         const title       = document.getElementById('report-title').value;
@@ -2467,17 +2504,21 @@ const SpectralUI = {
                 }
 
                 this.showToast('Submission failed' + reason);
+                unlockUI();
                 return;
             }
         } catch (err) {
             console.error('API post error:', err);
             this.showToast('Network error while reporting incident.');
+            unlockUI();
             return;
         }
 
+        // ✅ Success! Reset + close + update map
         document.getElementById('report-form').reset();
         this.removeEvidencePreview();
         this.closeReportModal();
+        unlockUI();
 
         // If on the My Reports page, reload so the new report is shown immediately
         if (window.location.pathname.includes('my-reports')) {
@@ -2574,6 +2615,8 @@ const SpectralUI = {
     }
 };
 
+
+
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // 4. INITIALIZE ON DOM READY
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -2607,3 +2650,4 @@ if (document.readyState === 'loading') {
 } else {
     bootSpectralApp();
 }
+

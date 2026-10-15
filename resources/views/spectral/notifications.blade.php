@@ -27,14 +27,12 @@
 
             <div class="flex items-center gap-2 text-[11px] font-mono">
                 @if($unreadCount > 0)
-                    <form method="POST" action="{{ route('spectral.notifications.read') }}">
-                        @csrf
-                        <input type="hidden" name="all" value="1">
-                        <button type="submit"
-                                class="px-3 py-1.5 rounded-lg bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 border border-[#38BDF8]/40 text-[#38BDF8] hover:text-white font-bold transition">
-                            ✓ Mark all as read
-                        </button>
-                    </form>
+                    <button type="button"
+                            id="mark-all-read-btn"
+                            onclick="markAllNotificationsRead()"
+                            class="px-3 py-1.5 rounded-lg bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 border border-[#38BDF8]/40 text-[#38BDF8] hover:text-white font-bold transition">
+                        ✓ Mark all as read
+                    </button>
                 @endif
             </div>
         </div>
@@ -79,8 +77,10 @@
                     };
                 @endphp
 
-                <div class="relative flex items-start gap-4 p-4 sm:p-5 border-b border-[#1e2d48]/60 last:border-b-0 transition
-                            {{ $notif->read ? 'hover:bg-[#121c30]/60' : 'bg-[#38BDF8]/[0.03] hover:bg-[#38BDF8]/[0.06]' }}">
+                <div class="notif-item relative flex items-start gap-4 p-4 sm:p-5 border-b border-[#1e2d48]/60 last:border-b-0 transition
+                            {{ $notif->read ? 'hover:bg-[#121c30]/60' : 'bg-[#38BDF8]/[0.03] hover:bg-[#38BDF8]/[0.06]' }}"
+                     data-incident-id="{{ $notif->incident_id ?? $notif->id }}"
+                     data-read="{{ $notif->read ? '1' : '0' }}">
 
                     {{-- Unread indicator dot --}}
                     @if(!$notif->read)
@@ -169,4 +169,46 @@
 
     </div>
 </div>
+
+{{-- ═══════════════════════════════════════════════════════════════
+     MARK ALL AS READ — Syncs header bell + sidebar + server session
+═══════════════════════════════════════════════════════════════ --}}
+<script>
+function markAllNotificationsRead() {
+    const btn = document.getElementById('mark-all-read-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+    }
+
+    // 1. Collect all incident IDs currently rendered on this page
+    const ids = [];
+    document.querySelectorAll('.notif-item').forEach(el => {
+        const id = el.getAttribute('data-incident-id');
+        if (id) ids.push(String(id));
+    });
+
+    // 2. Merge into localStorage (header bell's source of truth)
+    try {
+        const existing = JSON.parse(localStorage.getItem('spectral_read_notifs') || '[]').map(String);
+        const merged = Array.from(new Set([...existing, ...ids]));
+        localStorage.setItem('spectral_read_notifs', JSON.stringify(merged));
+    } catch (_) {}
+
+    // 3. POST to server so session('read_notifications') is updated too
+    fetch('{{ route('spectral.notifications.read') }}', {
+        method: 'POST',
+        keepalive: true,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ all: true })
+    }).finally(() => {
+        // 4. Reload so every badge/count on the page is recomputed from the fresh state
+        window.location.reload();
+    });
+}
+</script>
 @endsection

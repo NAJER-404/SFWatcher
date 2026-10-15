@@ -91,6 +91,69 @@
 
     <!-- Spectral GIS JS Engine -->
     <script src="{{ asset('js/spectral.js') }}"></script>
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         GLOBAL NOTIFICATION BADGE SYNC
+         Keeps the header bell badge + sidebar badge in sync using
+         localStorage as the single source of truth.
+    ═══════════════════════════════════════════════════════════════ --}}
+    <script>
+    (function () {
+        function getReadIds() {
+            try { return JSON.parse(localStorage.getItem('spectral_read_notifs') || '[]').map(String); }
+            catch (_) { return []; }
+        }
+
+        function syncAllBadges() {
+            const items = document.querySelectorAll('.notif-item');
+            let unread = 0;
+
+            if (items.length > 0) {
+                // Count unread from the header dropdown items
+                const readIds = getReadIds();
+                items.forEach(el => {
+                    if (!readIds.includes(String(el.getAttribute('data-incident-id')))) unread++;
+                });
+            } else {
+                // Fallback: read the server-rendered counts from the DOM
+                const sidebarCount = document.getElementById('sidebar-notif-count');
+                if (sidebarCount && !sidebarCount.classList.contains('hidden')) {
+                    unread = parseInt(sidebarCount.textContent, 10) || 0;
+                }
+            }
+
+            const label = unread > 9 ? '9+' : String(unread);
+
+            // Header bell badge
+            const bellBadge = document.getElementById('notif-badge');
+            if (bellBadge) {
+                bellBadge.textContent = label;
+                bellBadge.classList.toggle('hidden', unread === 0);
+            }
+
+            // Sidebar badge
+            const sidebarBadge = document.getElementById('sidebar-notif-count');
+            if (sidebarBadge) {
+                sidebarBadge.textContent = label;
+                sidebarBadge.classList.toggle('hidden', unread === 0);
+            }
+
+            // Dropdown header text
+            const headerText = document.getElementById('notif-unread-header');
+            if (headerText) {
+                headerText.textContent = unread > 0 ? unread + ' unread' : 'All caught up';
+            }
+
+            // "Mark all read" button visibility
+            const markAllBtn = document.getElementById('notif-mark-all-btn');
+            if (markAllBtn) markAllBtn.classList.toggle('hidden', unread === 0);
+        }
+
+        document.addEventListener('DOMContentLoaded', syncAllBadges);
+        window.syncAllNotifBadges = syncAllBadges;
+    })();
+    </script>
+
     @stack('scripts')
 </body>
 </html>

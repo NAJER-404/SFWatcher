@@ -37,8 +37,29 @@
         </a>
     </div>
 
+    @php
+        // ── Promotion Progress data (for responder role only) ──
+        $currentClass = strtoupper($user->responder_class ?? 'D');
+        $nextClassMap = ['D' => 'C', 'C' => 'B', 'B' => 'A', 'A' => null];
+        $nextClass    = $nextClassMap[$currentClass] ?? null;
+
+        $promotionXpFallback = ['D' => 100, 'C' => 150, 'B' => 250, 'A' => null];
+        $requiredXp = $nextClass
+            ? config("spectral_response.classes.{$currentClass}.promotion_xp", $promotionXpFallback[$currentClass] ?? null)
+            : null;
+
+        $currentXp    = (int) ($user->xp ?? 0);
+        $isMaxClass   = $nextClass === null;
+        $isEligible   = ! $isMaxClass && $requiredXp !== null && $currentXp >= $requiredXp;
+        $xpRemaining  = $isEligible ? 0 : max(0, ($requiredXp ?? 0) - $currentXp);
+        $progressPct  = ($requiredXp && $requiredXp > 0) ? min(100, round(($currentXp / $requiredXp) * 100)) : 100;
+
+        // Class tier HP for reference
+        $classHpMap = ['D' => 100, 'C' => 120, 'B' => 145, 'A' => 170];
+    @endphp
+
     <!-- Update Form -->
-    <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-6">
+    <form id="update-user-form" method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-6">
         @csrf
         @method('PUT')
 
@@ -135,6 +156,107 @@
                     </select>
                 </div>
             </div>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 PROMOTION PROGRESS SECTION
+            ═══════════════════════════════════════════════════════════ -->
+            <div class="pt-4 mt-2 border-t border-[#2A3440]">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="17 11 12 6 7 11"/>
+                            <polyline points="17 18 12 13 7 18"/>
+                        </svg>
+                        Promotion Progress
+                    </h3>
+                    @if($isMaxClass)
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/40">
+                            ⭐ MAX TIER
+                        </span>
+                    @endif
+                </div>
+
+                @if($isMaxClass)
+                    {{-- Max tier reached — celebratory card --}}
+                    <div class="p-5 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/40 text-center space-y-1.5">
+                        <div class="text-2xl">🏆</div>
+                        <p class="text-sm font-bold text-amber-300 uppercase tracking-wider">Class A — Maximum Tier Reached</p>
+                        <p class="text-[11px] text-slate-400">This responder has achieved the highest tactical classification. No further promotions are available.</p>
+                    </div>
+                @else
+                    {{-- Stats grid --}}
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4">
+                        <div class="p-3 rounded-xl bg-[#11161D] border border-[#2A3440]">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Current Class</p>
+                            <p class="text-lg font-extrabold text-white mt-0.5">{{ $currentClass }}</p>
+                            <p class="text-[9px] text-slate-500 font-mono mt-0.5">{{ $classHpMap[$currentClass] ?? 100 }} HP</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-[#11161D] border border-[#2A3440]">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Current XP</p>
+                            <p class="text-lg font-extrabold text-amber-400 mt-0.5">{{ number_format($currentXp) }}</p>
+                            <p class="text-[9px] text-slate-500 font-mono mt-0.5">Total earned</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-[#11161D] border border-[#2A3440]">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Target Class</p>
+                            <p class="text-lg font-extrabold text-[#A78BFA] mt-0.5">{{ $nextClass }}</p>
+                            <p class="text-[9px] text-slate-500 font-mono mt-0.5">{{ $classHpMap[$nextClass] ?? 120 }} HP</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-[#11161D] border border-[#2A3440]">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Required XP</p>
+                            <p class="text-lg font-extrabold {{ $isEligible ? 'text-emerald-400' : 'text-slate-300' }} mt-0.5">
+                                {{ number_format((int) $requiredXp) }}
+                            </p>
+                            <p class="text-[9px] text-slate-500 font-mono mt-0.5">To promote</p>
+                        </div>
+                    </div>
+
+                    {{-- Progress bar --}}
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between text-[11px] mb-1.5">
+                            <span class="text-slate-400">Progress to Class {{ $nextClass }}</span>
+                            <span class="font-mono font-bold {{ $isEligible ? 'text-emerald-400' : 'text-[#A78BFA]' }}">
+                                {{ $isEligible ? '✓ READY TO PROMOTE' : number_format($xpRemaining) . ' XP remaining' }}
+                            </span>
+                        </div>
+                        <div class="h-3 rounded-full bg-[#11161D] border border-[#2A3440] overflow-hidden">
+                            <div class="h-full transition-all duration-500 {{ $isEligible ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-[#8B5CF6] to-[#A78BFA]' }}"
+                                 style="width: {{ $progressPct }}%;"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono mt-1">
+                            <span>{{ number_format($currentXp) }} XP</span>
+                            <span>{{ $progressPct }}%</span>
+                            <span>{{ number_format((int) $requiredXp) }} XP</span>
+                        </div>
+                    </div>
+
+                    {{-- Action: Promote button OR waiting message --}}
+                    @if($isEligible)
+                        {{-- Eligible: show promotion form button (submits the separate promote form outside this form) --}}
+                        <button type="submit"
+                                form="promote-user-form"
+                                onclick="return confirm('Promote {{ addslashes($user->name) }} from Class {{ $currentClass }} to Class {{ $nextClass }}?');"
+                                class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="17 11 12 6 7 11"/>
+                                <polyline points="17 18 12 13 7 18"/>
+                            </svg>
+                            Promote to Class {{ $nextClass }}
+                        </button>
+                        <p class="text-[10px] text-emerald-400/80 text-center mt-2 italic">
+                            ✓ This responder meets the XP requirement for Class {{ $nextClass }}.
+                        </p>
+                    @else
+                        {{-- Not eligible yet --}}
+                        <div class="p-3 rounded-xl bg-[#11161D] border border-dashed border-[#2A3440] text-center">
+                            <p class="text-[11px] text-slate-400">
+                                Needs <strong class="text-[#A78BFA] font-mono">{{ number_format($xpRemaining) }} more XP</strong> to become eligible for promotion to Class {{ $nextClass }}.
+                            </p>
+                            <p class="text-[10px] text-slate-600 mt-1 italic">Update the XP field above and save to re-check eligibility.</p>
+                        </div>
+                    @endif
+                @endif
+            </div>
+            {{-- ═══════════════════════════════════════════════════════════ --}}
         </div>
 
         <!-- Form Submit & Cancel Actions -->
@@ -146,6 +268,13 @@
                 Update User
             </button>
         </div>
+    </form>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SEPARATE PROMOTE FORM (hidden — triggered by the Promote button above)
+    ═══════════════════════════════════════════════════════════ -->
+    <form id="promote-user-form" method="POST" action="{{ route('admin.users.promote', $user) }}" class="hidden">
+        @csrf
     </form>
 
 </main>

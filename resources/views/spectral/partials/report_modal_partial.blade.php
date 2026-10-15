@@ -5,7 +5,7 @@
 
     <!-- Modal Content -->
     <div class="relative ecto-modal-content w-full max-w-lg max-h-[94vh] flex flex-col select-none rounded-xl bg-[#151B23] border border-[#2A3440] shadow-2xl overflow-hidden">
-        
+
         <!-- Modal Header -->
         <div class="px-4 sm:px-5 py-3 border-b border-[#2A3440] flex items-center justify-between flex-shrink-0 bg-[#11161D]">
             <div class="flex items-center gap-2.5">
@@ -15,7 +15,7 @@
                     <p class="text-[10px] text-[#9CA3AF]">San Francisco, Agusan del Sur</p>
                 </div>
             </div>
-            <button onclick="SpectralUI.closeReportModal()" class="w-7 h-7 rounded-md bg-[#1B222C] hover:bg-[#222B38] text-[#9CA3AF] hover:text-white flex items-center justify-center text-sm font-bold transition">
+            <button type="button" onclick="SpectralUI.closeReportModal()" class="w-7 h-7 rounded-md bg-[#1B222C] hover:bg-[#222B38] text-[#9CA3AF] hover:text-white flex items-center justify-center text-sm font-bold transition">
                 &times;
             </button>
         </div>
@@ -24,7 +24,7 @@
         <form id="report-form" action="{{ route('spectral.incidents.store') }}" method="POST" enctype="multipart/form-data" onsubmit="SpectralUI.submitReport(event)" class="p-3.5 sm:p-5 overflow-y-auto space-y-3 sm:space-y-3.5 text-xs">
             @csrf
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <!-- Incident Type -->
                 <div class="space-y-1">
@@ -57,7 +57,7 @@
                 <input type="text" id="report-title" name="title" class="ecto-input bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-3 py-2 text-xs w-full focus:border-[#8B5CF6] focus:outline-none placeholder-slate-500" placeholder="e.g. Energy surge detected near Hubang..." required>
             </div>
 
-            <!-- Location Picker, Readable Address & Barangay Selector -->
+            <!-- Location Picker -->
             <div class="p-3.5 rounded-lg bg-[#11161D] border border-[#2A3440] space-y-2.5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -70,7 +70,6 @@
                     </button>
                 </div>
 
-                <!-- Address Lookup Loading Indicator -->
                 <div id="report-geocode-loading" class="hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 text-[#A78BFA] text-[11px]">
                     <svg class="animate-spin h-3.5 w-3.5 text-[#8B5CF6] flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -79,7 +78,6 @@
                     <span>Retrieving address via OpenStreetMap Nominatim...</span>
                 </div>
 
-                <!-- Address Lookup Fallback/Error Alert -->
                 <div id="report-geocode-error" class="hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px]">
                     <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -87,7 +85,6 @@
                     <span id="report-geocode-error-text">Address lookup unavailable. Exact coordinates retained.</span>
                 </div>
 
-                <!-- Readable Address & Location Review Card -->
                 <div id="report-location-review-card" class="rounded-lg bg-[#151B23] border border-[#2A3440] p-2.5 space-y-2">
                     <div class="space-y-1">
                         <div class="flex items-center justify-between">
@@ -99,7 +96,6 @@
                             placeholder="Address will be resolved automatically after picking location...">
                     </div>
 
-                    <!-- Location Hierarchy Review -->
                     <div class="grid grid-cols-2 gap-2 text-[11px]">
                         <div class="bg-[#11161D] p-2 rounded border border-[#2A3440]">
                             <span class="text-[9px] text-[#9CA3AF] block font-mono">Barangay</span>
@@ -111,7 +107,6 @@
                         </div>
                     </div>
 
-                    <!-- Confirmation Checkbox & Coordinates Display -->
                     <div class="pt-1.5 border-t border-[#2A3440] flex items-center justify-between gap-2">
                         <label class="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" id="report-location-confirmed" checked class="w-3.5 h-3.5 rounded bg-[#11161D] border-[#2A3440] text-[#8B5CF6] focus:ring-[#8B5CF6] focus:ring-offset-0">
@@ -121,7 +116,6 @@
                     </div>
                 </div>
 
-                <!-- Manual Fine-Tuning Coordinates & Barangay Selector -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                     <div class="space-y-1">
                         <label class="text-[10px] text-[#9CA3AF] font-mono">Barangay</label>
@@ -154,8 +148,7 @@
             <div class="space-y-2">
                 <label class="text-[11px] font-semibold text-slate-300">Evidence Photo (Optional)</label>
                 <input type="file" id="report-evidence-file" name="evidence" accept="image/*" onchange="SpectralUI.handleEvidenceUpload(this)" class="ecto-input file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#8B5CF6] file:text-white hover:file:bg-[#7C3AED]">
-                
-                <!-- Image Preview Card -->
+
                 <div id="report-evidence-preview-container" class="hidden relative rounded-lg border border-[#2A3440] bg-[#11161D] p-2 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <img id="report-evidence-preview" src="" alt="Preview" class="w-16 h-12 object-cover rounded-md border border-[#2A3440]">
@@ -172,12 +165,31 @@
                 <button type="button" onclick="SpectralUI.closeReportModal()" class="px-4 py-2 bg-[#1B222C] hover:bg-[#222B38] text-slate-300 font-semibold rounded-lg text-xs transition">
                     Cancel
                 </button>
-                <button type="submit" class="px-5 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold rounded-lg text-xs shadow-md shadow-[#8B5CF6]/20 transition">
-                    Submit Report
+                <button type="submit" id="report-submit-btn" class="px-5 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-semibold rounded-lg text-xs shadow-md shadow-[#8B5CF6]/20 transition flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                    <svg id="report-submit-spinner" class="hidden animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span id="report-submit-label">Submit Report</span>
                 </button>
             </div>
-
         </form>
+    </div>
+</div>
 
+{{-- ═══ FULL-SCREEN "PLEASE WAIT" OVERLAY (shows during submit) ═══ --}}
+<div id="report-processing-overlay" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="flex flex-col items-center gap-4 px-8 py-7 rounded-2xl bg-[#151B23] border border-[#2A3440] shadow-2xl max-w-xs text-center">
+        <div class="relative flex items-center justify-center w-16 h-16">
+            {{-- Spinning ring --}}
+            <div class="absolute inset-0 rounded-full border-4 border-[#8B5CF6]/20 border-t-[#8B5CF6] animate-spin"></div>
+            {{-- Inner pulse dot --}}
+            <div class="w-3 h-3 rounded-full bg-[#8B5CF6] animate-pulse"></div>
+        </div>
+        <div class="space-y-1">
+            <p class="text-sm font-bold text-white">Please wait...</p>
+            <p class="text-[11px] text-slate-400">Submitting your report</p>
+        </div>
+        <p class="text-[10px] text-slate-600 font-mono" id="report-processing-timer">Do not refresh or close this window</p>
     </div>
 </div>

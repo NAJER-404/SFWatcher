@@ -69,6 +69,41 @@
         if ($s['done']) { $currentIndex = $i; }
     }
     $currentLabel = $steps[$currentIndex]['label'];
+
+    // ── Response Progress data (replaces Anomaly Condition) ──
+    $responseProgress = $latestAssignment?->response_progress ?? ($incident->response_progress ?? 0);
+    $responseProgress = max(0, min(100, (int) $responseProgress));
+
+    $responseTimeLeft = null;
+    if ($latestAssignment?->response_deadline) {
+        $secsLeft = max(0, now()->diffInSeconds($latestAssignment->response_deadline, false));
+        $responseTimeLeft = $secsLeft > 0 ? sprintf('%d:%02d', intdiv($secsLeft, 60), $secsLeft % 60) : '00:00';
+    }
+
+    $responseStatusText = $latestAssignment
+        ? match ($latestAssignment->status) {
+            'ACTIVE'    => 'Under Response',
+            'ASSIGNED'  => 'Responder Assigned',
+            'ACCEPTED'  => 'Responder En Route',
+            'COMPLETED' => 'Neutralized',
+            default     => $latestAssignment->status,
+        }
+        : ($incident->status === 'VERIFIED' ? 'Confirmed — Awaiting Responder' : $incident->status);
+
+    // Progress color band
+    if ($responseProgress >= 100) {
+        $progressBar = 'bg-emerald-500';
+        $progressText = 'text-emerald-400';
+    } elseif ($responseProgress >= 60) {
+        $progressBar = 'bg-teal-500';
+        $progressText = 'text-teal-300';
+    } elseif ($responseProgress >= 30) {
+        $progressBar = 'bg-amber-500';
+        $progressText = 'text-amber-400';
+    } else {
+        $progressBar = 'bg-rose-500';
+        $progressText = 'text-rose-400';
+    }
 @endphp
 
 @section('content')
@@ -235,13 +270,6 @@
                         </div>
                         <div class="flex items-center justify-between gap-3 py-3">
                             <dt class="flex items-center gap-2 text-slate-500">
-                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                Reported by
-                            </dt>
-                            <dd class="text-right font-medium text-white">{{ $incident->reporter->name ?? 'Civilian Observer' }}</dd>
-                        </div>
-                        <div class="flex items-center justify-between gap-3 py-3">
-                            <dt class="flex items-center gap-2 text-slate-500">
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                                 Last updated
                             </dt>
@@ -251,64 +279,44 @@
                 </section>
             </div>
 
-            {{-- Anomaly condition — only once the report is confirmed --}}
-            @if(in_array($incident->status, ['VERIFIED', 'RESOLVED']))
-            @php
-                $anomalyMaxVal  = $latestAssignment?->anomaly_max_hp ?: ($incident->anomaly_max_hp ?: config('spectral_response.anomaly_hp.' . $incident->severity, 100));
-                $anomalyHpVal   = $latestAssignment?->anomaly_hp !== null ? $latestAssignment->anomaly_hp : ($incident->anomaly_hp !== null ? $incident->anomaly_hp : $anomalyMaxVal);
-                $anomalyPctLeft = $anomalyMaxVal > 0 ? max(0, min(100, round(($anomalyHpVal / $anomalyMaxVal) * 100))) : 100;
-                $hpText         = $anomalyPctLeft <= 25 ? 'text-emerald-400' : ($anomalyPctLeft <= 60 ? 'text-yellow-400' : 'text-rose-400');
-                $hpBar          = $anomalyPctLeft <= 25 ? 'bg-emerald-500' : ($anomalyPctLeft <= 60 ? 'bg-yellow-500' : 'bg-rose-500');
-                $responseProgress = $latestAssignment?->response_progress ?? ($incident->response_progress ?? 0);
-
-                $responseTimeLeft = null;
-                if ($latestAssignment?->response_deadline) {
-                    $secsLeft = max(0, now()->diffInSeconds($latestAssignment->response_deadline, false));
-                    $responseTimeLeft = $secsLeft > 0 ? sprintf('%d:%02d', intdiv($secsLeft, 60), $secsLeft % 60) : '00:00';
-                }
-
-                $responseStatusText = $latestAssignment
-                    ? match ($latestAssignment->status) {
-                        'ACTIVE'    => 'Under Response',
-                        'ASSIGNED'  => 'Responder Assigned',
-                        'ACCEPTED'  => 'Responder En Route',
-                        'COMPLETED' => 'Neutralized',
-                        default     => $latestAssignment->status,
-                    }
-                    : ($incident->status === 'VERIFIED' ? 'Confirmed — Awaiting Responder' : $incident->status);
-            @endphp
-            <section class="{{ $card }} p-5 space-y-4 font-mono" aria-labelledby="anomaly-heading">
+            {{-- ═══ RESPONSE PROGRESS (replaces Anomaly Condition) ═══ --}}
+            @if(in_array($incident->status, ['VERIFIED', 'RESOLVED']) || $latestAssignment)
+            <section class="{{ $card }} p-5 space-y-4 font-mono" aria-labelledby="response-heading">
                 <div class="flex items-center justify-between border-b border-[#1E2631] pb-2.5">
-                    <h2 id="anomaly-heading" class="text-xs font-bold uppercase tracking-wider text-white">ANOMALY CONDITION</h2>
+                    <h2 id="response-heading" class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white">
+                        <svg class="h-4 w-4 text-[#A78BFA]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                        Response Progress
+                    </h2>
                     <span class="text-[10px] text-slate-500">{{ $responseStatusText }}</span>
                 </div>
 
-                <div class="space-y-1.5">
+                <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold uppercase text-slate-500">HP</span>
-                        <span class="text-lg font-extrabold {{ $hpText }}">{{ $anomalyHpVal }} / {{ $anomalyMaxVal }}</span>
+                        <span class="text-[10px] font-bold uppercase text-slate-500">Completion</span>
+                        <span class="text-lg font-extrabold {{ $progressText }}">{{ $responseProgress }}%</span>
                     </div>
                     <div class="h-3 w-full overflow-hidden rounded-full border border-[#2A3440] bg-[#11161D]">
-                        <div class="h-full {{ $hpBar }} transition-all duration-500" style="width: {{ $anomalyPctLeft }}%;"></div>
+                        <div class="h-full {{ $progressBar }} transition-all duration-500" style="width: {{ $responseProgress }}%;"></div>
                     </div>
                 </div>
 
-                <div class="space-y-2 border-t border-[#1E2631] pt-3 text-[11px]">
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Response progress</span>
-                        <strong class="text-emerald-400">{{ $responseProgress }}%</strong>
+                <div class="grid grid-cols-2 gap-3 border-t border-[#1E2631] pt-3 text-[11px]">
+                    <div class="space-y-1">
+                        <p class="text-slate-500">Responder</p>
+                        <p class="truncate font-semibold text-white">
+                            {{ $latestAssignment?->responder?->name ?? '—' }}
+                        </p>
                     </div>
-                    <div class="h-1.5 w-full overflow-hidden rounded-full border border-[#2A3440] bg-[#11161D]">
-                        <div class="h-full bg-emerald-500 transition-all duration-500" style="width: {{ $responseProgress }}%;"></div>
-                    </div>
-                    <div class="flex justify-between pt-1">
-                        <span class="text-slate-500">Time remaining</span>
-                        <strong class="text-[#A78BFA]">
+                    <div class="space-y-1">
+                        <p class="text-slate-500">Time remaining</p>
+                        <p class="font-semibold text-[#A78BFA]">
                             @if($responseTimeLeft) {{ $responseTimeLeft }}
                             @elseif($latestAssignment && in_array($latestAssignment->status, ['ASSIGNED', 'ACCEPTED'])) Begins on deployment
                             @else --:--
                             @endif
-                        </strong>
+                        </p>
                     </div>
                 </div>
             </section>

@@ -166,6 +166,13 @@ class InvestigatorDashboardController extends Controller
      * "Commit Update" after assigning a responder no longer creates a fake
      * "Status updated from VERIFIED to VERIFIED" entry.
      */
+        /**
+     * Update incident status, severity, and record investigation note.
+     *
+     * Only writes / logs / awards XP when something ACTUALLY changed, so pressing
+     * "Commit Update" after assigning a responder no longer creates a fake
+     * "Status updated from VERIFIED to VERIFIED" entry.
+     */
     public function updateIncident(Request $request, $id)
     {
         $incident = Incident::where('id', $id)
@@ -220,6 +227,9 @@ class InvestigatorDashboardController extends Controller
 
         $statusChanged   = $oldStatus !== $validated['status'];
         $severityChanged = $oldSeverity !== $newSeverity;
+
+        // 🆕 Detect: Was this ONLY a note being written?
+        $notesOnly = ! $statusChanged && ! $severityChanged && $userNote !== '';
 
         // Has the form's responder actually changed? (After the AJAX assign modal the
         // hidden responder_id already matches the saved assignment, so this is false.)
@@ -305,6 +315,11 @@ class InvestigatorDashboardController extends Controller
         $logResult = $validated['status'];
         $noteText  = $userNote;
 
+        // 🆕 If this was ONLY a note, mark it as a NOTE, not a status change
+        if ($notesOnly) {
+            $logResult = 'NOTE';
+        }
+
         if ($noteText === '') {
             if ($statusChanged) {
                 $noteText = "Status updated from {$oldStatus} to {$validated['status']}";
@@ -358,9 +373,20 @@ class InvestigatorDashboardController extends Controller
             }
         }
 
-        $successMsg = $assignedResponder
-            ? "Incident {$incident->incident_code} successfully assigned to {$assignedResponder->name}."
-            : "Incident {$incident->incident_code} successfully updated to {$incident->status}.";
+        // ── 🆕 Build an ACCURATE success message based on what actually happened ──
+        if ($assignedResponder) {
+            $successMsg = "Incident {$incident->incident_code} successfully assigned to {$assignedResponder->name}.";
+        } elseif ($notesOnly) {
+            $successMsg = "Investigation notes saved for {$incident->incident_code}.";
+        } elseif ($statusChanged && $severityChanged) {
+            $successMsg = "Incident {$incident->incident_code} updated — status: {$incident->status}, severity: {$newSeverity}.";
+        } elseif ($statusChanged) {
+            $successMsg = "Incident {$incident->incident_code} updated to {$incident->status}.";
+        } elseif ($severityChanged) {
+            $successMsg = "Severity for {$incident->incident_code} updated to {$newSeverity}.";
+        } else {
+            $successMsg = "Incident {$incident->incident_code} saved.";
+        }
 
         return redirect()->back()->with('success', $successMsg);
     }

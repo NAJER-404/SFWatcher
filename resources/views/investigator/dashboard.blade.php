@@ -186,9 +186,6 @@
 
                 <!-- Investigation Notes Form -->
                 <div class="pt-2 border-t border-[#2A3440] space-y-3">
-                    <input type="hidden" id="update-status-sel" value="">
-                    <input type="hidden" id="update-sev-sel" value="">
-
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block text-[10px] font-mono text-[#64748B] uppercase">Investigation Notes</label>
@@ -490,9 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('dp-desc').textContent = inc.description || 'No additional details provided.';
 
-        // Pre-fill Update inputs
-        document.getElementById('update-status-sel').value = inc.status;
-        document.getElementById('update-sev-sel').value    = inc.severity;
+        // Clear notes input (no more auto-filling hidden status/severity — those are gone)
         document.getElementById('update-notes-input').value = '';
         document.getElementById('notes-char-count').textContent = '0/500';
 
@@ -664,15 +659,37 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ─── 11. INLINE STATUS & NOTES SUBMISSION ─────────────────────────────
+    // 🎯 FIXED: Only sends fields that are explicitly being changed.
+    // If called from the "Save Update" button (no argument) → sends ONLY notes.
+    // If called with a status argument (from a status-change button) → sends both.
     window.submitStatusUpdate = function(forcedStatus) {
         if (!activeIncident) return;
 
-        const statusEl = document.getElementById('update-status-sel');
-        const sevEl    = document.getElementById('update-sev-sel');
-        const status   = forcedStatus || (statusEl && statusEl.value ? statusEl.value : activeIncident.status);
-        const severity = (sevEl && sevEl.value) ? sevEl.value : activeIncident.severity;
-        const notesEl  = document.getElementById('update-notes-input');
-        const notes    = notesEl ? notesEl.value : '';
+        const notesEl = document.getElementById('update-notes-input');
+        const notes   = notesEl ? notesEl.value.trim() : '';
+
+        // Build the payload — ONLY send fields that are explicitly being changed
+        const fields = [];
+
+        // 📝 Always send notes (this is what the Save button is for)
+        if (notes.length > 0) {
+            fields.push(['notes', notes]);
+        }
+
+        // 🔄 Only send status if it was passed EXPLICITLY (from review page buttons)
+        if (forcedStatus) {
+            fields.push(['status', forcedStatus]);
+        }
+
+        // ⚠️ Guard: If nothing was changed, warn the user
+        if (fields.length === 0) {
+            if (typeof SpectralUI !== 'undefined' && typeof SpectralUI.showToast === 'function') {
+                SpectralUI.showToast('Please write a note before saving.');
+            } else {
+                alert('Please write a note before saving.');
+            }
+            return;
+        }
 
         const form = document.createElement('form');
         form.method = 'POST';
@@ -688,12 +705,6 @@ document.addEventListener('DOMContentLoaded', () => {
         method.name  = '_method';
         method.value = 'PUT';
         form.appendChild(method);
-
-        const fields = [
-            ['status', status],
-            ['severity', severity],
-            ['notes', notes]
-        ];
 
         fields.forEach(([k, v]) => {
             const inp = document.createElement('input');

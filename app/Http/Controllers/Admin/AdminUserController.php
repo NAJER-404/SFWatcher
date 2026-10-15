@@ -296,12 +296,28 @@ class AdminUserController extends Controller
     /**
      * Promote Responder to Next Class
      */
+        /**
+     * Promote Responder to Next Class (accepts XP update in same request).
+     */
     public function promote(Request $request, User $user)
     {
         $currentAdmin = Auth::guard('admin')->user() ?? Auth::user();
 
         if (! $user->isResponder()) {
             return back()->withErrors(['promotion' => 'Only accounts with the Responder role can be promoted.']);
+        }
+
+        // 🆕 If the modal sent an updated XP value, persist it first
+        if ($request->filled('xp')) {
+            $user->xp = max(0, (int) $request->input('xp'));
+        }
+
+        // 🆕 If the modal sent an updated class, use it (prevents stale-class bug)
+        if ($request->filled('responder_class')) {
+            $requestedClass = strtoupper($request->input('responder_class'));
+            if (in_array($requestedClass, ['D', 'C', 'B', 'A'])) {
+                $user->responder_class = $requestedClass;
+            }
         }
 
         $fromClass = strtoupper($user->responder_class ?? 'D');
@@ -316,21 +332,33 @@ class AdminUserController extends Controller
             return back()->withErrors(['promotion' => "Responder {$user->name} is already at the maximum Class A tier."]);
         }
 
-        $requiredXp = config("spectral_response.classes.{$fromClass}.promotion_xp");
+        $requiredXp = config("spectral_response.classes.{$fromClass}.promotion_xp", null);
+
+        // Fallback defaults in case config is missing
+        if ($requiredXp === null) {
+            $requiredXp = match ($fromClass) {
+                'D' => 100,
+                'C' => 150,
+                'B' => 250,
+                default => null,
+            };
+        }
+
         if ($requiredXp !== null && $user->xp < $requiredXp) {
-            // Check if admin is overriding or normal promotion
             if (! $request->boolean('force')) {
-                return back()->withErrors(['promotion' => "Responder has {$user->xp} XP but requires {$requiredXp} XP to qualify for Class {$nextClass}."]);
+                return back()->withErrors([
+                    'promotion' => "Responder has {$user->xp} XP but requires {$requiredXp} XP to qualify for Class {$nextClass}."
+                ]);
             }
         }
 
         DB::transaction(function () use ($user, $fromClass, $nextClass, $currentAdmin) {
             PromotionHistory::create([
-                'user_id'          => $user->id,
-                'promoted_by'      => $currentAdmin->id,
-                'from_class'       => $fromClass,
-                'to_class'         => $nextClass,
-                'xp_at_promotion'  => $user->xp,
+                'user_id'         => $user->id,
+                'promoted_by'     => $currentAdmin->id,
+                'from_class'      => $fromClass,
+                'to_class'        => $nextClass,
+                'xp_at_promotion' => $user->xp,
             ]);
 
             $user->responder_class = $nextClass;
@@ -353,9 +381,8 @@ class AdminUserController extends Controller
             ]);
         });
 
-        return back()->with('success', "Promotion approved. {$user->name} is now Class {$nextClass}. Maximum HP updated to " . config("spectral_response.classes.{$nextClass}.responder_hp") . " HP.");
+        return back()->with('success', "Promotion approved. {$user->name} is now Class {$nextClass}. Maximum HP updated to " . config("spectral_response.classes.{$nextClass}.responder_hp", 100) . " HP.");
     }
-
     /**
      * Manual Responder Class update by Admin
      */

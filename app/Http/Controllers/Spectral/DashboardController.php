@@ -93,12 +93,16 @@ class DashboardController extends Controller
                 return $notif;
             });
 
+        // ✅ Full merged list (before limiting for display)
         $allNotifications = $notifications->concat($rejectedNotifs)
             ->sortByDesc('updated_at')
-            ->values()
-            ->take(8);
+            ->values();
 
+        // ✅ Count unread from the FULL list
         $unreadNotifCount = $allNotifications->where('is_read', false)->count();
+
+        // ✅ But only DISPLAY the top 8 in the dropdown
+        $notifications = $allNotifications->take(8);
 
         $stats = [
             'total_incidents'    => $incidents->count(),
@@ -114,7 +118,7 @@ class DashboardController extends Controller
         ];
 
         return compact(
-            'incidents', 'wardStations', 'safeWardStations', 'resources', 'barangays', 'equipment', 'stats', 'notifications'
+            'incidents', 'wardStations', 'safeWardStations', 'resources', 'barangays', 'equipment', 'stats', 'notifications', 'unreadNotifCount'
         );
     }
 
@@ -165,11 +169,9 @@ class DashboardController extends Controller
                     'is_read'       => in_array($inc->id, $readNotifs),
                 ];
             })
-            ->values()
-            ->take(8);
+            ->values();
 
-        $unreadNotifCount = $notifications->where('is_read', false)->count();
-
+        // Merge rejected notifications from cache
         $rejectedCached = Cache::get("user_notifications_{$userId}", []);
         if (!empty($rejectedCached)) {
             $rejectedMapped = collect($rejectedCached)->map(function ($n) use ($readNotifs) {
@@ -185,9 +187,14 @@ class DashboardController extends Controller
                     'is_read'       => in_array((string) ($n['incident_id'] ?? ''), array_map('strval', $readNotifs)),
                 ];
             });
-            $notifications = $notifications->concat($rejectedMapped)->take(8);
-            $unreadNotifCount = $notifications->where('is_read', false)->count();
+            $notifications = $notifications->concat($rejectedMapped);
         }
+
+        // ✅ Count unread from the FULL list (before limiting)
+        $unreadNotifCount = $notifications->where('is_read', false)->count();
+
+        // ✅ Then limit for dropdown display
+        $notifications = $notifications->sortByDesc('updated_at')->values()->take(8);
 
         $stats = [
             'total_incidents'    => $allIncidents->count(),
@@ -200,7 +207,7 @@ class DashboardController extends Controller
             'notifications'      => $unreadNotifCount,
         ];
 
-        return view('spectral.my_reports', compact('incidents', 'notifications', 'stats'));
+        return view('spectral.my_reports', compact('incidents', 'notifications', 'stats', 'unreadNotifCount'));
     }
 
     public function profile()
@@ -232,11 +239,9 @@ class DashboardController extends Controller
                     'is_read'       => in_array($inc->id, $readNotifs),
                 ];
             })
-            ->values()
-            ->take(8);
+            ->values();
 
-        $unreadNotifCount = $notifications->where('is_read', false)->count();
-
+        // Merge rejected notifications from cache
         $rejectedCached = Cache::get("user_notifications_{$userId}", []);
         if (!empty($rejectedCached)) {
             $rejectedMapped = collect($rejectedCached)->map(function ($n) use ($readNotifs) {
@@ -252,9 +257,14 @@ class DashboardController extends Controller
                     'is_read'       => in_array((string) ($n['incident_id'] ?? ''), array_map('strval', $readNotifs)),
                 ];
             });
-            $notifications = $notifications->concat($rejectedMapped)->take(8);
-            $unreadNotifCount = $notifications->where('is_read', false)->count();
+            $notifications = $notifications->concat($rejectedMapped);
         }
+
+        // ✅ Count unread from the FULL list (before limiting)
+        $unreadNotifCount = $notifications->where('is_read', false)->count();
+
+        // ✅ Then limit for dropdown display
+        $notifications = $notifications->sortByDesc('updated_at')->values()->take(8);
 
         $stats = [
             'total_incidents'    => $allIncidents->count(),
@@ -265,7 +275,7 @@ class DashboardController extends Controller
             'notifications'      => $unreadNotifCount,
         ];
 
-        return view('spectral.reporter_profile', compact('incidents', 'stats', 'user', 'notifications'));
+        return view('spectral.reporter_profile', compact('incidents', 'stats', 'user', 'notifications', 'unreadNotifCount'));
     }
 
     public function updatePassword(Request $request)
@@ -291,7 +301,7 @@ class DashboardController extends Controller
         return redirect()->back()->with('success', 'Password updated successfully.');
     }
 
-        /**
+    /**
      * Full notification center for reporters.
      */
     public function notifications(Request $request)
@@ -299,7 +309,6 @@ class DashboardController extends Controller
         $userId = Auth::id();
         $readNotifs = session('read_notifications', []);
 
-        // ── 1. Get user's incidents ─────────────────────────────────
         $incidents = Incident::with(['barangay', 'investigations.investigator'])
             ->where(function ($query) use ($userId) {
                 $query->where('reported_by', $userId)
@@ -310,7 +319,6 @@ class DashboardController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
-        // ── 2. Build notifications from incidents ─────────────────────
         $notifications = $incidents
             ->filter(fn($inc) => $inc->investigations->isNotEmpty())
             ->map(function ($inc) use ($readNotifs) {
@@ -321,13 +329,13 @@ class DashboardController extends Controller
                     'title'         => 'Update on ' . $inc->incident_code,
                     'message'       => $latest?->notes ?? 'Status changed to ' . $inc->status,
                     'incident_code' => $inc->incident_code,
+                    'incident_id'   => $inc->id,
                     'link'          => route('spectral.incidents.show', $inc->id),
                     'created_at'    => $latest?->investigation_date ?? $inc->updated_at,
                     'read'          => in_array($inc->id, $readNotifs),
                 ];
             });
 
-        // ── 3. Merge rejected notifications from cache ────────────────
         $rejectedCached = collect(Cache::get("user_notifications_{$userId}", []))
             ->map(function ($n) use ($readNotifs) {
                 return (object) [
@@ -336,6 +344,7 @@ class DashboardController extends Controller
                     'title'         => 'Report Rejected',
                     'message'       => $n['notes'] ?? 'Your report was rejected by an investigator.',
                     'incident_code' => $n['incident_code'] ?? 'N/A',
+                    'incident_id'   => $n['incident_id'] ?? null,
                     'link'          => isset($n['incident_id']) ? route('spectral.incidents.show', $n['incident_id']) : null,
                     'created_at'    => \Carbon\Carbon::parse($n['updated_at'] ?? now()),
                     'read'          => in_array((string)($n['incident_id'] ?? ''), array_map('strval', $readNotifs)),
@@ -344,11 +353,9 @@ class DashboardController extends Controller
 
         $all = $notifications->concat($rejectedCached)->sortByDesc('created_at')->values();
 
-        // ── 4. Counts (before filtering) ──────────────────────────────
         $totalCount  = $all->count();
         $unreadCount = $all->where('read', false)->count();
 
-        // ── 5. Apply filter tab ────────────────────────────────────────
         $filter = $request->input('filter');
         if ($filter === 'unread') {
             $all = $all->where('read', false)->values();
@@ -356,7 +363,6 @@ class DashboardController extends Controller
             $all = $all->where('read', true)->values();
         }
 
-        // ── 6. Manual Pagination ───────────────────────────────────────
         $perPage = 20;
         $page    = (int) $request->input('page', 1);
         $sliced  = $all->slice(($page - 1) * $perPage, $perPage)->values();
@@ -372,4 +378,3 @@ class DashboardController extends Controller
         return view('spectral.notifications', compact('notifications', 'totalCount', 'unreadCount'));
     }
 }
-

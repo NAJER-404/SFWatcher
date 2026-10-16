@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Barangay;
-use App\Models\Equipment;
 use App\Models\Incident;
 use App\Models\IncidentEvidence;
 use App\Models\Investigation;
@@ -456,59 +455,6 @@ class SpectralSeeder extends Seeder
 
         foreach ($resourceData as $r) {
             Resource::updateOrCreate(['name' => $r['name']], $r);
-        }
-
-        // 6. Seed Equipment Catalog
-        $equipmentData = [
-            [
-                'name'        => 'Aegis-IV Spirit Ward Generator',
-                'description' => 'Industrial-grade harmonic ward generator capable of maintaining a 1.2km containment field at 432 THz.',
-                'category'    => 'Ward Devices',
-                'price'       => 45000.00,
-                'stock'       => 8,
-                'status'      => 'in_stock',
-                'image'       => null,
-            ],
-            [
-                'name'        => 'Heavy-Grade Soul Anchor Mark III',
-                'description' => 'Dense lead-tungsten alloy stabilizer designed to tether planar disturbances and prevent ethereal manifestation.',
-                'category'    => 'Containment Units',
-                'price'       => 18500.00,
-                'stock'       => 15,
-                'status'      => 'in_stock',
-                'image'       => null,
-            ],
-            [
-                'name'        => 'Ecto-Spectrometric Field Scanner',
-                'description' => 'High-precision handheld scanner for measuring localized ectoplasmic density and spirit residue purity.',
-                'category'    => 'Spectral Equipment',
-                'price'       => 32000.00,
-                'stock'       => 12,
-                'status'      => 'in_stock',
-                'image'       => null,
-            ],
-            [
-                'name'        => 'Portable Ghost Containment Vessel',
-                'description' => 'Reinforced vacuum-sealed cylinder with triple spirit ward lining for transport of active entities.',
-                'category'    => 'Containment Units',
-                'price'       => 24000.00,
-                'stock'       => 20,
-                'status'      => 'in_stock',
-                'image'       => null,
-            ],
-            [
-                'name'        => 'Electromagnetic Resonance Detector (EMF-7)',
-                'description' => 'Multi-band spirit frequency detector with audio-visual telemetry feedback and GPS logging.',
-                'category'    => 'Ghost-Hunting Gadgets',
-                'price'       => 8500.00,
-                'stock'       => 35,
-                'status'      => 'in_stock',
-                'image'       => null,
-            ],
-        ];
-
-        foreach ($equipmentData as $eq) {
-            Equipment::updateOrCreate(['name' => $eq['name']], $eq);
         }
     }
 }

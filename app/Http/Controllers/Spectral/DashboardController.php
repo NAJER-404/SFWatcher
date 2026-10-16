@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Spectral;
 
 use App\Http\Controllers\Controller;
 use App\Models\Barangay;
-use App\Models\Equipment;
 use App\Models\Incident;
 use App\Models\Resource;
 use App\Models\WardStation;
@@ -104,7 +103,6 @@ class DashboardController extends Controller
         $wardStations = WardStation::with('barangay')->get();
         $resources    = Resource::with('barangay')->get();
         $barangays    = Barangay::orderBy('name')->get();
-        $equipment    = Equipment::all();
 
         $userId = Auth::id();
 
@@ -168,7 +166,7 @@ class DashboardController extends Controller
         ];
 
         return compact(
-            'incidents', 'wardStations', 'safeWardStations', 'resources', 'barangays', 'equipment', 'stats', 'notifications', 'unreadNotifCount'
+            'incidents', 'wardStations', 'safeWardStations', 'resources', 'barangays', 'stats', 'notifications', 'unreadNotifCount'
         );
     }
 

@@ -3,7 +3,6 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Spectral\DashboardController;
-use App\Http\Controllers\Spectral\EquipmentController;
 use App\Http\Controllers\Spectral\IncidentController;
 use App\Http\Controllers\Spectral\ResourceController;
 use App\Http\Controllers\Spectral\WardStationController;
@@ -204,8 +203,5 @@ Route::middleware('auth')->group(function () {
 
     // ─── Spectral Resources & Ectoplasmic Energy ───────────────────────────
     Route::get('/resources', [ResourceController::class, 'index'])->name('spectral.resources.index');
-
-    // ─── Supernatural Technology & Equipment ───────────────────────────────
-    Route::get('/equipment', [EquipmentController::class, 'index'])->name('spectral.equipment.index');
 
 });

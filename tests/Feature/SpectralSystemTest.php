@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Barangay;
-use App\Models\Equipment;
 use App\Models\Incident;
 use App\Models\IncidentEvidence;
 use App\Models\Investigation;
@@ -146,11 +145,10 @@ class SpectralSystemTest extends TestCase
         $statsResponse->assertJson(['success' => true]);
     }
 
-    public function test_ward_resources_and_equipment_pages(): void
+    public function test_ward_and_resources_pages(): void
     {
         $this->actingAs($this->investigator)->get('/wards')->assertStatus(200)->assertSee('Hubang Master Spirit Ward Station');
         $this->actingAs($this->investigator)->get('/resources')->assertStatus(200)->assertSee('Hubang Ectoplasm Well #1');
-        $this->actingAs($this->investigator)->get('/equipment')->assertStatus(200)->assertSee('Aegis-IV Spirit Ward Generator');
     }
 }
 

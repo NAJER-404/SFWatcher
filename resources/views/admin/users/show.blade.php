@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'User Profile: ' . $user->name . ' — SpectraWatch Admin')
+@section('title', 'User Profile: ' . $user->name . ' — SFWatch Admin')
 
 @section('content')
 <main class="flex-1 overflow-y-auto p-3.5 sm:p-6 md:p-8 space-y-6 max-w-6xl mx-auto w-full font-mono">

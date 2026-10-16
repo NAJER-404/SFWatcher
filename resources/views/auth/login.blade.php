@@ -132,7 +132,7 @@
     <div class="auth-card">
 
         <div class="auth-brand">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra">
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch">
             <span class="auth-brand-name">SFWatch</span>
         </div>
 

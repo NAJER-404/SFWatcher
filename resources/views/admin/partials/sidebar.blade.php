@@ -117,7 +117,7 @@
     <!-- Sidebar Footer -->
     <div class="sb-footer px-4 py-3 border-t border-[#2A3440] bg-[#11161D]">
         <div class="sb-center flex items-center gap-2">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="SpectraWatch" class="w-5 h-5 object-contain opacity-70 flex-shrink-0">
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch" class="w-5 h-5 object-contain opacity-70 flex-shrink-0">
             <div class="sb-label leading-tight">
                 <p class="text-[10px] font-semibold text-[#8B5CF6]">SFWatch Admin Panel</p>
                 <p class="text-[9px] text-[#64748B]">San Francisco, Agusan del Sur</p>

@@ -223,7 +223,7 @@
     <!-- Sidebar Footer -->
     <div class="sb-footer px-4 py-3 border-t border-[#1a2130] bg-[#0b0f17]">
         <div class="sb-center flex items-center gap-2">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra" class="w-5 h-5 object-contain opacity-40 flex-shrink-0">
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch" class="w-5 h-5 object-contain opacity-40 flex-shrink-0">
             <div class="sb-label leading-tight">
                 <p class="text-[9px] font-semibold text-[#3d4e5f]">Safer Communities</p>
                 <p class="text-[9px] text-[#2d3a4a]">Stronger Tomorrow</p>

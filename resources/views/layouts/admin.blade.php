@@ -83,7 +83,7 @@
             </button>
 
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 hover:opacity-90 transition">
-                <img src="{{ asset('images/spectra-logo.png') }}" alt="SpectraWatch" class="h-8 w-8 object-contain">
+                <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch" class="h-8 w-8 object-contain">
                 <span class="text-lg font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent">SFWatch</span>
             </a>
         </div>

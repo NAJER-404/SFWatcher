@@ -108,8 +108,8 @@
     <div class="auth-card">
 
         <div class="auth-brand">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra">
-            <span class="auth-brand-name">Spectra</span>
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch">
+            <span class="auth-brand-name">SFWatch</span>
         </div>
 
         <p class="auth-title">Create a new account</p>
@@ -212,7 +212,7 @@
         </div>
         <div style="padding:22px;overflow-y:auto;font-size:13px;line-height:1.6;color:#94A3B8;space-y:12px;">
             <h4 style="color:#E2E8F0;font-size:14px;margin-bottom:6px;">1. System Purpose & Community Conduct</h4>
-            <p style="margin-bottom:14px;">Spectra is a municipal GIS and incident monitoring network. By creating an account, you agree to report truthful, accurate observations and refrain from submitting fraudulent, hoax, or disruptive anomaly reports.</p>
+            <p style="margin-bottom:14px;">SFWatch is a municipal GIS and incident monitoring network. By creating an account, you agree to report truthful, accurate observations and refrain from submitting fraudulent, hoax, or disruptive anomaly reports.</p>
             
             <h4 style="color:#E2E8F0;font-size:14px;margin-bottom:6px;">2. Geographic & Device Data Privacy</h4>
             <p style="margin-bottom:14px;">When you submit field reports, geographic coordinates (latitude and longitude) and optional uploaded media are securely recorded to facilitate municipal response teams in San Francisco, Agusan del Sur. Personal email addresses are never sold or shared with external third parties.</p>

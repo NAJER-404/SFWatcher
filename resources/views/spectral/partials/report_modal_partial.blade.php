@@ -9,7 +9,7 @@
         <!-- Modal Header -->
         <div class="px-4 sm:px-5 py-3 border-b border-[#2A3440] flex items-center justify-between flex-shrink-0 bg-[#11161D]">
             <div class="flex items-center gap-2.5">
-                <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra" class="w-6 h-6 object-contain">
+                <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch" class="w-6 h-6 object-contain">
                 <div>
                     <h3 class="text-sm font-bold text-white tracking-wide">Report Incident</h3>
                     <p class="text-[10px] text-[#9CA3AF]">San Francisco, Agusan del Sur</p>

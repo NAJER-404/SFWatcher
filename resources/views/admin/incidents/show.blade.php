@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Incident ' . $incident->incident_code . ' Details — SpectraWatch Admin')
+@section('title', 'Incident ' . $incident->incident_code . ' Details — SFWatch Admin')
 
 @section('content')
 <main class="flex-1 overflow-y-auto p-3.5 sm:p-6 md:p-8 space-y-6 max-w-6xl mx-auto w-full">

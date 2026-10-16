@@ -33,7 +33,7 @@ class InvestigatorRoleTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('INVESTIGATOR LOGIN');
-        $response->assertSee('SpectraWatch');
+        $response->assertSee('SFWatch');
         $response->assertSee('Investigator Portal');
         $response->assertSee('Sign in as Reporter');
         $response->assertDontSee('Continue with Google');

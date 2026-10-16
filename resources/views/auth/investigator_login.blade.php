@@ -121,8 +121,8 @@
     <div class="auth-card" style="display:flex;flex-direction:column;">
 
         <div class="auth-brand">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="SpectraWatch">
-            <span class="auth-brand-name">SpectraWatch</span>
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch">
+            <span class="auth-brand-name">SFWatch</span>
             <span class="auth-subtitle">Investigator Portal</span>
         </div>
 

@@ -1,6 +1,6 @@
     @extends('layouts.admin')
 
-    @section('title', 'Dashboard — SpectraWatch')
+    @section('title', 'Dashboard — SFWatch')
 
     @php
         // ---- Incident pipeline (a real sequence) ----

@@ -119,8 +119,8 @@
     <div class="auth-card" style="display:flex;flex-direction:column;">
 
         <div class="auth-brand">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra">
-            <span class="auth-brand-name">Spectra</span>
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch">
+            <span class="auth-brand-name">SFWatch</span>
         </div>
 
         <p class="auth-title" style="margin-bottom:16px">Sign in to your account</p>

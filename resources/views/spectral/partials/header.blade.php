@@ -65,7 +65,7 @@
             </svg>
         </button>
         <a href="{{ route('spectral.dashboard') }}" class="flex items-center gap-[5px] hover:opacity-90 transition min-w-0">
-            <img src="{{ asset('images/spectra-logo.png') }}" alt="Spectra" class="h-9 w-9 object-contain flex-shrink-0">
+            <img src="{{ asset('images/spectra-logo.png') }}" alt="SFWatch" class="h-9 w-9 object-contain flex-shrink-0">
             <span class="text-xl font-extrabold tracking-wide font-sans bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] bg-clip-text text-transparent truncate">SFWatch</span>
         </a>
     </div>

@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\SocialAuthController;
-use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\Spectral\DashboardController;
 use App\Http\Controllers\Spectral\EquipmentController;
 use App\Http\Controllers\Spectral\IncidentController;
@@ -209,7 +208,4 @@ Route::middleware('auth')->group(function () {
     // ─── Supernatural Technology & Equipment ───────────────────────────────
     Route::get('/equipment', [EquipmentController::class, 'index'])->name('spectral.equipment.index');
 
-    // ─── Legacy Classroom CRUD (Preserved) ─────────────────────────────────
-    Route::get('/library', [LibraryController::class, 'index']);
-    Route::resource('librarys', LibraryController::class);
 });

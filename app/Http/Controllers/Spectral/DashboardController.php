@@ -32,24 +32,67 @@ class DashboardController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $safeWardStations = [
-            (object)[
-                'name'     => 'San Francisco Municipal Gymnasium Sanctuary',
-                'lat'      => 8.5098,
-                'lng'      => 125.9780,
-                'radius'   => 450,
-                'status'   => 'active',
-                'barangay' => 'Barangay 1',
-            ],
-            (object)[
-                'name'     => 'Hubang Transport Safe Haven',
-                'lat'      => 8.5310,
-                'lng'      => 125.9730,
-                'radius'   => 550,
-                'status'   => 'active',
-                'barangay' => 'Hubang',
-            ],
-        ];
+        // 🌐 Read safe zones from the ward_stations DB table (is_safe_zone = true)
+        $safeWardStations = WardStation::with('barangay')
+            ->where('status', 'active')
+            ->where('is_safe_zone', true)
+            ->get()
+            ->map(function ($ws) {
+                $radius = $ws->safe_zone_radius_meters
+                    ?? $ws->radius_meters
+                    ?? 450;
+
+                return (object) [
+                    'id'                    => $ws->id,
+                    'code'                  => $ws->code,
+                    'name'                  => $ws->name,
+                    'description'           => $ws->description,
+                    'lat'                   => (float) $ws->latitude,
+                    'lng'                   => (float) $ws->longitude,
+                    'radius'                => (float) $radius,
+                    'status'                => 'active',
+                    'barangay'              => $ws->barangay?->name ?? 'San Francisco',
+                    'address'               => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
+
+                    // 🆕 Safe zone details for Reporter Map popup
+                    'protection_expires_at' => $ws->ward_protection_expires_at
+                        ? $ws->ward_protection_expires_at->toIso8601String()
+                        : null,
+                    'protection_active'     => $ws->isProtectionActive(),
+                    'protection_time'       => $ws->protectionTimeRemaining(),
+                    'relief_food'           => $ws->relief_food ?? 'available',
+                    'relief_water'          => $ws->relief_water ?? 'available',
+                    'relief_first_aid'      => $ws->relief_first_aid ?? 'available',
+                    'assistance_services'   => $ws->assistance_services ?? [],
+                ];
+            })
+            ->all();
+
+        // 🛡️ Safety fallback — if the DB has no safe zones yet, keep the legacy pair
+        if (empty($safeWardStations)) {
+            $safeWardStations = [
+                (object)[
+                    'id'       => null,
+                    'code'     => 'LEGACY-1',
+                    'name'     => 'San Francisco Municipal Gymnasium Sanctuary',
+                    'lat'      => 8.5098,
+                    'lng'      => 125.9780,
+                    'radius'   => 450.0,
+                    'status'   => 'active',
+                    'barangay' => 'Barangay 1',
+                ],
+                (object)[
+                    'id'       => null,
+                    'code'     => 'LEGACY-2',
+                    'name'     => 'Hubang Transport Safe Haven',
+                    'lat'      => 8.5310,
+                    'lng'      => 125.9730,
+                    'radius'   => 550.0,
+                    'status'   => 'active',
+                    'barangay' => 'Hubang',
+                ],
+            ];
+        }
 
         $wardStations = WardStation::with('barangay')->get();
         $resources    = Resource::with('barangay')->get();

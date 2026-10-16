@@ -53,6 +53,15 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     // Overview
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard.index');
+        // Admin Live Map
+    Route::get('/map', [\App\Http\Controllers\Admin\AdminMapController::class, 'index'])->name('map');
+    Route::get('/safe-zones', [\App\Http\Controllers\Admin\AdminSafeZoneController::class, 'index'])->name('safe-zones.index');
+Route::get('/safe-zones/create', [\App\Http\Controllers\Admin\AdminSafeZoneController::class, 'create'])->name('safe-zones.create');
+Route::post('/safe-zones', [\App\Http\Controllers\Admin\AdminSafeZoneController::class, 'store'])->name('safe-zones.store');
+Route::get('/safe-zones/{id}/edit', [\App\Http\Controllers\Admin\AdminSafeZoneController::class, 'edit'])->name('safe-zones.edit');
+Route::put('/safe-zones/{id}', [\App\Http\Controllers\Admin\AdminSafeZoneController::class, 'update'])->name('safe-zones.update');
+Route::delete('/safe-zones/{id}', [\App\Http\Controllers\Admin\AdminSafeZoneController::class, 'destroy'])->name('safe-zones.destroy');
+Route::post('/safe-zones/{id}/toggle', [\App\Http\Controllers\Admin\AdminSafeZoneController::class, 'toggle'])->name('safe-zones.toggle');
 
     // User Management
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');

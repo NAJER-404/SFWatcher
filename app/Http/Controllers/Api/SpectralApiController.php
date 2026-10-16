@@ -209,6 +209,19 @@ class SpectralApiController extends Controller
             'evidence'      => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
+        // Validate against Safe Zone perimeter protection
+        $protection = \App\Services\SafeZoneService::checkProtection((float) $validated['latitude'], (float) $validated['longitude']);
+        if ($protection) {
+            return response()->json([
+                'success' => false,
+                'title'   => \App\Services\SafeZoneService::BLOCKED_TITLE,
+                'message' => \App\Services\SafeZoneService::BLOCKED_MESSAGE,
+                'errors'  => [
+                    'location' => [\App\Services\SafeZoneService::BLOCKED_MESSAGE],
+                ],
+            ], 422);
+        }
+
         $userId = \Illuminate\Support\Facades\Auth::id() ?? $request->user()?->id ?? \App\Models\User::where('role', 'reporter')->first()?->id ?? 1;
 
         $barangayId = $validated['barangay_id'] ?? null;

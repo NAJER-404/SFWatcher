@@ -110,7 +110,7 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-[#22C55E]"></span>
                             <span class="text-slate-200">Safe Ward Stations</span>
                         </span>
-                        <span class="text-[#22C55E] font-bold">2</span>
+                        <span class="text-[#22C55E] font-bold">{{ count($safeWardStations ?? []) }}</span>
                     </label>
                 </div>
             </div>
@@ -223,6 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const RAW_INCIDENTS = @json($incidents);
     const RAW_WARDS     = @json($wardStations);
     const RAW_RESOURCES = @json($resources);
+    // 🌐 Dynamic Safe Zones from the Controller
+    const SAFE_WARD_STATIONS = @json($safeWardStations ?? []);
 
     const incidentsMap = {};
     RAW_INCIDENTS.forEach(inc => { incidentsMap[inc.id] = inc; });
@@ -230,8 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeIncident = RAW_INCIDENTS.length > 0 ? RAW_INCIDENTS[0] : null;
 
     // ─── 2. LEAFLET SATELLITE MAP ENGINE ─────────────────────────────────
-    // Center: San Francisco, Agusan del Sur
-    // IMPORTANT: zoomControl is set to false so Leaflet doesn't render zoom controls at top-left over the search bar!
     const map = L.map('investigator-dashboard-map', {
         center: [8.5100, 125.9750],
         zoom: 14,
@@ -239,64 +239,156 @@ document.addEventListener('DOMContentLoaded', () => {
         attributionControl: true
     });
 
-    // Zoom controls explicitly positioned at TOP RIGHT (no overlap with search or filters!)
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Satellite Imagery Layer (Using clean OpenStreetMap attribution to prevent duplicate Leaflet text)
-    const satelliteLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+    L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         attribution: 'OpenStreetMap',
         subdomains: ['0', '1', '2', '3'],
         maxZoom: 20
-    });
-    satelliteLayer.addTo(map);
+    }).addTo(map);
 
-    // Layer Groups
     const layers = {
         incidents: L.layerGroup().addTo(map),
         wards:     L.layerGroup().addTo(map),
         safeZones: L.layerGroup().addTo(map),
-        resources: L.layerGroup() // unchecked by default
+        resources: L.layerGroup()
     };
 
-    // Scale Control on bottom left
     L.control.scale({ imperial: true, metric: true, position: 'bottomleft' }).addTo(map);
 
-    // ─── 3. RENDER SAFE WARD STATIONS ──────────────────────────────────────
-    const safeWardStations = [
-        { name: "San Francisco Municipal Gymnasium Sanctuary", lat: 8.5098, lng: 125.9780, radius: 450 },
-        { name: "Hubang Transport Safe Haven",                  lat: 8.5310, lng: 125.9730, radius: 550 }
-    ];
+    // ─── 3. HELPER FUNCTIONS FOR SAFE ZONE POPUP ───────────────────────
+    function formatProtectionTime(isoString) {
+        if (!isoString) return { text: 'No protection set', expired: true };
+        const expires = new Date(isoString);
+        const now = new Date();
+        const diffMs = expires - now;
+        if (diffMs <= 0) return { text: 'Protection Expired', expired: true };
 
-    safeWardStations.forEach(sz => {
-        // Green Safe Ward Station perimeter circle
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        if (days > 0) return { text: `${days}d ${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`, expired: false };
+        if (hours > 0) return { text: `${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`, expired: false };
+        return { text: `${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`, expired: false };
+    }
+
+    function suppliesBadge(status) {
+        const map = {
+            'available':    { color: '#22C55E', bg: 'rgba(34,197,94,0.15)',  border: 'rgba(34,197,94,0.4)',  label: 'Available' },
+            'limited':      { color: '#EAB308', bg: 'rgba(234,179,8,0.15)',  border: 'rgba(234,179,8,0.4)',  label: 'Limited' },
+            'out_of_stock': { color: '#EF4444', bg: 'rgba(239,68,68,0.15)',  border: 'rgba(239,68,68,0.4)',  label: 'Out of stock' }
+        };
+        const s = map[status] || map['available'];
+        return `<span style="display:inline-flex;align-items:center;justify-content:center;background:${s.bg};color:${s.color};border:1px solid ${s.border};font-size:10px;font-weight:700;padding:3px 10px;border-radius:5px;min-width:84px;height:22px;box-sizing:border-box;">${s.label}</span>`;
+    }
+
+    function icon(name, color, size = 12) {
+        const icons = {
+            clock:   `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+            box:     `<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>`,
+            coffee:  `<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>`,
+            droplet: `<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>`,
+            firstaid:`<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/>`,
+            heart:   `<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>`
+        };
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">${icons[name] || ''}</svg>`;
+    }
+
+    // ─── 4. RENDER SAFE WARD STATIONS (DYNAMIC FROM DB) ──────────────────
+    SAFE_WARD_STATIONS.forEach(sz => {
+        // ✅ GREEN RADIUS CIRCLE (This was missing!)
         const safeZoneCircle = L.circle([sz.lat, sz.lng], {
-            radius: Math.round(sz.radius * 0.30),
+            radius: Math.round(sz.radius),
             color: '#22C55E',
             weight: 1.5,
             fillColor: '#22C55E',
             fillOpacity: 0.08
         }).addTo(layers.safeZones);
 
-        // Safe Ward Station Marker (Shield icon)
         const szHtml = `
             <div style="width:28px; height:28px; border-radius:50%; background:#10B981; border:2px solid #34D399; box-shadow:0 0 10px rgba(16,185,129,0.8); display:flex; align-items:center; justify-content:center; cursor:pointer;" title="${sz.name}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>`;
         const szIcon = L.divIcon({ className: '', html: szHtml, iconSize: [28, 28], iconAnchor: [14, 14] });
         const m = L.marker([sz.lat, sz.lng], { icon: szIcon, zIndexOffset: 700 });
-        m.bindPopup(`
-            <div class="gis-custom-popup">
-                <span class="popup-code" style="color:#22C55E;">SAFE WARD STATION</span>
-                <h4 class="popup-title">${sz.name}</h4>
-                <p class="popup-meta">Active Safe Ward Station Perimeter</p>
-            </div>`, { className: 'gis-leaflet-popup' });
+
+        // ✅ DETAILED POPUP HTML (Matches Reporter Map)
+        const time = formatProtectionTime(sz.protection_expires_at);
+        const timeColor = time.expired ? '#EF4444' : '#22C55E';
+        const statusLabel = time.expired ? 'WARD OFFLINE' : 'WARD ACTIVE';
+        const statusDot = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${timeColor};box-shadow:0 0 6px ${timeColor};margin-right:5px;vertical-align:middle;"></span>`;
+        const services = sz.assistance_services || [];
+
+        const servicesHtml = services.length > 0
+            ? services.map(s => `<li style="display:flex;align-items:center;gap:7px;font-size:11px;color:#CBD5E1;margin-bottom:5px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>${s}</span>
+                </li>`).join('')
+            : '<li style="font-size:11px;color:#64748B;font-style:italic;">No assistance listed</li>';
+
+        const popupHtml = `
+            <div style="padding:14px 16px;min-width:290px;max-width:340px;font-family:'Plus Jakarta Sans',sans-serif;color:#F3F4F6;">
+                <div style="margin-bottom:12px;">
+                    <span style="display:inline-flex;align-items:center;color:${timeColor};font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;">
+                        ${statusDot}${statusLabel}
+                    </span>
+                    <h4 style="font-size:14px;font-weight:800;color:#FFFFFF;margin:5px 0 3px 0;line-height:1.25;">${sz.name}</h4>
+                    <p style="font-size:10.5px;color:#9CA3AF;margin:0;">${sz.description || sz.address}</p>
+                </div>
+
+                <div style="border-top:1px solid #2A3440;padding-top:11px;margin-bottom:11px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+                        ${icon('clock', '#A78BFA', 12)}
+                        <span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.06em;">Protection Remaining</span>
+                    </div>
+                    <p style="font-size:16px;font-weight:800;color:${timeColor};font-family:'JetBrains Mono',monospace;margin:0;line-height:1;">${time.text}</p>
+                </div>
+
+                <div style="border-top:1px solid #2A3440;padding-top:11px;margin-bottom:11px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+                        ${icon('box', '#2DD4BF', 12)}
+                        <span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.06em;">Relief Supplies</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span style="display:flex;align-items:center;gap:7px;font-size:11px;color:#9CA3AF;">${icon('coffee', '#9CA3AF', 12)}<span>Food &amp; Water</span></span>
+                        ${suppliesBadge(sz.relief_food)}
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span style="display:flex;align-items:center;gap:7px;font-size:11px;color:#9CA3AF;">${icon('droplet', '#9CA3AF', 12)}<span>Drinking Water</span></span>
+                        ${suppliesBadge(sz.relief_water)}
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="display:flex;align-items:center;gap:7px;font-size:11px;color:#9CA3AF;">${icon('firstaid', '#9CA3AF', 12)}<span>First-aid Kits</span></span>
+                        ${suppliesBadge(sz.relief_first_aid)}
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid #2A3440;padding-top:11px;margin-bottom:11px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+                        ${icon('heart', '#22C55E', 12)}
+                        <span style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.06em;">Free Assistance</span>
+                    </div>
+                    <ul style="list-style:none;padding:0;margin:0;">${servicesHtml}</ul>
+                </div>
+            </div>`;
+
+        m.bindPopup(popupHtml, { className: 'gis-leaflet-popup', maxWidth: 360 });
         m.bindTooltip(sz.name, { direction: 'top', offset: [0, -14] });
         m.addTo(layers.safeZones);
 
-        safeZoneCircle.on('click', () => m.openPopup());
+        safeZoneCircle.on('click', () => {
+            m.openPopup();
+            map.flyTo([sz.lat, sz.lng], Math.max(map.getZoom(), 16), { duration: 0.7 });
+        });
+        m.on('click', () => {
+            map.flyTo([sz.lat, sz.lng], Math.max(map.getZoom(), 16), { duration: 0.7 });
+        });
     });
 
-    // ─── 6. RENDER INCIDENT MARKERS & POPUPS ──────────────────────────────
+    // ─── 5. RENDER INCIDENT MARKERS & POPUPS ──────────────────────────────
     const sevColors = {
         CRITICAL: '#000000',
         HIGH:     '#EF4444',
@@ -406,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
         incidentMarkers[inc.id] = marker;
     });
 
-    // ─── 7. LAYER TOGGLE HELPER ───────────────────────────────────────────
+    // ─── 6. LAYER TOGGLE HELPER ───────────────────────────────────────────
     window.toggleLayer = function(name) {
         if (map.hasLayer(layers[name])) {
             map.removeLayer(layers[name]);
@@ -428,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ─── 9. RIGHT DETAIL PANEL LOGIC ──────────────────────────────────────
+    // ─── 7. RIGHT DETAIL PANEL LOGIC ──────────────────────────────────────
     const sevBadgeStyles = {
         CRITICAL: 'bg-black text-white border border-gray-600',
         HIGH:     'bg-red-500/20 text-red-400 border border-red-500/40',
@@ -443,7 +535,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'RESOLVED':             'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
     };
 
-    // Helper: produce "March 4, 2026 · 5:21 PM" from an ISO / datetime string
     function formatFriendlyDate(dateStr) {
         if (!dateStr) return '—';
         const d = new Date(dateStr.replace(' ', 'T'));
@@ -458,7 +549,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!inc) return;
         activeIncident = inc;
 
-        // Header — code, title, location only (badges/review button removed)
         document.getElementById('dp-code').textContent = inc.incident_code;
         document.getElementById('dp-title').textContent = inc.title;
         const brgyRaw = inc.barangay ? inc.barangay.name : 'San Francisco';
@@ -466,11 +556,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dp-location').querySelector('span').textContent =
             `${brgyLabel}, San Francisco, Agusan del Sur`;
 
-        // Overview Tab Data
         document.getElementById('dp-ov-loc').textContent =
             `${brgyLabel}, San Francisco`;
 
-        // Friendly date format: "March 4, 2026 · 5:21 PM"
         document.getElementById('dp-ov-date').textContent =
             formatFriendlyDate(inc.incident_date || inc.created_at);
 
@@ -487,11 +575,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('dp-desc').textContent = inc.description || 'No additional details provided.';
 
-        // Clear notes input (no more auto-filling hidden status/severity — those are gone)
         document.getElementById('update-notes-input').value = '';
         document.getElementById('notes-char-count').textContent = '0/500';
 
-        // Evidence Preview (Overview tab — element removed, guard with null check)
         const evPreview = document.getElementById('dp-evidence-preview');
         const evFull    = document.getElementById('dp-evidence-full-list');
 
@@ -533,15 +619,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (evFull)    evFull.innerHTML    = `<p class="text-slate-500 font-mono text-xs italic py-6 text-center">No photographic evidence attached.</p>`;
         }
 
-        // Notes Tab vs History Tab — split by content type
         const notesList   = document.getElementById('dp-investigations-list');
         const historyList = document.getElementById('dp-history-timeline');
         const invs = inc.investigations || [];
 
-        // History = all entries (auto status-change logs + manual notes), newest first
         const allSorted = [...invs].reverse();
 
-        // Notes = only real typed notes (exclude auto-generated "Status updated from…" entries)
         const realNotes = allSorted.filter(inv =>
             inv.notes && !inv.notes.startsWith('Status updated from')
         );
@@ -559,7 +642,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </span>` : ''}
             </div>`;
 
-        // Render Notes tab (if present)
         if (notesList) {
             if (realNotes.length > 0) {
                 notesList.innerHTML = realNotes.map(buildNoteCard).join('');
@@ -568,7 +650,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Render History tab (if present)
         if (historyList) {
             if (allSorted.length > 0) {
                 historyList.innerHTML = allSorted.map(buildNoteCard).join('');
@@ -577,16 +658,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Update mobile panel title
         const mobTitle = document.getElementById('mobile-investigator-panel-title');
         if (mobTitle) mobTitle.textContent = `${inc.incident_code} — ${inc.title}`;
 
-        // Auto-expand mobile panel on user interaction
         if (!skipFly && window.innerWidth < 1024) {
             window.expandInvestigatorDetailPanel();
         }
 
-        // Pan to marker & open popup — always zoom IN (never zoom out)
         if (!skipFly && inc.latitude && inc.longitude) {
             const currentZoom = map.getZoom();
             const targetZoom = Math.max(currentZoom, 17);
@@ -640,7 +718,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ─── 10. TAB SWITCHING ────────────────────────────────────────────────
     window.switchTab = function(tabName) {
         ['overview', 'evidence', 'notes', 'history'].forEach(t => {
             const pane = document.getElementById(`pane-${t}`);
@@ -658,30 +735,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // ─── 11. INLINE STATUS & NOTES SUBMISSION ─────────────────────────────
-    // 🎯 FIXED: Only sends fields that are explicitly being changed.
-    // If called from the "Save Update" button (no argument) → sends ONLY notes.
-    // If called with a status argument (from a status-change button) → sends both.
     window.submitStatusUpdate = function(forcedStatus) {
         if (!activeIncident) return;
 
         const notesEl = document.getElementById('update-notes-input');
         const notes   = notesEl ? notesEl.value.trim() : '';
 
-        // Build the payload — ONLY send fields that are explicitly being changed
         const fields = [];
 
-        // 📝 Always send notes (this is what the Save button is for)
         if (notes.length > 0) {
             fields.push(['notes', notes]);
         }
 
-        // 🔄 Only send status if it was passed EXPLICITLY (from review page buttons)
         if (forcedStatus) {
             fields.push(['status', forcedStatus]);
         }
 
-        // ⚠️ Guard: If nothing was changed, warn the user
         if (fields.length === 0) {
             if (typeof SpectralUI !== 'undefined' && typeof SpectralUI.showToast === 'function') {
                 SpectralUI.showToast('Please write a note before saving.');
@@ -717,7 +786,6 @@ document.addEventListener('DOMContentLoaded', () => {
         form.submit();
     };
 
-    // Pre-select first incident on page load without moving camera
     if (activeIncident) {
         selectIncident(activeIncident.id, true);
     }
@@ -737,7 +805,6 @@ document.addEventListener('DOMContentLoaded', () => {
 .gis-leaflet-popup .leaflet-popup-content {
     margin: 0 !important;
 }
-/* Completely hide the close button so it doesn't collide with the severity badge */
 .gis-leaflet-popup .leaflet-popup-close-button {
     display: none !important;
 }

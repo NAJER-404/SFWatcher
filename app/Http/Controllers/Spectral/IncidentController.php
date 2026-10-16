@@ -102,6 +102,30 @@ class IncidentController extends Controller
             'evidence'      => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240', // max 10MB
         ]);
 
+        // 2. Validate against Safe Zone perimeter protection
+        $protection = \App\Services\SafeZoneService::checkProtection((float) $validated['latitude'], (float) $validated['longitude']);
+        if ($protection) {
+            $title   = \App\Services\SafeZoneService::BLOCKED_TITLE;
+            $message = \App\Services\SafeZoneService::BLOCKED_MESSAGE;
+
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'title'   => $title,
+                    'message' => $message,
+                    'errors'  => [
+                        'location' => [$message],
+                    ],
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['location' => $message])
+                ->with('error_title', $title)
+                ->with('error', $message);
+        }
+
         $userId = \Illuminate\Support\Facades\Auth::id()
             ?? \Illuminate\Support\Facades\Auth::guard('web')->id()
             ?? \Illuminate\Support\Facades\Auth::guard('admin')->id()

@@ -70,6 +70,21 @@
                     </button>
                 </div>
 
+                <!-- Safe Zone Protected Warning Alert -->
+                <div id="report-safezone-alert" class="hidden rounded-lg bg-red-950/40 border border-red-500/50 p-3 space-y-1 text-xs shadow-lg">
+                    <div class="flex items-center gap-2 text-red-400 font-bold">
+                        <svg class="w-4 h-4 flex-shrink-0 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span class="font-mono tracking-wide uppercase text-sm">Safe Zone Protected</span>
+                    </div>
+                    <p class="text-red-200 text-[11px] leading-relaxed pl-6">
+                        You cannot report an incident within this protected radius. This Safe Zone is protected by Investigators and Responders. Please select a location outside the Safe Zone.
+                    </p>
+                </div>
+
                 <div id="report-geocode-loading" class="hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 text-[#A78BFA] text-[11px]">
                     <svg class="animate-spin h-3.5 w-3.5 text-[#8B5CF6] flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -129,11 +144,11 @@
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] text-[#9CA3AF] font-mono">Latitude</label>
-                        <input type="number" step="0.000001" id="report-lat" name="latitude" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="8.5310" value="8.5310" required>
+                        <input type="number" step="0.000001" id="report-lat" name="latitude" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="Click map to pick..." required>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] text-[#9CA3AF] font-mono">Longitude</label>
-                        <input type="number" step="0.000001" id="report-lng" name="longitude" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="125.9730" value="125.9730" required>
+                        <input type="number" step="0.000001" id="report-lng" name="longitude" class="ecto-input font-mono bg-[#11161D] text-slate-200 border border-[#2A3440] rounded-lg px-2.5 py-1.5 text-xs w-full focus:border-[#8B5CF6] focus:outline-none" placeholder="Click map to pick..." required>
                     </div>
                 </div>
             </div>

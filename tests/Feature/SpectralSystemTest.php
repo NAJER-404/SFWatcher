@@ -71,7 +71,7 @@ class SpectralSystemTest extends TestCase
             'title'         => 'High-Viscosity Surge near Hubang Market',
             'description'   => 'Luminescent puddle detected emitting 428 THz resonance.',
             'barangay_id'   => $barangay->id,
-            'latitude'      => 8.5310,
+            'latitude'      => 8.5370,  // Outside Hubang Safe Haven (center 8.5310, radius 550m)
             'longitude'     => 125.9730,
             'incident_date' => now()->toDateTimeString(),
             'severity'      => 'HIGH',

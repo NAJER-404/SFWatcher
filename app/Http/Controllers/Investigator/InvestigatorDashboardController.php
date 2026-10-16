@@ -17,6 +17,40 @@ use Illuminate\Support\Facades\Auth;
 class InvestigatorDashboardController extends Controller
 {
     /**
+     * Helper: Fetch detailed Safe Zones for the map.
+     */
+    private function getSafeWardStations()
+    {
+        return WardStation::with('barangay')
+            ->where('status', 'active')
+            ->where('is_safe_zone', true)
+            ->get()
+            ->map(function ($ws) {
+                $radius = $ws->safe_zone_radius_meters ?? $ws->radius_meters ?? 450;
+                return [
+                    'id' => $ws->id,
+                    'code' => $ws->code,
+                    'name' => $ws->name,
+                    'description' => $ws->description,
+                    'lat' => (float) $ws->latitude,
+                    'lng' => (float) $ws->longitude,
+                    'radius' => (float) $radius,
+                    'status' => 'active',
+                    'barangay' => $ws->barangay?->name ?? 'San Francisco',
+                    'address' => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
+                    'protection_expires_at' => $ws->ward_protection_expires_at ? $ws->ward_protection_expires_at->toIso8601String() : null,
+                    'protection_active' => $ws->isProtectionActive(),
+                    'protection_time' => $ws->protectionTimeRemaining(),
+                    'relief_food' => $ws->relief_food ?? 'available',
+                    'relief_water' => $ws->relief_water ?? 'available',
+                    'relief_first_aid' => $ws->relief_first_aid ?? 'available',
+                    'assistance_services' => $ws->assistance_services ?? [],
+                ];
+            })
+            ->all();
+    }
+
+    /**
      * Display the primary Investigator Dashboard.
      */
     public function index()
@@ -29,6 +63,9 @@ class InvestigatorDashboardController extends Controller
         $wardStations = WardStation::with('barangay')->get();
         $resources    = Resource::with('barangay')->get();
         $barangays    = Barangay::orderBy('name')->get();
+
+        // 🆕 Add Safe Zones to the Dashboard
+        $safeWardStations = $this->getSafeWardStations();
 
         // Real Database Statistics (no hardcoded numbers)
         $stats = [
@@ -51,6 +88,7 @@ class InvestigatorDashboardController extends Controller
         return view('investigator.dashboard', compact(
             'incidents',
             'wardStations',
+            'safeWardStations',
             'resources',
             'barangays',
             'stats',
@@ -161,17 +199,6 @@ class InvestigatorDashboardController extends Controller
 
     /**
      * Update incident status, severity, and record investigation note.
-     *
-     * Only writes / logs / awards XP when something ACTUALLY changed, so pressing
-     * "Commit Update" after assigning a responder no longer creates a fake
-     * "Status updated from VERIFIED to VERIFIED" entry.
-     */
-        /**
-     * Update incident status, severity, and record investigation note.
-     *
-     * Only writes / logs / awards XP when something ACTUALLY changed, so pressing
-     * "Commit Update" after assigning a responder no longer creates a fake
-     * "Status updated from VERIFIED to VERIFIED" entry.
      */
     public function updateIncident(Request $request, $id)
     {
@@ -191,7 +218,6 @@ class InvestigatorDashboardController extends Controller
             'responder_id' => 'nullable|exists:users,id',
         ]);
 
-        // Guard: Cannot mark RESOLVED unless a responder has COMPLETED their assignment
         if ($validated['status'] === 'RESOLVED') {
             $hasCompletedAssignment = ResponderAssignment::where('incident_id', $incident->id)
                 ->where('status', 'COMPLETED')
@@ -204,7 +230,6 @@ class InvestigatorDashboardController extends Controller
             }
         }
 
-        // Guard: Prevent regressing workflow stages (e.g. from VERIFIED or RESOLVED back to earlier stages)
         $statusRank = [
             'PENDING'             => 1,
             'UNDER INVESTIGATION' => 2,
@@ -228,16 +253,12 @@ class InvestigatorDashboardController extends Controller
         $statusChanged   = $oldStatus !== $validated['status'];
         $severityChanged = $oldSeverity !== $newSeverity;
 
-        // 🆕 Detect: Was this ONLY a note being written?
         $notesOnly = ! $statusChanged && ! $severityChanged && $userNote !== '';
 
-        // Has the form's responder actually changed? (After the AJAX assign modal the
-        // hidden responder_id already matches the saved assignment, so this is false.)
         $existingAssignment = ResponderAssignment::where('incident_id', $incident->id)->first();
         $responderChanged   = ! empty($validated['responder_id'])
             && (int) ($existingAssignment?->responder_id) !== (int) $validated['responder_id'];
 
-        // ── Nothing to commit → do nothing (no fake log row, no XP) ──
         if (! $statusChanged && ! $severityChanged && ! $responderChanged && $userNote === '') {
             return redirect()->back()->with('success', "No changes to commit — {$incident->incident_code} is already {$incident->status}.");
         }
@@ -245,7 +266,6 @@ class InvestigatorDashboardController extends Controller
         $incident->status   = $validated['status'];
         $incident->severity = $newSeverity;
 
-        // Auto-determine Anomaly HP and Required Class from severity
         $anomalyMaxHp = config("spectral_response.anomaly_hp.{$newSeverity}", 80);
         $incident->anomaly_max_hp = $anomalyMaxHp;
         if ($incident->anomaly_hp === null || $severityChanged) {
@@ -259,7 +279,6 @@ class InvestigatorDashboardController extends Controller
 
         $assignedResponder = null;
 
-        // Explicit responder chosen on the form (only when it really changed)
         if ($responderChanged) {
             $explicitResponder = User::where('id', $validated['responder_id'])->where('role', 'responder')->first();
             if ($explicitResponder) {
@@ -278,7 +297,6 @@ class InvestigatorDashboardController extends Controller
             }
         }
 
-        // Transition to VERIFIED — auto-assign if none exists and an eligible responder is free
         if ($validated['status'] === 'VERIFIED') {
             if (! $incident->investigation_result) {
                 $incident->investigation_result = 'CONFIRMED';
@@ -311,11 +329,9 @@ class InvestigatorDashboardController extends Controller
             }
         }
 
-        // ── Build the log text from what really changed ──
         $logResult = $validated['status'];
         $noteText  = $userNote;
 
-        // 🆕 If this was ONLY a note, mark it as a NOTE, not a status change
         if ($notesOnly) {
             $logResult = 'NOTE';
         }
@@ -340,7 +356,6 @@ class InvestigatorDashboardController extends Controller
 
         $incident->save();
 
-        // Record in investigations history (only when there is something real to record)
         if ($noteText !== '') {
             Investigation::create([
                 'incident_id'        => $incident->id,
@@ -351,7 +366,6 @@ class InvestigatorDashboardController extends Controller
                 'completed_at'       => ($statusChanged && in_array($validated['status'], ['RESOLVED', 'VERIFIED'])) ? now() : null,
             ]);
 
-            // Audit Trail Cap: keep only 6 newest records per incident, delete older ones
             $excessIds = Investigation::where('incident_id', $incident->id)
                 ->orderByDesc('investigation_date')
                 ->orderByDesc('id')
@@ -364,7 +378,6 @@ class InvestigatorDashboardController extends Controller
             }
         }
 
-        // XP only when the workflow stage genuinely advanced
         if ($statusChanged) {
             $investigator = Auth::guard('investigator')->user() ?? Auth::user();
             if ($investigator) {
@@ -373,7 +386,6 @@ class InvestigatorDashboardController extends Controller
             }
         }
 
-        // ── 🆕 Build an ACCURATE success message based on what actually happened ──
         if ($assignedResponder) {
             $successMsg = "Incident {$incident->incident_code} successfully assigned to {$assignedResponder->name}.";
         } elseif ($notesOnly) {
@@ -397,7 +409,6 @@ class InvestigatorDashboardController extends Controller
         $data = $request->validate(['responder_id' => 'required|exists:users,id']);
         $responder = User::where('id', $data['responder_id'])->where('role', 'responder')->firstOrFail();
 
-        // Server-side validation: Responder class must be eligible for the incident's severity
         $sev = strtoupper($incident->severity ?? 'MEDIUM');
         $eligibleClasses = config("spectral_response.severity_eligibility.{$sev}", ['D', 'C', 'B', 'A']);
 
@@ -431,9 +442,6 @@ class InvestigatorDashboardController extends Controller
         return back()->with('success', "Assignment created successfully. Responder {$responder->name} (Class {$responder->responder_class}) assigned to {$incident->incident_code}.");
     }
 
-    /**
-     * Return eligible responders for an incident as JSON (for AJAX modal).
-     */
     public function eligibleResponders($id)
     {
         $incident = Incident::findOrFail($id);
@@ -473,10 +481,6 @@ class InvestigatorDashboardController extends Controller
         ]);
     }
 
-    /**
-     * AJAX endpoint: assign a responder and set incident status.
-     * Returns JSON for client-side UI update (no page reload).
-     */
     public function assignResponderAjax(Request $request, $id)
     {
         $incident = Incident::findOrFail($id);
@@ -487,7 +491,6 @@ class InvestigatorDashboardController extends Controller
 
         $responder = User::where('id', $data['responder_id'])->where('role', 'responder')->firstOrFail();
 
-        // Server-side class eligibility check
         $sev = strtoupper($incident->severity ?? 'MEDIUM');
         $eligibleClasses = config("spectral_response.severity_eligibility.{$sev}", ['D', 'C', 'B', 'A']);
 
@@ -507,7 +510,6 @@ class InvestigatorDashboardController extends Controller
         $incident->investigation_result = 'CONFIRMED';
         $incident->save();
 
-        // Create / update the responder assignment
         ResponderAssignment::updateOrCreate(
             ['incident_id' => $incident->id],
             [
@@ -520,7 +522,6 @@ class InvestigatorDashboardController extends Controller
             ]
         );
 
-        // Audit trail
         Investigation::create([
             'incident_id'        => $incident->id,
             'investigator_id'    => $investigatorId,
@@ -540,9 +541,6 @@ class InvestigatorDashboardController extends Controller
         ]);
     }
 
-    /**
-     * Reject (delete) an incident — investigator confirmation required.
-     */
     public function rejectIncident(Request $request, $id)
     {
         $incident = Incident::where('id', $id)
@@ -555,7 +553,6 @@ class InvestigatorDashboardController extends Controller
         $reporterId = $incident->reported_by;
         $rejectionReason = $request->input('notes') ?: 'Investigation report rejected by defense command.';
 
-        // Dispatch rejection notification directly to civilian reporter
         if ($reporterId) {
             $existingNotifs = \Illuminate\Support\Facades\Cache::get("user_notifications_{$reporterId}", []);
             $existingNotifs[] = [
@@ -626,12 +623,11 @@ class InvestigatorDashboardController extends Controller
         $resources    = Resource::with('barangay')->get();
         $barangays    = Barangay::orderBy('name')->get();
 
-        return view('investigator.map', compact('incidents', 'wardStations', 'resources', 'barangays'));
+        $safeWardStations = $this->getSafeWardStations();
+
+        return view('investigator.map', compact('incidents', 'wardStations', 'safeWardStations', 'resources', 'barangays'));
     }
 
-    /**
-     * Safe Zones response view.
-     */
     public function safeZones()
     {
         $wardStations = WardStation::with('barangay')->where('status', 'active')->get();
@@ -640,9 +636,6 @@ class InvestigatorDashboardController extends Controller
         return view('investigator.response.safe_zones', compact('wardStations', 'barangays'));
     }
 
-    /**
-     * Responders roster view.
-     */
     public function responders()
     {
         $classConfig = config('spectral_response.classes', [
@@ -673,9 +666,6 @@ class InvestigatorDashboardController extends Controller
         return view('investigator.response.responders', compact('responders', 'classConfig', 'stats'));
     }
 
-    /**
-     * Ward Stations response view.
-     */
     public function wards()
     {
         $wardStations = WardStation::with('barangay')->get();
@@ -683,9 +673,6 @@ class InvestigatorDashboardController extends Controller
         return view('investigator.response.ward_stations', compact('wardStations'));
     }
 
-    /**
-     * Resource Nodes response view.
-     */
     public function resources()
     {
         $resources = Resource::with('barangay')->get();
@@ -693,9 +680,6 @@ class InvestigatorDashboardController extends Controller
         return view('investigator.response.resources', compact('resources'));
     }
 
-    /**
-     * Investigator Profile view.
-     */
     public function profile()
     {
         $user = Auth::user();

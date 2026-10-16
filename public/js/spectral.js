@@ -1,15 +1,14 @@
 /**
- * ECTO//NET â€” Spectral Resource & Ward Network GIS Engine
+ * ECTO//NET — Spectral Resource & Ward Network GIS Engine
  * Scenario 3: Enterprise Geographic Supernatural Defense & Emergency Monitoring
  * Primary Scope: San Francisco, Agusan del Sur, Philippines
  */
 
 'use strict';
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 // 1. DATA STORE (Synchronized with Laravel Backend & Initial State)
-
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 
 const SpectralData = {
     node: {
@@ -21,43 +20,84 @@ const SpectralData = {
         status: "OPERATIONAL"
     },
 
-    // 27 Official Barangays of San Francisco, Agusan del Sur (PhilAtlas & sfads.gov.ph Verified Coordinates)
-            barangays: [
-        { id: 1,   name: "Alegria",       lat: 8.5060, lng: 126.0090 },
-        { id: 2,   name: "Bayugan 2",     lat: 8.4680, lng: 125.9490 },
-        { id: 3,   name: "Bitan-agan",    lat: 8.4410, lng: 125.9680 },
-        { id: 4,   name: "Borbon",        lat: 8.4090, lng: 125.9320 },
-        { id: 5,   name: "Buenasuerte",   lat: 8.4115, lng: 125.8820 },
-        { id: 6,   name: "Caimpugan",     lat: 8.3934, lng: 125.9149 },
-        { id: 7,   name: "Das-agan",      lat: 8.5461, lng: 126.0135 },
-        { id: 8,   name: "Ebro",          lat: 8.4460, lng: 125.9379 },
-        { id: 9,   name: "Hubang",        lat: 8.5285, lng: 126.0150 },
-        { id: 10,  name: "Karaus",        lat: 8.4910, lng: 126.0145 },
-        { id: 11,  name: "Ladgadan",      lat: 8.4896, lng: 125.9332 },
-        { id: 12,  name: "Lapinigan",     lat: 8.4720, lng: 125.9770 },
-        { id: 13,  name: "Lucac",         lat: 8.5614, lng: 125.9620 },
-        { id: 14,  name: "Mate",          lat: 8.4455, lng: 126.0180 },
-        { id: 15,  name: "New Visayas",   lat: 8.4390, lng: 125.8995 },
-        { id: 16,  name: "Ormaca",        lat: 8.4474, lng: 125.9935 },
-        { id: 17,  name: "Pasta",         lat: 8.4089, lng: 125.9841 },
-        { id: 18,  name: "Pisa-an",       lat: 8.4230, lng: 125.9645 },
-        { id: 19,  name: "Barangay 1",    lat: 8.5132, lng: 125.9765 },
-        { id: 20,  name: "Barangay 2",    lat: 8.5086, lng: 125.9811 },
-        { id: 21,  name: "Barangay 3",    lat: 8.5110, lng: 125.9720 },
-        { id: 22,  name: "Barangay 4",    lat: 8.5065, lng: 125.9735 },
-        { id: 23,  name: "Barangay 5",    lat: 8.5029, lng: 125.9781 },
-        { id: 24,  name: "Rizal",         lat: 8.4883, lng: 125.8711 },
-        { id: 25,  name: "San Isidro",    lat: 8.4710, lng: 126.0080 },
-        { id: 26,  name: "Santa Ana",     lat: 8.4620, lng: 125.8940 },
-        { id: 27,  name: "Tagapua",       lat: 8.5630, lng: 126.0010 }
+    barangays: [
+        { id: 1, name: "Alegria", lat: 8.5060, lng: 126.0090 },
+        { id: 2, name: "Bayugan 2", lat: 8.4680, lng: 125.9490 },
+        { id: 3, name: "Bitan-agan", lat: 8.4410, lng: 125.9680 },
+        { id: 4, name: "Borbon", lat: 8.4090, lng: 125.9320 },
+        { id: 5, name: "Buenasuerte", lat: 8.4115, lng: 125.8820 },
+        { id: 6, name: "Caimpugan", lat: 8.3934, lng: 125.9149 },
+        { id: 7, name: "Das-agan", lat: 8.5461, lng: 126.0135 },
+        { id: 8, name: "Ebro", lat: 8.4460, lng: 125.9379 },
+        { id: 9, name: "Hubang", lat: 8.5285, lng: 126.0150 },
+        { id: 10, name: "Karaus", lat: 8.4910, lng: 126.0145 },
+        { id: 11, name: "Ladgadan", lat: 8.4896, lng: 125.9332 },
+        { id: 12, name: "Lapinigan", lat: 8.4720, lng: 125.9770 },
+        { id: 13, name: "Lucac", lat: 8.5614, lng: 125.9620 },
+        { id: 14, name: "Mate", lat: 8.4455, lng: 126.0180 },
+        { id: 15, name: "New Visayas", lat: 8.4390, lng: 125.8995 },
+        { id: 16, name: "Ormaca", lat: 8.4474, lng: 125.9935 },
+        { id: 17, name: "Pasta", lat: 8.4089, lng: 125.9841 },
+        { id: 18, name: "Pisa-an", lat: 8.4230, lng: 125.9645 },
+        { id: 19, name: "Barangay 1", lat: 8.5132, lng: 125.9765 },
+        { id: 20, name: "Barangay 2", lat: 8.5086, lng: 125.9811 },
+        { id: 21, name: "Barangay 3", lat: 8.5110, lng: 125.9720 },
+        { id: 22, name: "Barangay 4", lat: 8.5065, lng: 125.9735 },
+        { id: 23, name: "Barangay 5", lat: 8.5029, lng: 125.9781 },
+        { id: 24, name: "Rizal", lat: 8.4883, lng: 125.8711 },
+        { id: 25, name: "San Isidro", lat: 8.4710, lng: 126.0080 },
+        { id: 26, name: "Santa Ana", lat: 8.4620, lng: 125.8940 },
+        { id: 27, name: "Tagapua", lat: 8.5630, lng: 126.0010 }
     ],
 
     incidents: [],
     wardStations: [],
     safeZones: [
         { id: "SAFE-01", name: "San Francisco Municipal Gymnasium Sanctuary", barangay: "Barangay 1", latitude: 8.5098, longitude: 125.9780, radius: 450, status: "active" },
-        { id: "SAFE-02", name: "Hubang Transport Safe Haven",                  barangay: "Hubang",     latitude: 8.5310, longitude: 125.9730, radius: 550, status: "active" }
+        { id: "SAFE-02", name: "Hubang Transport Safe Haven", barangay: "Hubang", latitude: 8.5310, longitude: 125.9730, radius: 550, status: "active" }
     ],
+
+    checkSafeZoneProtection(lat, lng) {
+        lat = parseFloat(lat);
+        lng = parseFloat(lng);
+        if (isNaN(lat) || isNaN(lng)) return null;
+
+        const zones = (this.safeZones && this.safeZones.length > 0)
+            ? this.safeZones
+            : [
+                { id: "SAFE-01", name: "San Francisco Municipal Gymnasium Sanctuary", latitude: 8.5098, longitude: 125.9780, radius: 450, status: "active" },
+                { id: "SAFE-02", name: "Hubang Transport Safe Haven", latitude: 8.5310, longitude: 125.9730, radius: 550, status: "active" }
+            ];
+
+        for (let i = 0; i < zones.length; i++) {
+            const sz = zones[i];
+            if (sz.status && sz.status !== 'active') continue;
+            const szLat = parseFloat(sz.latitude || sz.lat);
+            const szLng = parseFloat(sz.longitude || sz.lng);
+            const radius = parseFloat(sz.radius || 450);
+            if (isNaN(szLat) || isNaN(szLng) || isNaN(radius)) continue;
+
+            const dLat = (szLat - lat) * Math.PI / 180;
+            const dLng = (szLng - lng) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat * Math.PI / 180) * Math.cos(szLat * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const dist = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            // Condition: distance <= radius (including boundary distance == radius)
+            if (dist <= radius) {
+                return {
+                    protected: true,
+                    safeZone: sz,
+                    distance: dist,
+                    radius: radius,
+                    title: 'Safe Zone Protected',
+                    message: `You cannot report an incident within ${Math.round(radius)}m of ${sz.name}. This Safe Zone is protected by Investigators and Responders. Please select a location outside the Safe Zone.`
+                };
+            }
+        }
+        return null;
+    },
 
     findClosestBarangay(lat, lng) {
         if (!this.barangays || this.barangays.length === 0) return null;
@@ -92,13 +132,12 @@ const SpectralData = {
             }
             if (window.INITIAL_SPECTRAL_STATE.incidents && window.INITIAL_SPECTRAL_STATE.incidents.length > 0) {
                 this.incidents = window.INITIAL_SPECTRAL_STATE.incidents.map(inc => {
-                    // Format date nicely: "April 13, 2026 · 11:13 AM"
                     let reportedAt = inc.incident_date || inc.created_at;
                     try {
                         const d = new Date(reportedAt);
                         reportedAt = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
                             + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                    } catch (_) {}
+                    } catch (_) { }
 
                     const lat = parseFloat(inc.latitude);
                     const lng = parseFloat(inc.longitude);
@@ -109,34 +148,34 @@ const SpectralData = {
                     }
 
                     return {
-                        id:            inc.incident_code || `SF-INC-${inc.id}`,
+                        id: inc.incident_code || `SF-INC-${inc.id}`,
                         incident_code: inc.incident_code || `SF-INC-${inc.id}`,
-                        db_id:         inc.id,
-                        type:          inc.incident_type,
-                        title:         inc.title,
-                        description:   inc.description,
-                        barangay:      bName || 'Hubang',
-                        municipality:  inc.barangay ? (inc.barangay.municipality || 'San Francisco') : 'San Francisco',
-                        province:      inc.barangay ? (inc.barangay.province || 'Agusan del Sur') : 'Agusan del Sur',
-                        latitude:      lat,
-                        longitude:     lng,
-                        severity:      inc.severity,
-                        status:        inc.status,
-                        anomaly_hp:            inc.anomaly_hp,
-                        anomaly_max_hp:        inc.anomaly_max_hp,
-                        response_progress:     inc.response_progress,
-                        response_status:       inc.response_status,
+                        db_id: inc.id,
+                        type: inc.incident_type,
+                        title: inc.title,
+                        description: inc.description,
+                        barangay: bName || 'Hubang',
+                        municipality: inc.barangay ? (inc.barangay.municipality || 'San Francisco') : 'San Francisco',
+                        province: inc.barangay ? (inc.barangay.province || 'Agusan del Sur') : 'Agusan del Sur',
+                        latitude: lat,
+                        longitude: lng,
+                        severity: inc.severity,
+                        status: inc.status,
+                        anomaly_hp: inc.anomaly_hp,
+                        anomaly_max_hp: inc.anomaly_max_hp,
+                        response_progress: inc.response_progress,
+                        response_status: inc.response_status,
                         responder_assignments: inc.responder_assignments || [],
-                        reported_at:   reportedAt,
-                        reported_by:   inc.reporter ? inc.reporter.name : 'Civilian Observer',
-                        evidence:      (inc.evidence && inc.evidence.length > 0 && inc.evidence[0] && inc.evidence[0].file_path)
-                                          ? (String(inc.evidence[0].file_path).startsWith('http')
-                                              ? inc.evidence[0].file_path
-                                              : '/storage/' + inc.evidence[0].file_path)
-                                          : null,
+                        reported_at: reportedAt,
+                        reported_by: inc.reporter ? inc.reporter.name : 'Civilian Observer',
+                        evidence: (inc.evidence && inc.evidence.length > 0 && inc.evidence[0] && inc.evidence[0].file_path)
+                            ? (String(inc.evidence[0].file_path).startsWith('http')
+                                ? inc.evidence[0].file_path
+                                : '/storage/' + inc.evidence[0].file_path)
+                            : null,
                         investigations: inc.investigations || [],
-                        notes:         inc.notes,
-                        real_address:  null
+                        notes: inc.notes,
+                        real_address: null
                     };
                 });
             }
@@ -157,20 +196,23 @@ const SpectralData = {
             } else {
                 this.wardStations = [];
             }
+            // 🌐 Safe zones come from the DB (via DashboardController -> safeWardStations)
             if (window.INITIAL_SPECTRAL_STATE.safeWardStations && window.INITIAL_SPECTRAL_STATE.safeWardStations.length > 0) {
                 this.safeZones = window.INITIAL_SPECTRAL_STATE.safeWardStations.map(sz => ({
-                    id: sz.name,
+                    id: sz.id ?? sz.name,
+                    code: sz.code ?? null,
                     name: sz.name,
                     barangay: sz.barangay || 'San Francisco',
-                    latitude: parseFloat(sz.lat || sz.latitude),
-                    longitude: parseFloat(sz.lng || sz.longitude),
-                    radius: sz.radius || 450,
+                    latitude: parseFloat(sz.lat ?? sz.latitude),
+                    longitude: parseFloat(sz.lng ?? sz.longitude),
+                    radius: parseFloat(sz.radius) || 450,
                     status: sz.status || 'active'
                 }));
             } else {
+                // Legacy fallback (only used if DB returns nothing)
                 this.safeZones = [
                     { id: "SAFE-01", name: "San Francisco Municipal Gymnasium Sanctuary", barangay: "Barangay 1", latitude: 8.5098, longitude: 125.9780, radius: 450, status: "active" },
-                    { id: "SAFE-02", name: "Hubang Transport Safe Haven",                  barangay: "Hubang",     latitude: 8.5310, longitude: 125.9730, radius: 550, status: "active" }
+                    { id: "SAFE-02", name: "Hubang Transport Safe Haven", barangay: "Hubang", latitude: 8.5310, longitude: 125.9730, radius: 550, status: "active" }
                 ];
             }
             if (window.INITIAL_SPECTRAL_STATE.resources && window.INITIAL_SPECTRAL_STATE.resources.length > 0) {
@@ -190,12 +232,11 @@ const SpectralData = {
                 }));
             }
 
-            // If map is already initialized, immediately render layers and counters
             if (window.SpectralMap && window.SpectralMap.map) {
                 try {
                     window.SpectralMap.renderAllLayers();
                     window.SpectralMap.updateLayerToggleButtons();
-                } catch (_) {}
+                } catch (_) { }
             }
         }
     }
@@ -208,9 +249,9 @@ const SpectralData = {
 const StreetView360 = {
     canvas: null,
     ctx: null,
-    yaw: 172,          // Horizontal view angle in degrees (0 - 360)
+    yaw: 172,
     targetYaw: 172,
-    pitch: 0,          // Vertical tilt (-25 to +25)
+    pitch: 0,
     targetPitch: 0,
     isDragging: false,
     lastX: 0,
@@ -345,14 +386,12 @@ const StreetView360 = {
         ctx.save();
         ctx.scale(dpr, dpr);
 
-        // Time seed — smooth daylight cycle (noon-ish: 0.8)
         const timeOfDay = 0.82;
         const horizonY = height * 0.42 + (this.pitch * 2.5);
 
-        // ── 1. SKY ─────────────────────────────────────────────────────────
-        const skyTop    = `hsl(207,${60+timeOfDay*20}%,${18+timeOfDay*38}%)`;
-        const skyMid    = `hsl(206,${55+timeOfDay*15}%,${28+timeOfDay*32}%)`;
-        const skyHorizon= `hsl(205,${40+timeOfDay*10}%,${48+timeOfDay*22}%)`;
+        const skyTop = `hsl(207,${60 + timeOfDay * 20}%,${18 + timeOfDay * 38}%)`;
+        const skyMid = `hsl(206,${55 + timeOfDay * 15}%,${28 + timeOfDay * 32}%)`;
+        const skyHorizon = `hsl(205,${40 + timeOfDay * 10}%,${48 + timeOfDay * 22}%)`;
         const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
         skyGrad.addColorStop(0, skyTop);
         skyGrad.addColorStop(0.55, skyMid);
@@ -360,7 +399,6 @@ const StreetView360 = {
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, width, horizonY + 2);
 
-        // ── 2. SUN (mid-morning Philippine sun) ───────────────────────────
         const sunAngleDeg = (110 - this.yaw + 720) % 360;
         const sunVisAng = sunAngleDeg > 180 ? sunAngleDeg - 360 : sunAngleDeg;
         if (Math.abs(sunVisAng) < 80) {
@@ -374,14 +412,12 @@ const StreetView360 = {
             sunGlare.addColorStop(1, 'rgba(255,230,100,0)');
             ctx.fillStyle = sunGlare;
             ctx.fillRect(0, 0, width, horizonY);
-            // Sun disc
             ctx.fillStyle = 'rgba(255,252,235,0.98)';
             ctx.beginPath();
             ctx.arc(sunX, sunY, 14, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // ── 3. CLOUDS (scattered tropical cumulus) ─────────────────────────
         const cloudSeeds = [0.12, 0.35, 0.62, 0.80];
         cloudSeeds.forEach((seed, ci) => {
             const worldOffset = ((seed * 360 - this.yaw + 720) % 360);
@@ -391,15 +427,14 @@ const StreetView360 = {
             const cy2 = horizonY * (0.2 + seed * 0.25);
             ctx.globalAlpha = 0.55;
             ctx.fillStyle = '#DDEEFF';
-            [[0,0,30],[-22,8,22],[22,8,22],[-10,16,18],[10,16,18]].forEach(([ox,oy,r]) => {
+            [[0, 0, 30], [-22, 8, 22], [22, 8, 22], [-10, 16, 18], [10, 16, 18]].forEach(([ox, oy, r]) => {
                 ctx.beginPath();
-                ctx.arc(cx2+ox, cy2+oy, r, 0, Math.PI*2);
+                ctx.arc(cx2 + ox, cy2 + oy, r, 0, Math.PI * 2);
                 ctx.fill();
             });
             ctx.globalAlpha = 1;
         });
 
-        // ── 4. MOUNTAIN RIDGE (Caraga highlands silhouettes) ───────────────
         const drawMtnLayer = (fillColor, yOffset, amplitude, freq, phase) => {
             ctx.fillStyle = fillColor;
             ctx.beginPath();
@@ -407,20 +442,18 @@ const StreetView360 = {
             for (let x = 0; x <= width; x += 6) {
                 const w = (this.yaw + (x / width - 0.5) * 80 + 720) % 360;
                 const h = amplitude * Math.sin(w * freq + phase)
-                        + amplitude * 0.5 * Math.cos(w * freq * 1.7 + phase * 0.6)
-                        + amplitude * 0.25 * Math.sin(w * freq * 3.1);
+                    + amplitude * 0.5 * Math.cos(w * freq * 1.7 + phase * 0.6)
+                    + amplitude * 0.25 * Math.sin(w * freq * 3.1);
                 ctx.lineTo(x, horizonY - Math.max(yOffset, h + yOffset));
             }
             ctx.lineTo(width, horizonY + 2);
             ctx.closePath();
             ctx.fill();
         };
-        drawMtnLayer('rgba(60,95,85,0.65)',  28, 22, 0.032, 0);
-        drawMtnLayer('rgba(40,75,60,0.75)',  14, 18, 0.048, 1.2);
-        drawMtnLayer('rgba(32,58,44,0.85)',   6, 12, 0.065, 2.4);
+        drawMtnLayer('rgba(60,95,85,0.65)', 28, 22, 0.032, 0);
+        drawMtnLayer('rgba(40,75,60,0.75)', 14, 18, 0.048, 1.2);
+        drawMtnLayer('rgba(32,58,44,0.85)', 6, 12, 0.065, 2.4);
 
-        // ── 5. GROUND / SHOULDER / SIDEWALK ────────────────────────────────
-        // Wide concrete / asphalt road — lighter in daytime
         const groundGrad = ctx.createLinearGradient(0, horizonY, 0, height);
         groundGrad.addColorStop(0, '#7A8090');
         groundGrad.addColorStop(0.15, '#5C636D');
@@ -429,7 +462,6 @@ const StreetView360 = {
         ctx.fillStyle = groundGrad;
         ctx.fillRect(0, horizonY, width, height - horizonY);
 
-        // ── 6. ROAD SURFACE (3-D perspective wide national highway) ────────
         const yawFwd = this.yaw > 180 ? this.yaw - 360 : this.yaw;
         const yawBwd = yawFwd > 0 ? yawFwd - 180 : yawFwd + 180;
         const roadAng = Math.abs(yawFwd) < Math.abs(yawBwd) ? yawFwd : yawBwd;
@@ -443,7 +475,6 @@ const StreetView360 = {
             const rVpL = vpX - 8;
             const rVpR = vpX + 8;
 
-            // Asphalt — warm grey Philippine concrete
             const asphaltGrad = ctx.createLinearGradient(0, horizonY, 0, height);
             asphaltGrad.addColorStop(0, '#979DA8');
             asphaltGrad.addColorStop(0.2, '#8A8F99');
@@ -458,7 +489,6 @@ const StreetView360 = {
             ctx.closePath();
             ctx.fill();
 
-            // Left roadside grass strip
             const grassL = ctx.createLinearGradient(0, horizonY, 0, height);
             grassL.addColorStop(0, '#5C8B4A');
             grassL.addColorStop(1, '#3A5A2E');
@@ -471,7 +501,6 @@ const StreetView360 = {
             ctx.closePath();
             ctx.fill();
 
-            // Right roadside
             ctx.fillStyle = grassL;
             ctx.beginPath();
             ctx.moveTo(rVpR, horizonY);
@@ -481,7 +510,6 @@ const StreetView360 = {
             ctx.closePath();
             ctx.fill();
 
-            // White edge lines
             ctx.strokeStyle = 'rgba(255,255,255,0.85)';
             ctx.lineWidth = 3;
             ctx.beginPath();
@@ -489,7 +517,6 @@ const StreetView360 = {
             ctx.moveTo(rVpR, horizonY); ctx.lineTo(rright, height);
             ctx.stroke();
 
-            // Lane divider (double yellow centerline like PH highways)
             const ctrTop = vpX;
             const ctrBot = (rleft + rright) / 2;
             for (let step = 0; step < 1; step += 0.08) {
@@ -503,7 +530,6 @@ const StreetView360 = {
                 ctx.beginPath(); ctx.moveTo(x1 + 3, y1); ctx.lineTo(x2 + 3, y2); ctx.stroke();
             }
 
-            // Lane dashes each side
             const drawDashes = (offsetFrac) => {
                 for (let s = 0; s < 1; s += 0.1) {
                     const ya = horizonY + (height - horizonY) * s;
@@ -520,7 +546,6 @@ const StreetView360 = {
             drawDashes(0.45);
             drawDashes(-0.45);
 
-            // Road name on asphalt (perspective)
             ctx.save();
             ctx.translate((rleft + rright) / 2, height * 0.76);
             ctx.transform(1, 0, (roadAng / 55) * 0.3, 0.42, 0, 0);
@@ -530,7 +555,6 @@ const StreetView360 = {
             ctx.fillText(this.roadName.toUpperCase(), 0, 0);
             ctx.restore();
 
-            // ── UTILITY POLES (both sides, like in Burgos St photo) ─────────
             const polePositions = [
                 { side: 'left', frac: 0.3 },
                 { side: 'right', frac: 0.55 },
@@ -545,7 +569,6 @@ const StreetView360 = {
                     ? rleft + (rVpL - rleft) * (1 - frac) - 18 * (1 - frac)
                     : rright + (rVpR - rright) * (1 - frac) + 18 * (1 - frac);
 
-                // Pole trunk
                 ctx.strokeStyle = '#4A4A4A';
                 ctx.lineWidth = Math.max(2, 4 * frac);
                 ctx.beginPath();
@@ -553,7 +576,6 @@ const StreetView360 = {
                 ctx.lineTo(px + (isLeft ? -2 : 2) * frac, py - poleH);
                 ctx.stroke();
 
-                // Cross-arm
                 const armW = 16 * frac;
                 const armY = py - poleH * 0.95;
                 const armX = px + (isLeft ? -2 : 2) * frac;
@@ -564,7 +586,6 @@ const StreetView360 = {
                 ctx.lineTo(armX + armW, armY);
                 ctx.stroke();
 
-                // Insulators (small knobs)
                 ['rgba(80,80,80,0.9)', 'rgba(80,80,80,0.9)'].forEach((c, ii) => {
                     ctx.fillStyle = c;
                     ctx.beginPath();
@@ -572,7 +593,6 @@ const StreetView360 = {
                     ctx.fill();
                 });
 
-                // Power lines stretching toward horizon
                 if (frac < 0.65) {
                     const nextFrac = frac * 0.5;
                     const ny = horizonY + (height - horizonY) * nextFrac;
@@ -592,7 +612,6 @@ const StreetView360 = {
                 }
             });
 
-            // ── VEHICLE: Parked SUV/sedan on left shoulder ─────────────────
             {
                 const vFrac = 0.55;
                 const vy = horizonY + (height - horizonY) * vFrac;
@@ -600,13 +619,11 @@ const StreetView360 = {
                 const vW = 50 * vFrac;
                 const vx = rleft + (rVpL - rleft) * (1 - vFrac) + 12;
 
-                // Shadow
                 ctx.fillStyle = 'rgba(0,0,0,0.25)';
                 ctx.beginPath();
                 ctx.ellipse(vx + vW * 0.5, vy + 3, vW * 0.6, 6 * vFrac, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Body (white/silver like the car in the photo)
                 const bodyGrad = ctx.createLinearGradient(vx, vy - vH, vx, vy);
                 bodyGrad.addColorStop(0, '#E8EAF0');
                 bodyGrad.addColorStop(0.4, '#D0D4DC');
@@ -616,25 +633,21 @@ const StreetView360 = {
                 ctx.roundRect(vx, vy - vH, vW, vH, [4, 4, 0, 0]);
                 ctx.fill();
 
-                // Roof
                 ctx.fillStyle = '#C8CACE';
                 ctx.beginPath();
                 ctx.roundRect(vx + vW * 0.15, vy - vH * 1.45, vW * 0.68, vH * 0.55, 4);
                 ctx.fill();
 
-                // Windshield
                 ctx.fillStyle = 'rgba(140,200,220,0.55)';
                 ctx.beginPath();
                 ctx.roundRect(vx + vW * 0.17, vy - vH * 1.38, vW * 0.28, vH * 0.45, 2);
                 ctx.fill();
 
-                // Rear window
                 ctx.fillStyle = 'rgba(140,200,220,0.45)';
                 ctx.beginPath();
                 ctx.roundRect(vx + vW * 0.54, vy - vH * 1.38, vW * 0.28, vH * 0.45, 2);
                 ctx.fill();
 
-                // Wheels
                 [0.15, 0.78].forEach(wx => {
                     ctx.fillStyle = '#222';
                     ctx.beginPath();
@@ -648,7 +661,6 @@ const StreetView360 = {
                 });
             }
 
-            // ── VEHICLE: Approaching tricycle/jeepney on road ──────────────
             {
                 const tvFrac = 0.25;
                 const tvy = horizonY + (height - horizonY) * tvFrac;
@@ -656,29 +668,25 @@ const StreetView360 = {
                 const tvW = 14 * tvFrac;
                 const tvx = vpX + (roadAng / 55) * 30;
 
-                ctx.fillStyle = '#8B2020'; // Red tricycle body (common in Agusan)
+                ctx.fillStyle = '#8B2020';
                 ctx.beginPath();
                 ctx.roundRect(tvx - tvW / 2, tvy - tvH, tvW, tvH, 2);
                 ctx.fill();
-                // Windshield glint
                 ctx.fillStyle = 'rgba(200,235,240,0.6)';
                 ctx.beginPath();
                 ctx.roundRect(tvx - tvW * 0.3, tvy - tvH * 0.85, tvW * 0.6, tvH * 0.4, 1);
                 ctx.fill();
-                // Tiny headlights
                 ctx.fillStyle = '#FFEE88';
                 ctx.beginPath(); ctx.arc(tvx - tvW * 0.28, tvy - tvH * 0.1, 1.5, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(tvx + tvW * 0.28, tvy - tvH * 0.1, 1.5, 0, Math.PI * 2); ctx.fill();
             }
 
-            // ── PERSON cycling (like in the Burgos St photo) ───────────────
             {
                 const pFrac = 0.42;
                 const py2 = horizonY + (height - horizonY) * pFrac;
                 const pH = 14 * pFrac;
                 const px2 = vpX + 18 * pFrac;
 
-                // Bicycle wheels
                 ctx.strokeStyle = '#555';
                 ctx.lineWidth = 1.5 * pFrac;
                 [-8, 8].forEach(ow => {
@@ -686,26 +694,21 @@ const StreetView360 = {
                     ctx.arc(px2 + ow * pFrac, py2, 5 * pFrac, 0, Math.PI * 2);
                     ctx.stroke();
                 });
-                // Frame
                 ctx.beginPath();
                 ctx.moveTo(px2 - 8 * pFrac, py2);
                 ctx.lineTo(px2 + 4 * pFrac, py2 - 7 * pFrac);
                 ctx.lineTo(px2 + 8 * pFrac, py2);
                 ctx.stroke();
-                // Rider body
-                ctx.fillStyle = '#8BC34A'; // Green shirt (like photo)
+                ctx.fillStyle = '#8BC34A';
                 ctx.beginPath();
                 ctx.ellipse(px2 + 2 * pFrac, py2 - 9 * pFrac, 3 * pFrac, 5 * pFrac, -0.2, 0, Math.PI * 2);
                 ctx.fill();
-                // Head
                 ctx.fillStyle = '#C8946A';
                 ctx.beginPath();
                 ctx.arc(px2 + 3 * pFrac, py2 - 14 * pFrac, 3 * pFrac, 0, Math.PI * 2);
                 ctx.fill();
             }
 
-            // ── ROADSIDE: Vegetation / buildings on right ──────────────────
-            // Trees (tall coconut palms on right side)
             const treeXPositions = [rright + 20 * 0.75, rright + 45 * 0.75, rright + 70 * 0.75].filter(tx => tx < width + 20);
             const treeFracs = [0.7, 0.5, 0.38];
             treeXPositions.forEach((tx, ti) => {
@@ -713,7 +716,6 @@ const StreetView360 = {
                 const ty2 = horizonY + (height - horizonY) * tf;
                 const tH = (height - horizonY) * tf * 0.8;
 
-                // Trunk (slight lean)
                 ctx.strokeStyle = '#5C3D1A';
                 ctx.lineWidth = Math.max(2, 3.5 * tf);
                 ctx.beginPath();
@@ -721,7 +723,6 @@ const StreetView360 = {
                 ctx.quadraticCurveTo(tx + 4 * tf, ty2 - tH * 0.5, tx + 3 * tf, ty2 - tH);
                 ctx.stroke();
 
-                // Coconut fronds
                 const fX = tx + 3 * tf;
                 const fY = ty2 - tH;
                 for (let fa = 0; fa < 7; fa++) {
@@ -739,7 +740,6 @@ const StreetView360 = {
                 }
             });
 
-            // Low green hedge / shrubbery row left side
             const shrubY = horizonY + (height - horizonY) * 0.68;
             const shrubGrad = ctx.createLinearGradient(0, shrubY - 14, 0, shrubY + 5);
             shrubGrad.addColorStop(0, '#3D7A2E');
@@ -754,33 +754,26 @@ const StreetView360 = {
             }
 
         } else {
-            // ── LOOKING TO THE SIDE (buildings/shops like Burgos St) ────────
-            // Ground
             ctx.fillStyle = '#606268';
             ctx.fillRect(0, horizonY, width, height - horizonY);
 
-            // Sidewalk / shoulder
             ctx.fillStyle = '#888B94';
             ctx.fillRect(0, horizonY + (height - horizonY) * 0.55, width, height - horizonY);
 
-            // Building facades on left (shop fronts like Nano Ceramic Tint)
-            const bldColors = ['#B0824A','#CCAA72','#A09060','#D4B080'];
+            const bldColors = ['#B0824A', '#CCAA72', '#A09060', '#D4B080'];
             let bx = 0;
             while (bx < width * 0.55) {
                 const bw = 55 + Math.sin(bx * 0.3) * 20;
                 const bh = (height - horizonY) * (0.55 + Math.sin(bx) * 0.2);
                 ctx.fillStyle = bldColors[Math.floor(bx / 60) % bldColors.length];
                 ctx.fillRect(bx, horizonY, bw - 2, bh);
-                // Storefront window
                 ctx.fillStyle = 'rgba(160,220,240,0.45)';
                 ctx.fillRect(bx + 6, horizonY + 8, bw - 18, (bh - 20) * 0.4);
-                // Sign board
                 ctx.fillStyle = '#E8D060';
                 ctx.fillRect(bx + 4, horizonY + 4, bw - 12, 10);
                 bx += bw + 2;
             }
 
-            // Street label
             ctx.font = `bold ${Math.round(height * 0.042)}px sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillStyle = 'rgba(255,255,255,0.55)';
@@ -820,23 +813,17 @@ const SpectralMap = {
     isPickingLocation: false,
     tileErrorTimer: null,
 
-    // â”€â”€ Haversine great-circle distance (meters) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     haversineMeters(lat1, lng1, lat2, lng2) {
-        const R = 6371000; // Earth radius in meters
+        const R = 6371000;
         const toRad = d => d * Math.PI / 180;
         const dLat = toRad(lat2 - lat1);
         const dLng = toRad(lng2 - lng1);
         const a = Math.sin(dLat / 2) ** 2
-                + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+            + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     },
 
-    // ── High-precision San Francisco Barangay Resolver (>=95% Accuracy) ──
-            resolveNearestBarangay(lat, lng) {
-        // 1. High-precision Poblacion Core Grid (Barangay 1–5)
-        // Centerpoints:
-        //   Brgy 1 (8.5132, 125.9765), Brgy 2 (8.5086, 125.9811), Brgy 3 (8.5110, 125.9720)
-        //   Brgy 4 (8.5065, 125.9735), Brgy 5 (8.5029, 125.9781)
+    resolveNearestBarangay(lat, lng) {
         if (lat >= 8.5015 && lat <= 8.5150 && lng >= 125.9670 && lng <= 125.9845) {
             const poblacionList = SpectralData.barangays.filter(b => b.name.startsWith('Barangay '));
             let nearestPob = poblacionList[0];
@@ -848,7 +835,6 @@ const SpectralMap = {
             return { barangay: nearestPob, distanceMeters: Math.round(minDistPob) };
         }
 
-        // 2. Nearest Centroid Distance Match (across all 27 Barangays)
         let nearest = SpectralData.barangays[0];
         let minDist = Infinity;
         SpectralData.barangays.forEach(b => {
@@ -858,7 +844,6 @@ const SpectralMap = {
         return { barangay: nearest, distanceMeters: Math.round(minDist) };
     },
 
-    // ── Helper to find and select a barangay in the dropdown by ID or Name ──
     selectBarangayOption(selectElement, identifier) {
         if (!selectElement || !identifier) return false;
         const strId = String(identifier).trim();
@@ -878,9 +863,7 @@ const SpectralMap = {
         return false;
     },
 
-    // ── Reverse geocode (Proxy + Local High-Precision Resolver) ──────────
-        async reverseGeocode(lat, lng) {
-        // 1. Try Laravel proxy (returns calibrated municipal barangay)
+    async reverseGeocode(lat, lng) {
         try {
             const res = await fetch(`/api/spectral/reverse-geocode?lat=${lat}&lng=${lng}`, {
                 headers: { 'Accept': 'application/json' },
@@ -896,11 +879,9 @@ const SpectralMap = {
             console.warn('[Spectra GIS] Internal reverse geocode failed, trying direct OSM fallback:', e.message);
         }
 
-        // 2. High-precision municipal resolution
         const inPoblacion = (lat >= 8.5015 && lat <= 8.5150 && lng >= 125.9670 && lng <= 125.9845);
         let { barangay } = this.resolveNearestBarangay(lat, lng);
 
-        // 3. Optional Direct OpenStreetMap Nominatim for street/road & rural village enrichment
         let road = '';
         try {
             const osmUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=jsonv2&addressdetails=1`;
@@ -916,7 +897,7 @@ const SpectralMap = {
                     const isPoblacionHint = cleanHint.includes('barangay') || /^(1|2|3|4|5)$/.test(cleanHint);
 
                     if (!inPoblacion || isPoblacionHint) {
-                        const matched = SpectralData.barangays.find(b => 
+                        const matched = SpectralData.barangays.find(b =>
                             b.name.toLowerCase() === cleanHint ||
                             cleanHint.includes(b.name.toLowerCase()) ||
                             b.name.toLowerCase().includes(cleanHint.replace(/^brgy\.?\s*/i, ''))
@@ -927,7 +908,7 @@ const SpectralMap = {
                     }
                 }
             }
-        } catch (_) {}
+        } catch (_) { }
 
         return {
             success: true,
@@ -943,19 +924,17 @@ const SpectralMap = {
     },
 
     init() {
-        // Reporter map page handles its own initialization — skip to avoid conflicts
         if (window.SPECTRAL_REPORTER_MAP) return;
 
         const mapElement = document.getElementById('spectral-map');
         if (!mapElement) return;
 
-        // Restore persisted filter states from localStorage
         try {
             const savedInc = localStorage.getItem('spectral_layer_incidents');
             if (savedInc !== null) this.activeFilters.incidents = (savedInc !== '0');
             const savedSafe = localStorage.getItem('spectral_layer_safeZones');
             if (savedSafe !== null) this.activeFilters.safeZones = (savedSafe !== '0');
-        } catch (_) {}
+        } catch (_) { }
 
         if (this.map || (window.SpectralMap && window.SpectralMap.map) || (mapElement && mapElement._leaflet_id)) {
             this.map = this.map || (window.SpectralMap ? window.SpectralMap.map : null);
@@ -964,7 +943,7 @@ const SpectralMap = {
                     this.map.invalidateSize();
                     this.updateLayerToggleButtons();
                 }
-            } catch (_) {}
+            } catch (_) { }
             return;
         }
 
@@ -979,7 +958,6 @@ const SpectralMap = {
                 attributionControl: true
             });
 
-            // ── Satellite Imagery Layer (Same tile source & setup as Investigator map) ──
             this.baseLayers.satellite = L.tileLayer(
                 'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
                 attribution: 'OpenStreetMap',
@@ -992,19 +970,16 @@ const SpectralMap = {
             L.control.zoom({ position: 'topright' }).addTo(this.map);
             L.control.scale({ imperial: true, metric: true, position: 'bottomleft' }).addTo(this.map);
 
-            // Initialize Layer Groups
             this.layerGroups.incidents = L.layerGroup().addTo(this.map);
-            this.layerGroups.wards     = L.layerGroup().addTo(this.map);
+            this.layerGroups.wards = L.layerGroup().addTo(this.map);
             this.layerGroups.resources = L.layerGroup().addTo(this.map);
             this.layerGroups.safeZones = L.layerGroup().addTo(this.map);
 
             this.renderAllLayers();
             this.updateLayerToggleButtons();
 
-            // ── Map click: street view mode OR picker mode OR anomaly drop ───
             this.map.on('click', (e) => this.handleMapClick(e));
 
-            // Invalidate size and ensure layers are rendered once layout computes
             setTimeout(() => {
                 if (this.map) {
                     this.map.invalidateSize();
@@ -1039,9 +1014,9 @@ const SpectralMap = {
 
             const sevColors = {
                 CRITICAL: '#000000',
-                HIGH:     '#EF4444',
-                MEDIUM:   '#EAB308',
-                LOW:      '#22C55E'
+                HIGH: '#EF4444',
+                MEDIUM: '#EAB308',
+                LOW: '#22C55E'
             };
             const color = sevColors[inc.severity] || '#22C55E';
             const isHigh = inc.severity === 'HIGH' || inc.severity === 'CRITICAL';
@@ -1067,7 +1042,6 @@ const SpectralMap = {
 
             const marker = L.marker([lat, lng], { icon, zIndexOffset: 800 });
 
-            // ── Anomaly condition (HP / progress / status) — mirrors investigator dashboard ──
             const defaultHpMap = { CRITICAL: 150, HIGH: 100, MEDIUM: 60, LOW: 30 };
             const defaultHp = defaultHpMap[inc.severity] || 100;
             const assignment = (inc.responder_assignments && inc.responder_assignments.length > 0)
@@ -1155,7 +1129,6 @@ const SpectralMap = {
                 }
                 SpectralUI.inspectIncident(inc.id);
 
-                // Fetch real address on click if not yet cached
                 if (!inc.real_address && SpectralMap.reverseGeocode && inc.latitude && inc.longitude) {
                     SpectralMap.reverseGeocode(inc.latitude, inc.longitude).then(geo => {
                         if (geo && geo.address) {
@@ -1168,7 +1141,7 @@ const SpectralMap = {
                                 locEl.textContent = geo.address;
                             }
                         }
-                    }).catch(() => {});
+                    }).catch(() => { });
                 }
             });
             if (inc.db_id) this.incidentMarkers[inc.db_id] = marker;
@@ -1185,13 +1158,14 @@ const SpectralMap = {
         if (this.layerGroups.resources) this.layerGroups.resources.clearLayers();
     },
 
+    // 🌐 Safe zone circles now use the ACTUAL protection radius (no more ×0.30 scaling)
     renderSafeZones() {
         if (!this.layerGroups.safeZones) return;
         this.layerGroups.safeZones.clearLayers();
         if (!this.activeFilters.safeZones) return;
 
         SpectralData.safeZones.forEach(sz => {
-            const safeRadius = Math.round((parseFloat(sz.radius) || 800) * 0.30);
+            const safeRadius = Math.round(parseFloat(sz.radius) || 450);
             const circle = L.circle([sz.latitude, sz.longitude], {
                 radius: safeRadius,
                 color: '#22C55E',
@@ -1200,7 +1174,6 @@ const SpectralMap = {
                 fillOpacity: 0.08
             });
 
-            // Safe Ward Station Marker (Shield icon) — copied from investigator design
             const szHtml = `
                 <div style="width:28px; height:28px; border-radius:50%; background:#10B981; border:2px solid #34D399; box-shadow:0 0 10px rgba(16,185,129,0.8); display:flex; align-items:center; justify-content:center; cursor:pointer;" title="${sz.name}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -1214,7 +1187,7 @@ const SpectralMap = {
                         <span class="popup-code" style="color:#22C55E; font-size:9px; font-weight:700; font-family:'JetBrains Mono',monospace;">SAFE WARD STATION</span>
                     </div>
                     <h4 class="popup-title" style="font-size:12px; font-weight:800; color:#FFFFFF; margin-bottom:2px;">${sz.name}</h4>
-                    <p class="popup-meta" style="font-size:11px; color:#9CA3AF;">Active Safe Ward Station Perimeter &bull; Capacity: ${sz.capacity} civilians</p>
+                    <p class="popup-meta" style="font-size:11px; color:#9CA3AF;">Active Safe Ward Station Perimeter &bull; ${safeRadius}m radius</p>
                 </div>`;
 
             marker.bindPopup(popupHtml, { className: 'gis-leaflet-popup' });
@@ -1251,7 +1224,6 @@ const SpectralMap = {
         }
 
         this.isPickingLocation = true;
-        // Remove any anomaly marker while picking
         if (this.anomalyMarker && this.map) {
             this.map.removeLayer(this.anomalyMarker);
             this.anomalyMarker = null;
@@ -1311,16 +1283,13 @@ const SpectralMap = {
         );
     },
 
-    // â”€â”€ Unified map click handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async handleMapClick(e) {
         if (!this.isPickingLocation) {
-            // Normal map navigation: clicking the map does not drop annoying probes or popups
             return;
         }
 
         const { lat, lng } = e.latlng;
 
-        // Place or update location picker pin
         if (this.pickerMarker) this.map.removeLayer(this.pickerMarker);
 
         const pinHtml = `
@@ -1337,11 +1306,11 @@ const SpectralMap = {
 
         const { barangay } = this.resolveNearestBarangay(lat, lng);
 
-        const latInput        = document.getElementById('report-lat');
-        const lngInput        = document.getElementById('report-lng');
-        const barangaySelect  = document.getElementById('report-barangay');
-        const resolvedInput   = document.getElementById('report-resolved-location');
-        const geocodeStatus   = document.getElementById('report-geocode-status');
+        const latInput = document.getElementById('report-lat');
+        const lngInput = document.getElementById('report-lng');
+        const barangaySelect = document.getElementById('report-barangay');
+        const resolvedInput = document.getElementById('report-resolved-location');
+        const geocodeStatus = document.getElementById('report-geocode-status');
 
         if (latInput) latInput.value = lat.toFixed(6);
         if (lngInput) lngInput.value = lng.toFixed(6);
@@ -1355,7 +1324,6 @@ const SpectralMap = {
             resolvedInput.value = `Resolving address for ${lat.toFixed(5)}, ${lng.toFixed(5)}...`;
         }
 
-        // Deactivate picker mode and show report modal
         this.isPickingLocation = false;
         const mapEl = document.getElementById('spectral-map');
         const hudEl = document.getElementById('location-picker-hud');
@@ -1365,13 +1333,10 @@ const SpectralMap = {
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.remove('hidden');
 
-        // Retrieve and display readable address & location review
         if (typeof SpectralUI !== 'undefined' && typeof SpectralUI.lookupAddress === 'function') {
             SpectralUI.lookupAddress(lat, lng);
         }
     },
-
-    // ── Left-Side Street View Reconnaissance & 360 Engine ────────────────
 
     toggleStreetView() {
         const leftPanel = document.getElementById('streetview-left-panel');
@@ -1390,7 +1355,6 @@ const SpectralMap = {
         const btn = document.getElementById('streetview-toggle-btn');
         const label = document.getElementById('streetview-btn-label');
 
-        // Slide in left panel
         if (leftPanel) {
             leftPanel.classList.remove('-translate-x-full');
             leftPanel.classList.add('translate-x-0');
@@ -1402,10 +1366,8 @@ const SpectralMap = {
             label.textContent = 'Street Active';
         }
 
-        // Nearest barangay
         const { barangay, distanceMeters } = this.resolveNearestBarangay(lat, lng);
 
-        // Update UI fields
         const coordText = document.getElementById('sv-coord-text');
         const barangayText = document.getElementById('sv-barangay-text');
         const subtitle = document.getElementById('sv-road-subtitle');
@@ -1419,7 +1381,6 @@ const SpectralMap = {
         if (subtitle) subtitle.textContent = `Brgy. ${barangay.name}, San Francisco, Agusan del Sur`;
         if (nearestWard) nearestWard.textContent = `Brgy. ${barangay.name} (~${distanceMeters}m)`;
 
-        // Google Maps Street View deep link
         if (deepLink) {
             deepLink.href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
         }
@@ -1428,7 +1389,6 @@ const SpectralMap = {
         if (roadTitle) roadTitle.textContent = guessedRoad;
         if (roadMeta) roadMeta.textContent = `${barangay.name}, San Francisco · Updated 2026`;
 
-        // Update Pegman pin on satellite map
         if (this.streetViewMarker) {
             this.map.removeLayer(this.streetViewMarker);
         }
@@ -1451,14 +1411,11 @@ const SpectralMap = {
             zIndexOffset: 1600
         }).addTo(this.map);
 
-        // Initialize 360 panorama road viewer (procedural fallback)
         StreetView360.init();
         StreetView360.setLocation(lat, lng, guessedRoad, barangay.name);
 
-        // Check and load real Google Street View photos if an API key is connected
         this.loadRealGoogleStreetView(lat, lng);
 
-        // Async: reverse-geocode exact road name via Nominatim
         this.reverseGeocode(lat, lng).then(geo => {
             if (geo.ok && (geo.village || geo.city)) {
                 const actualRoad = geo.village || geo.city || guessedRoad;
@@ -1467,7 +1424,6 @@ const SpectralMap = {
             }
         });
 
-        // Let Leaflet map adjust smoothly alongside the left panel
         setTimeout(() => {
             if (this.map) this.map.invalidateSize();
         }, 320);
@@ -1565,7 +1521,6 @@ const SpectralMap = {
                         this.googlePanorama.setPosition(data.location.latLng);
                     }
                 } else {
-                    // Fallback to procedural 360 viewer if no Street View car passed this exact coordinate
                     realContainer.classList.add('hidden');
                     if (canvas) canvas.classList.remove('hidden');
                     if (compass) compass.classList.remove('hidden');
@@ -1665,12 +1620,11 @@ const SpectralMap = {
     jumpTo(level) {
         if (!this.map) return;
         const presets = {
-            world:         { center: [13.0, 122.0],                   zoom: 3  },
-            philippines:   { center: [12.8797, 121.7740],             zoom: 6  },
-            mindanao:      { center: [7.8500, 124.9000],              zoom: 8  },
-            agusan:        { center: [8.5000, 125.8500],              zoom: 10 },
-            // Zoom 16 = tight view of just San Francisco municipality (town proper)
-            san_francisco: { center: [8.5100, 125.9750],              zoom: 16 }
+            world: { center: [13.0, 122.0], zoom: 3 },
+            philippines: { center: [12.8797, 121.7740], zoom: 6 },
+            mindanao: { center: [7.8500, 124.9000], zoom: 8 },
+            agusan: { center: [8.5000, 125.8500], zoom: 10 },
+            san_francisco: { center: [8.5100, 125.9750], zoom: 16 }
         };
         const target = presets[level] || presets.san_francisco;
         this.map.flyTo(target.center, target.zoom, { duration: 1.4 });
@@ -1679,18 +1633,15 @@ const SpectralMap = {
     setBaseMap(theme) {
         if (!this.map) return;
 
-        // Remove all base layers including the esri satellite fallback
         const allLayers = [...Object.values(this.baseLayers)];
         allLayers.forEach(layer => {
             if (this.map.hasLayer(layer)) this.map.removeLayer(layer);
         });
 
-        // Add requested layer; fall back to dark if unknown
         const layer = this.baseLayers[theme] || this.baseLayers.dark;
         layer.addTo(this.map);
         this.activeBaseMap = theme;
 
-        // Update switcher button active states
         ['dark', 'standard', 'voyager', 'satellite'].forEach(t => {
             const btn = document.getElementById(`mapbtn-${t}`);
             if (!btn) return;
@@ -1704,12 +1655,11 @@ const SpectralMap = {
         });
     },
 
-
     toggleLayer(layerName) {
         this.activeFilters[layerName] = !this.activeFilters[layerName];
         try {
             localStorage.setItem('spectral_layer_' + layerName, this.activeFilters[layerName] ? '1' : '0');
-        } catch (_) {}
+        } catch (_) { }
         this.renderAllLayers();
         this.updateLayerToggleButtons();
     },
@@ -1746,39 +1696,32 @@ const SpectralMap = {
             : ((SpectralData.safeZones && SpectralData.safeZones.length > 0) ? SpectralData.safeZones.length : 0);
         const resolved = incidents.filter(i => i.status === 'RESOLVED').length;
 
-        const elInc  = document.getElementById('stat-active-incidents');
-        const elInv  = document.getElementById('stat-investigating');
+        const elInc = document.getElementById('stat-active-incidents');
+        const elInv = document.getElementById('stat-investigating');
         const elWard = document.getElementById('stat-ward-stations');
-        const elRes  = document.getElementById('stat-resolved');
+        const elRes = document.getElementById('stat-resolved');
 
-        // Always update — even if 0, the stat should reflect reality (don't guard on incidents.length)
-        if (elInc)  elInc.textContent  = String(activeIncidents).padStart(2, '0');
-        if (elInv)  elInv.textContent  = String(underReview).padStart(2, '0');
+        if (elInc) elInc.textContent = String(activeIncidents).padStart(2, '0');
+        if (elInv) elInv.textContent = String(underReview).padStart(2, '0');
         if (elWard) elWard.textContent = String(totalWards).padStart(2, '0');
-        if (elRes)  elRes.textContent  = String(resolved).padStart(2, '0');
+        if (elRes) elRes.textContent = String(resolved).padStart(2, '0');
 
-        const elMapInc   = document.getElementById('map-hud-incidents');
+        const elMapInc = document.getElementById('map-hud-incidents');
         const elMapWards = document.getElementById('map-hud-wards');
-        const elMapRes   = document.getElementById('map-hud-resources');
+        const elMapRes = document.getElementById('map-hud-resources');
 
-        if (elMapInc)   elMapInc.textContent   = activeIncidents;
+        if (elMapInc) elMapInc.textContent = activeIncidents;
         if (elMapWards) elMapWards.textContent = totalWards;
-        if (elMapRes)   elMapRes.textContent   = (SpectralData.spectralResources || []).length;
+        if (elMapRes) elMapRes.textContent = (SpectralData.spectralResources || []).length;
     }
 };
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 // 3. UI CONTROLLER & WORKFLOW (Vanilla JS)
-
-
-
-
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// 3. UI CONTROLLER & WORKFLOW (Vanilla JS)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 const SpectralUI = {
-    currentRole: 'reporter', // 'reporter' | 'investigator'
+    currentRole: 'reporter',
     selectedIncidentId: null,
 
     init() {
@@ -1828,20 +1771,18 @@ const SpectralUI = {
 
     inspectIncident(incidentId) {
         this.selectedIncidentId = incidentId;
-        // Bug #1 fix: normalized data stores incident_code as `id`, also support db_id lookup
         const inc = SpectralData.incidents.find(i =>
             i.id === incidentId || i.incident_code === incidentId || i.db_id === incidentId
         );
         if (!inc) return;
 
         const defaultOverview = document.getElementById('panel-default-overview');
-        const inspectorView   = document.getElementById('panel-incident-inspector');
+        const inspectorView = document.getElementById('panel-incident-inspector');
 
         if (inspectorView) {
             if (defaultOverview) defaultOverview.classList.add('hidden');
             inspectorView.classList.remove('hidden');
 
-            // On mobile, expand infopanel so the user sees the details immediately
             if (window.innerWidth < 768) {
                 this.expandMobileInfoPanel();
                 const mobTitle = document.getElementById('mobile-infopanel-title');
@@ -1849,7 +1790,6 @@ const SpectralUI = {
             }
         }
 
-        // Store current incident coords for focusOnInspected and zoom in on map
         this._inspectedLat = inc.latitude;
         this._inspectedLng = inc.longitude;
 
@@ -1868,18 +1808,16 @@ const SpectralUI = {
         const titleEl = document.getElementById('insp-title');
         if (titleEl) titleEl.textContent = inc.title;
 
-        // Assignments and status calculation from database values
         const assignments = inc.responder_assignments || [];
         const latestAssignment = assignments.length > 0 ? assignments[assignments.length - 1] : null;
 
-        // Exact 4 status stages: Pending -> Under Investigation -> Verified -> Responder Assigned
         const isResponderAssigned = !!(latestAssignment && latestAssignment.responder_id);
         const isVerified = ['VERIFIED', 'RESOLVED'].includes(inc.status) || inc.investigation_result === 'CONFIRMED' || assignments.length > 0;
         const isInvestigating = isVerified || ['UNDER INVESTIGATION'].includes(inc.status) || (inc.investigations && inc.investigations.length > 0);
 
         let currentStatusText = 'Pending';
         let badgeClass = 'pending';
-        let activeStageIndex = 0; // 0: Pending, 1: Under Investigation, 2: Verified, 3: Responder Assigned
+        let activeStageIndex = 0;
 
         if (inc.status === 'RESOLVED') {
             currentStatusText = 'Resolved';
@@ -1905,11 +1843,10 @@ const SpectralUI = {
 
         const statBadge = document.getElementById('insp-status-badge');
         if (statBadge) {
-            statBadge.className   = `badge-${badgeClass} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono`;
+            statBadge.className = `badge-${badgeClass} text-[10px] font-bold px-2 py-0.5 rounded-full font-mono`;
             statBadge.textContent = currentStatusText;
         }
 
-        // Response Progress calculation from actual database values
         let progress = 0;
         if (latestAssignment && latestAssignment.response_progress !== null && latestAssignment.response_progress !== undefined) {
             progress = parseInt(latestAssignment.response_progress, 10) || 0;
@@ -1935,19 +1872,17 @@ const SpectralUI = {
             stageCounterEl.textContent = `STAGE ${activeStageIndex + 1} OF 4`;
         }
 
-        // Status Timeline: Pending -> Under Investigation -> Verified -> Responder Assigned
         this._buildTimeline(inc, activeStageIndex);
 
-        // Investigator actions
         const investigatorSection = document.getElementById('insp-investigator-actions');
         if (investigatorSection) {
             if (this.currentRole === 'investigator') {
                 investigatorSection.classList.remove('hidden');
-                const statSel  = document.getElementById('investigator-status-select');
-                const sevSel   = document.getElementById('investigator-severity-select');
+                const statSel = document.getElementById('investigator-status-select');
+                const sevSel = document.getElementById('investigator-severity-select');
                 const notesInp = document.getElementById('investigator-notes-input');
-                if (statSel)  statSel.value  = inc.status;
-                if (sevSel)   sevSel.value   = inc.severity;
+                if (statSel) statSel.value = inc.status;
+                if (sevSel) sevSel.value = inc.severity;
                 if (notesInp) notesInp.value = inc.notes || '';
             } else {
                 investigatorSection.classList.add('hidden');
@@ -1987,7 +1922,7 @@ const SpectralUI = {
         let html = '<div class="space-y-2 text-xs pt-1 font-mono">';
         stages.forEach((stage, idx) => {
             const isCompleted = activeStageIndex > idx;
-            const isCurrent   = activeStageIndex === idx;
+            const isCurrent = activeStageIndex === idx;
 
             let dotClass = 'bg-slate-600';
             let textClass = 'text-slate-500';
@@ -2023,10 +1958,10 @@ const SpectralUI = {
     closeInspector() {
         this.selectedIncidentId = null;
         const defaultOverview = document.getElementById('panel-default-overview');
-        const inspectorView   = document.getElementById('panel-incident-inspector');
+        const inspectorView = document.getElementById('panel-incident-inspector');
 
         if (defaultOverview) defaultOverview.classList.remove('hidden');
-        if (inspectorView)   inspectorView.classList.add('hidden');
+        if (inspectorView) inspectorView.classList.add('hidden');
 
         const mobTitle = document.getElementById('mobile-infopanel-title');
         if (mobTitle) mobTitle.textContent = 'System Summary';
@@ -2067,15 +2002,14 @@ const SpectralUI = {
 
     getStatusBadgeClass(status) {
         return status === 'PENDING' ? 'pending'
-             : status === 'UNDER INVESTIGATION' ? 'investigating'
-             : status === 'VERIFIED' ? 'verified'
-             : status === 'RESOLVED' ? 'resolved'
-             : 'pending';
+            : status === 'UNDER INVESTIGATION' ? 'investigating'
+                : status === 'VERIFIED' ? 'verified'
+                    : status === 'RESOLVED' ? 'resolved'
+                        : 'pending';
     },
 
     async saveInvestigatorChanges() {
         if (!this.selectedIncidentId) return;
-        // Bug #2 fix: mirror the same triple-key lookup
         const inc = SpectralData.incidents.find(i =>
             i.id === this.selectedIncidentId || i.incident_code === this.selectedIncidentId || i.db_id === this.selectedIncidentId
         );
@@ -2089,7 +2023,6 @@ const SpectralUI = {
         inc.severity = newSeverity;
         inc.notes = newNotes;
 
-        // Persist to Laravel API
         try {
             const token = document.querySelector('meta[name="csrf-token"]')?.content;
             if (inc.db_id) {
@@ -2112,7 +2045,7 @@ const SpectralUI = {
         }
 
         SpectralMap.renderIncidents();
-        this.inspectIncident(this.selectedIncidentId); // Bug #3 fix: use stored selectedIncidentId
+        this.inspectIncident(this.selectedIncidentId);
         this.showToast(`Incident ${inc.id} updated to ${newStatus}`);
     },
 
@@ -2122,19 +2055,19 @@ const SpectralUI = {
         if (isNaN(lat) || isNaN(lng)) return;
 
         const loadingEl = document.getElementById('report-geocode-loading');
-        const errorEl   = document.getElementById('report-geocode-error');
+        const errorEl = document.getElementById('report-geocode-error');
         const errTextEl = document.getElementById('report-geocode-error-text');
-        const statusEl  = document.getElementById('report-geocode-status');
-        const badgeEl   = document.getElementById('report-geocode-badge');
+        const statusEl = document.getElementById('report-geocode-status');
+        const badgeEl = document.getElementById('report-geocode-badge');
         const addrInput = document.getElementById('report-address') || document.getElementById('report-resolved-location');
-        const bReview   = document.getElementById('report-review-barangay');
-        const mReview   = document.getElementById('report-review-municipality');
-        const cReview   = document.getElementById('report-review-coords');
-        const bSelect   = document.getElementById('report-barangay');
+        const bReview = document.getElementById('report-review-barangay');
+        const mReview = document.getElementById('report-review-municipality');
+        const cReview = document.getElementById('report-review-coords');
+        const bSelect = document.getElementById('report-barangay');
         const confirmCb = document.getElementById('report-location-confirmed');
 
         if (loadingEl) loadingEl.classList.remove('hidden');
-        if (errorEl)   errorEl.classList.add('hidden');
+        if (errorEl) errorEl.classList.add('hidden');
         if (statusEl) {
             statusEl.textContent = 'Resolving address...';
             statusEl.style.color = '#A78BFA';
@@ -2144,7 +2077,7 @@ const SpectralUI = {
             badgeEl.className = 'px-1.5 py-0.5 rounded text-[9px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20';
         }
         if (addrInput) addrInput.value = `Looking up address for (${lat.toFixed(5)}, ${lng.toFixed(5)})...`;
-        if (cReview)   cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        if (cReview) cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
         try {
             const res = await fetch(`/api/spectral/reverse-geocode?lat=${lat}&lng=${lng}`, {
@@ -2159,9 +2092,9 @@ const SpectralUI = {
                     if (addrInput) addrInput.value = data.address || '';
                     const bName = data.barangay_name || data.barangay || 'San Francisco';
                     const bDisplay = bName.startsWith('Barangay ') ? bName : `Brgy. ${bName}`;
-                    if (bReview)   bReview.textContent = bDisplay;
-                    if (mReview)   mReview.textContent = `${data.municipality || 'San Francisco'}, ${data.province || 'Agusan del Sur'}`;
-                    if (cReview)   cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    if (bReview) bReview.textContent = bDisplay;
+                    if (mReview) mReview.textContent = `${data.municipality || 'San Francisco'}, ${data.province || 'Agusan del Sur'}`;
+                    if (cReview) cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                     if (statusEl) {
                         statusEl.textContent = `✓ ${bDisplay}`;
                         statusEl.style.color = '#34D399';
@@ -2172,7 +2105,6 @@ const SpectralUI = {
                     }
                     if (confirmCb) confirmCb.checked = true;
 
-                    // Match option in barangay dropdown
                     if (bSelect && data.barangay_id) {
                         for (let opt of bSelect.options) {
                             if (opt.value == data.barangay_id || (opt.dataset && opt.dataset.id == data.barangay_id)) {
@@ -2208,7 +2140,6 @@ const SpectralUI = {
                 statusEl.style.color = '#FBBF24';
             }
 
-            // Fallback: match nearest barangay using local municipal data
             let fallbackName = 'San Francisco';
             if (window.SpectralData && window.SpectralData.barangays && window.SpectralData.barangays.length > 0) {
                 let closest = null;
@@ -2239,9 +2170,9 @@ const SpectralUI = {
             const fallbackDisplay = fallbackName.startsWith('Barangay ') ? fallbackName : `Brgy. ${fallbackName}`;
             const fallbackAddress = `${fallbackDisplay}, San Francisco, Agusan del Sur, Philippines`;
             if (addrInput) addrInput.value = fallbackAddress;
-            if (bReview)   bReview.textContent = fallbackDisplay;
-            if (mReview)   mReview.textContent = 'San Francisco, Agusan del Sur';
-            if (cReview)   cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            if (bReview) bReview.textContent = fallbackDisplay;
+            if (mReview) mReview.textContent = 'San Francisco, Agusan del Sur';
+            if (cReview) cReview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
             if (confirmCb) confirmCb.checked = true;
         }
     },
@@ -2251,10 +2182,30 @@ const SpectralUI = {
         if (modal) modal.classList.remove('hidden');
 
         const bSelect = document.getElementById('report-barangay');
-        const latInp  = document.getElementById('report-lat');
-        const lngInp  = document.getElementById('report-lng');
+        const latInp = document.getElementById('report-lat');
+        const lngInp = document.getElementById('report-lng');
 
-        // Wire barangay change → update coordinates + lookup address (attach once)
+        const updateSafeZoneProtectionState = (lat, lng) => {
+            const protection = SpectralData.checkSafeZoneProtection(lat, lng);
+            const alertEl = document.getElementById('report-safezone-alert');
+            const confirmCb = document.getElementById('report-location-confirmed');
+            const statusEl = document.getElementById('report-geocode-status');
+
+            if (protection) {
+                if (alertEl) alertEl.classList.remove('hidden');
+                if (confirmCb) confirmCb.checked = false;
+                if (statusEl) {
+                    statusEl.textContent = '⚠️ Safe Zone Protected';
+                    statusEl.style.color = '#EF4444';
+                }
+                return true;
+            } else {
+                if (alertEl) alertEl.classList.add('hidden');
+                return false;
+            }
+        };
+        this.updateSafeZoneProtectionState = updateSafeZoneProtectionState;
+
         if (bSelect && !bSelect._spectralCoordListenerAttached) {
             bSelect._spectralCoordListenerAttached = true;
             bSelect.addEventListener('change', () => {
@@ -2264,21 +2215,26 @@ const SpectralUI = {
                     const lng = parseFloat(opt.dataset.lng);
                     if (latInp) latInp.value = lat.toFixed(6);
                     if (lngInp) lngInp.value = lng.toFixed(6);
+                    updateSafeZoneProtectionState(lat, lng);
                     this.lookupAddress(lat, lng);
                 }
             });
         }
 
-        // Wire lat/lng change → lookup address (debounced, attach once)
         const _onCoordChange = (() => {
             let timer = null;
             return () => {
+                const lat = parseFloat(document.getElementById('report-lat')?.value);
+                const lng = parseFloat(document.getElementById('report-lng')?.value);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    updateSafeZoneProtectionState(lat, lng);
+                }
                 clearTimeout(timer);
                 timer = setTimeout(() => {
-                    const lat = parseFloat(document.getElementById('report-lat')?.value);
-                    const lng = parseFloat(document.getElementById('report-lng')?.value);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        this.lookupAddress(lat, lng);
+                    const l = parseFloat(document.getElementById('report-lat')?.value);
+                    const g = parseFloat(document.getElementById('report-lng')?.value);
+                    if (!isNaN(l) && !isNaN(g)) {
+                        this.lookupAddress(l, g);
                     }
                 }, 500);
             };
@@ -2286,18 +2242,27 @@ const SpectralUI = {
 
         if (latInp && !latInp._spectralCoordListenerAttached) {
             latInp._spectralCoordListenerAttached = true;
+            latInp.addEventListener('input', _onCoordChange);
             latInp.addEventListener('change', _onCoordChange);
         }
         if (lngInp && !lngInp._spectralCoordListenerAttached) {
             lngInp._spectralCoordListenerAttached = true;
+            lngInp.addEventListener('input', _onCoordChange);
             lngInp.addEventListener('change', _onCoordChange);
         }
 
-        // Initialize address lookup on open if not already populated
+        const curLat = parseFloat(latInp?.value);
+        const curLng = parseFloat(lngInp?.value);
+
+        if (isNaN(curLat) || isNaN(curLng)) {
+            const alertEl = document.getElementById('report-safezone-alert');
+            if (alertEl) alertEl.classList.add('hidden');
+        } else {
+            updateSafeZoneProtectionState(curLat, curLng);
+        }
+
         const resolvedInput = document.getElementById('report-address') || document.getElementById('report-resolved-location');
         if (!resolvedInput || !resolvedInput.value || resolvedInput.value.startsWith('Looking up')) {
-            const curLat = parseFloat(latInp?.value);
-            const curLng = parseFloat(lngInp?.value);
             if (!isNaN(curLat) && !isNaN(curLng)) {
                 this.lookupAddress(curLat, curLng);
             }
@@ -2307,6 +2272,8 @@ const SpectralUI = {
     closeReportModal() {
         const modal = document.getElementById('report-modal');
         if (modal) modal.classList.add('hidden');
+        const alertEl = document.getElementById('report-safezone-alert');
+        if (alertEl) alertEl.classList.add('hidden');
     },
 
     handleEvidenceUpload(input) {
@@ -2333,19 +2300,17 @@ const SpectralUI = {
         if (previewContainer) previewContainer.classList.add('hidden');
     },
 
-       async submitReport(e) {
+    async submitReport(e) {
         e.preventDefault();
 
-        const form        = document.getElementById('report-form');
-        const submitBtn   = document.getElementById('report-submit-btn');
-        const spinner     = document.getElementById('report-submit-spinner');
-        const label       = document.getElementById('report-submit-label');
-        const overlay     = document.getElementById('report-processing-overlay');
+        const form = document.getElementById('report-form');
+        const submitBtn = document.getElementById('report-submit-btn');
+        const spinner = document.getElementById('report-submit-spinner');
+        const label = document.getElementById('report-submit-label');
+        const overlay = document.getElementById('report-processing-overlay');
 
-        // 🛡️ Prevent double-submit: if already submitting, bail out
         if (submitBtn && submitBtn.disabled) return false;
 
-        // Validate location confirmation
         const locationConfirmed = document.getElementById('report-location-confirmed');
         if (locationConfirmed && !locationConfirmed.checked) {
             if (typeof this.showToast === 'function') {
@@ -2357,25 +2322,22 @@ const SpectralUI = {
             return;
         }
 
-        // 🔒 Lock button + show spinner + disable form inputs
         if (submitBtn) submitBtn.disabled = true;
-        if (spinner)   spinner.classList.remove('hidden');
-        if (label)     label.textContent = 'Submitting...';
+        if (spinner) spinner.classList.remove('hidden');
+        if (label) label.textContent = 'Submitting...';
         if (form) {
             form.querySelectorAll('input, select, textarea').forEach(el => {
                 el.disabled = true;
             });
         }
 
-        // 🌫️ Show full-screen "Please Wait" overlay
         if (overlay) overlay.classList.remove('hidden');
 
-        // Helper: unlock the UI (used on error)
         const unlockUI = () => {
-            if (overlay)   overlay.classList.add('hidden');
+            if (overlay) overlay.classList.add('hidden');
             if (submitBtn) submitBtn.disabled = false;
-            if (spinner)   spinner.classList.add('hidden');
-            if (label)     label.textContent = 'Submit Report';
+            if (spinner) spinner.classList.add('hidden');
+            if (label) label.textContent = 'Submit Report';
             if (form) {
                 form.querySelectorAll('input, select, textarea').forEach(el => {
                     el.disabled = false;
@@ -2383,8 +2345,8 @@ const SpectralUI = {
             }
         };
 
-        const type        = document.getElementById('report-type').value;
-        const title       = document.getElementById('report-title').value;
+        const type = document.getElementById('report-type').value;
+        const title = document.getElementById('report-title').value;
         const barangaySelect = document.getElementById('report-barangay');
         const selectedOpt = barangaySelect?.options[barangaySelect.selectedIndex];
         let barangayId = selectedOpt?.dataset?.id || (barangaySelect?.value && !isNaN(barangaySelect.value) ? parseInt(barangaySelect.value) : null);
@@ -2399,16 +2361,35 @@ const SpectralUI = {
             if (foundB) barangayId = foundB.id;
         }
 
-        const lat         = parseFloat(document.getElementById('report-lat').value) || 8.5310;
-        const lng         = parseFloat(document.getElementById('report-lng').value) || 125.9730;
-        const severity    = document.getElementById('report-severity').value;
-        const description = document.getElementById('report-desc').value;
-        const nowIso      = new Date().toISOString();
-        const authUserName = window.INITIAL_SPECTRAL_STATE?.auth_user || 'Citizen Field Reporter';
-        const fileInput   = document.getElementById('report-evidence-file');
-        const previewImg  = document.getElementById('report-evidence-preview');
+        const lat = parseFloat(document.getElementById('report-lat').value);
+        const lng = parseFloat(document.getElementById('report-lng').value);
 
-        // Generate incident code based on highest existing number
+        if (!isNaN(lat) && !isNaN(lng)) {
+            const preCheck = SpectralData.checkSafeZoneProtection(lat, lng);
+            if (preCheck) {
+                const alertEl = document.getElementById('report-safezone-alert');
+                if (alertEl) {
+                    alertEl.classList.remove('hidden');
+                    alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+                this.showToast(preCheck.message);
+                unlockUI();
+                return;
+            }
+        }
+
+        if (isNaN(lat) || isNaN(lng)) {
+            this.showToast('Please select a location on the map before submitting.');
+            unlockUI();
+            return;
+        }
+        const severity = document.getElementById('report-severity').value;
+        const description = document.getElementById('report-desc').value;
+        const nowIso = new Date().toISOString();
+        const authUserName = window.INITIAL_SPECTRAL_STATE?.auth_user || 'Citizen Field Reporter';
+        const fileInput = document.getElementById('report-evidence-file');
+        const previewImg = document.getElementById('report-evidence-preview');
+
         let maxCodeNum = 0;
         (SpectralData.incidents || []).forEach(i => {
             const code = i.incident_code || i.id || '';
@@ -2421,40 +2402,38 @@ const SpectralUI = {
         const nextNum = Math.max(maxCodeNum + 1, (SpectralData.incidents || []).length + 1);
         const newCode = `SF-INC-${String(nextNum).padStart(3, '0')}`;
 
-        // Format date for display
         let formattedDate = nowIso;
         try {
             const d = new Date(nowIso);
             formattedDate = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
                 + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        } catch (_) {}
+        } catch (_) { }
 
         const newIncident = {
             id: newCode,
             db_id: null,
             type: type,
             incident_code: newCode,
-            title:         title,
-            description:   description,
-            barangay:      barangayName,
-            barangay_id:   barangayId,
-            municipality:  'San Francisco',
-            province:      'Agusan del Sur',
-            latitude:      lat,
-            longitude:     lng,
-            severity:      severity,
-            status:        'PENDING',
-            reported_at:   formattedDate,
-            reported_by:   authUserName,
-            evidence:      previewImg && previewImg.src && !previewImg.src.includes('data:,') ? previewImg.src : null,
+            title: title,
+            description: description,
+            barangay: barangayName,
+            barangay_id: barangayId,
+            municipality: 'San Francisco',
+            province: 'Agusan del Sur',
+            latitude: lat,
+            longitude: lng,
+            severity: severity,
+            status: 'PENDING',
+            reported_at: formattedDate,
+            reported_by: authUserName,
+            evidence: previewImg && previewImg.src && !previewImg.src.includes('data:,') ? previewImg.src : null,
             investigations: [],
-            notes:         null
+            notes: null
         };
 
-        // Post to Laravel API
         try {
             const token = document.querySelector('meta[name="csrf-token"]')?.content
-                       || document.querySelector('#report-form input[name="_token"]')?.value;
+                || document.querySelector('#report-form input[name="_token"]')?.value;
             const formData = new FormData();
             if (token) formData.append('_token', token);
             formData.append('incident_type', type);
@@ -2489,8 +2468,19 @@ const SpectralUI = {
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 console.error('Failed to submit incident:', res.status, errorData);
-                let reason = '';
 
+                if (res.status === 422 && errorData.title === 'Safe Zone Protected') {
+                    const alertEl = document.getElementById('report-safezone-alert');
+                    if (alertEl) {
+                        alertEl.classList.remove('hidden');
+                        alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    this.showToast('Safe Zone Protected: ' + (errorData.message || 'You cannot report an incident within this protected radius.'));
+                    unlockUI();
+                    return;
+                }
+
+                let reason = '';
                 if (errorData.errors) {
                     reason = ': ' + Object.values(errorData.errors).flat().join(' ');
                 } else if (res.status === 419) {
@@ -2514,13 +2504,11 @@ const SpectralUI = {
             return;
         }
 
-        // ✅ Success! Reset + close + update map
         document.getElementById('report-form').reset();
         this.removeEvidencePreview();
         this.closeReportModal();
         unlockUI();
 
-        // If on the My Reports page, reload so the new report is shown immediately
         if (window.location.pathname.includes('my-reports')) {
             window.location.reload();
             return;
@@ -2528,53 +2516,53 @@ const SpectralUI = {
 
         SpectralData.incidents.unshift(newIncident);
 
-        // If on interactive map and addIncidentMarker is available, add it cleanly
         if (window.SpectralMap && typeof window.SpectralMap.addIncidentMarker === 'function') {
             window.SpectralMap.addIncidentMarker(newIncident);
         } else {
             try {
                 if (typeof SpectralMap.renderIncidents === 'function') SpectralMap.renderIncidents();
                 if (typeof SpectralMap.updateStatsCounters === 'function') SpectralMap.updateStatsCounters();
-            } catch (_) {}
+            } catch (_) { }
             if (SpectralMap.map) {
                 SpectralMap.map.flyTo([lat, lng], 15, { duration: 1.0 });
             }
         }
-        try { this.inspectIncident(newIncident.id); } catch (_) {}
+        try { this.inspectIncident(newIncident.id); } catch (_) { }
         this.showToast(`Incident ${newIncident.id} recorded in San Francisco Node.`);
     },
 
-    showToast(message) {
+        showToast(message) {
         let toast = document.getElementById('spectral-toast');
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'spectral-toast';
-            toast.className = 'fixed bottom-5 right-5 z-[9999] px-4 py-2.5 rounded-xl bg-[#1B222C] border border-[#8B5CF6] text-white text-xs font-bold shadow-2xl flex items-center gap-2 transition-all opacity-0 translate-y-2';
+            // 📏 Smaller text + tighter padding
+            toast.className = 'fixed bottom-4 right-4 z-[9999] max-w-xs px-3 py-2 rounded-lg bg-[#1B222C] border border-[#8B5CF6]/60 text-white text-[10.5px] font-medium leading-snug shadow-xl flex items-start gap-2 transition-all opacity-0 translate-y-2';
             document.body.appendChild(toast);
         }
 
-        toast.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg><span>${message}</span>`;
+        toast.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><polyline points="20 6 9 17 4 12"/></svg><span class="flex-1">${message}</span>`;
         toast.style.opacity = '1';
         toast.style.transform = 'translateY(0)';
 
-        setTimeout(() => {
+        clearTimeout(toast._spectralTimeout);
+        toast._spectralTimeout = setTimeout(() => {
             toast.style.opacity = '0';
-            toast.style.transform = 'translateY(10px)';
-        }, 3500);
+            toast.style.transform = 'translateY(8px)';
+        }, 4000);
     },
 
-    // Pre-fills report form with coordinates and reverse geocodes then opens the modal
     openReportModalAtPoint(lat, lng, barangayName) {
         SpectralMap.clearAnomalyMarker();
 
-        const latInput       = document.getElementById('report-lat');
-        const lngInput       = document.getElementById('report-lng');
+        const latInput = document.getElementById('report-lat');
+        const lngInput = document.getElementById('report-lng');
         const barangaySelect = document.getElementById('report-barangay');
-        const resolvedInput  = document.getElementById('report-resolved-location');
-        const geocodeStatus  = document.getElementById('report-geocode-status');
+        const resolvedInput = document.getElementById('report-resolved-location');
+        const geocodeStatus = document.getElementById('report-geocode-status');
 
-        if (latInput)       latInput.value = parseFloat(lat).toFixed(6);
-        if (lngInput)       lngInput.value = parseFloat(lng).toFixed(6);
+        if (latInput) latInput.value = parseFloat(lat).toFixed(6);
+        if (lngInput) lngInput.value = parseFloat(lng).toFixed(6);
         if (barangaySelect && barangayName) {
             SpectralMap.selectBarangayOption(barangaySelect, barangayName);
         }
@@ -2607,8 +2595,8 @@ const SpectralUI = {
     bindEvents() {
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (SpectralMap.isPickingLocation)  SpectralMap.cancelLocationPicking();
-                if (SpectralMap.isStreetViewMode)   SpectralMap.closeStreetView();
+                if (SpectralMap.isPickingLocation) SpectralMap.cancelLocationPicking();
+                if (SpectralMap.isStreetViewMode) SpectralMap.closeStreetView();
                 SpectralMap.clearAnomalyMarker();
             }
         });
@@ -2616,12 +2604,11 @@ const SpectralUI = {
 };
 
 
-
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 // 4. INITIALIZE ON DOM READY
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════════════════
 window.SpectralMap = SpectralMap;
-window.SpectralUI  = SpectralUI;
+window.SpectralUI = SpectralUI;
 
 function bootSpectralApp() {
     try {
@@ -2650,4 +2637,3 @@ if (document.readyState === 'loading') {
 } else {
     bootSpectralApp();
 }
-

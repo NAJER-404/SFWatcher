@@ -205,3 +205,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/resources', [ResourceController::class, 'index'])->name('spectral.resources.index');
 
 });
+
+// ─── Public Storage Delivery with Graceful Placeholder Fallback ────────────
+Route::get('/storage/{path}', function (string $path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (file_exists($filePath)) {
+        return response()->file($filePath);
+    }
+
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    if (in_array($ext, ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'])) {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="#151B23"/><rect x="2" y="2" width="596" height="396" fill="none" stroke="#2A3440" stroke-width="2" rx="12"/><path d="M240 180a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm-60 90h240l-75-90-55 70-40-50-70 70z" fill="#334155"/><text x="50%" y="78%" dominant-baseline="middle" text-anchor="middle" fill="#94A3B8" font-family="sans-serif" font-size="16" font-weight="600">Attached Evidence (Image on File)</text></svg>';
+        return response($svg, 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Cache-Control' => 'no-cache, public',
+        ]);
+    }
+
+    abort(404);
+})->where('path', '.*')->name('public.storage');

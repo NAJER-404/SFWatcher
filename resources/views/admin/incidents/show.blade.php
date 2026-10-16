@@ -131,7 +131,8 @@
                 @foreach($incident->evidence as $ev)
                     <div class="p-2.5 rounded-xl bg-[#11161D] border border-[#2A3440] space-y-2">
                         <a href="{{ $ev->url }}" target="_blank" class="block aspect-video overflow-hidden rounded-lg bg-black/50 relative border border-[#2A3440]">
-                            <img src="{{ $ev->url }}" alt="{{ $ev->file_name }}" class="w-full h-full object-cover hover:scale-105 transition">
+                            <img src="{{ $ev->url }}" alt="{{ $ev->file_name }}" class="w-full h-full object-cover hover:scale-105 transition"
+                                 onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'400\' viewBox=\'0 0 600 400\'><rect width=\'600\' height=\'400\' fill=\'%23151B23\'/><rect x=\'2\' y=\'2\' width=\'596\' height=\'396\' fill=\'none\' stroke=\'%232A3440\' stroke-width=\'2\' rx=\'12\'/><path d=\'M240 180a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm-60 90h240l-75-90-55 70-40-50-70 70z\' fill=\'%23334155\'/><text x=\'50%25\' y=\'78%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2394A3B8\' font-family=\'sans-serif\' font-size=\'16\' font-weight=\'600\'>Attached Evidence</text></svg>';">
                         </a>
                         <div class="text-[11px] text-slate-400 flex justify-between">
                             <span class="truncate max-w-[150px] font-bold text-white">{{ $ev->file_name }}</span>

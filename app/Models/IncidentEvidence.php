@@ -37,6 +37,6 @@ class IncidentEvidence extends Model
         if (str_starts_with($this->file_path, 'http://') || str_starts_with($this->file_path, 'https://')) {
             return $this->file_path;
         }
-        return asset('storage/' . $this->file_path);
+        return '/storage/' . ltrim($this->file_path, '/');
     }
 }

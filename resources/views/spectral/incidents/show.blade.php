@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Incident ' . $incident->incident_code . ' — Spectra')
+@section('title', 'Incident ' . $incident->incident_code . ' — SFWatch')
 
 @php
     $latestAssignment = $incident->responderAssignments->sortByDesc('assigned_at')->first();
@@ -178,6 +178,7 @@
                             <a href="{{ $mainEvidence->url }}" target="_blank" rel="noopener"
                                class="group relative block h-44 w-full overflow-hidden rounded-xl border border-[#2A3440] bg-[#11161D]">
                                 <img src="{{ $mainEvidence->url }}" alt="Evidence: {{ $mainEvidence->file_name }}" loading="lazy" decoding="async"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'400\' viewBox=\'0 0 600 400\'><rect width=\'600\' height=\'400\' fill=\'%23151B23\'/><rect x=\'2\' y=\'2\' width=\'596\' height=\'396\' fill=\'none\' stroke=\'%232A3440\' stroke-width=\'2\' rx=\'12\'/><path d=\'M240 180a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm-60 90h240l-75-90-55 70-40-50-70 70z\' fill=\'%23334155\'/><text x=\'50%25\' y=\'78%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2394A3B8\' font-family=\'sans-serif\' font-size=\'16\' font-weight=\'600\'>Attached Evidence</text></svg>';"
                                      class="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105">
                             </a>
                         @else
@@ -242,6 +243,7 @@
                         <a href="{{ $ev->url }}" target="_blank" rel="noopener" class="group block {{ $inner }} p-2">
                             <span class="relative block h-36 w-full overflow-hidden rounded-lg bg-[#0E131A]">
                                 <img src="{{ $ev->url }}" alt="{{ $ev->file_name }}" loading="lazy" decoding="async"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'400\' viewBox=\'0 0 600 400\'><rect width=\'600\' height=\'400\' fill=\'%23151B23\'/><rect x=\'2\' y=\'2\' width=\'596\' height=\'396\' fill=\'none\' stroke=\'%232A3440\' stroke-width=\'2\' rx=\'12\'/><path d=\'M240 180a30 30 0 1 0 0-60 30 30 0 0 0 0 60zm-60 90h240l-75-90-55 70-40-50-70 70z\' fill=\'%23334155\'/><text x=\'50%25\' y=\'78%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2394A3B8\' font-family=\'sans-serif\' font-size=\'16\' font-weight=\'600\'>Attached Evidence</text></svg>';"
                                      class="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105">
                             </span>
                             <span class="mt-2 flex items-center justify-between gap-2 px-1 text-[11px]">

@@ -266,7 +266,9 @@
                     <div class="grid grid-cols-2 gap-3">
                         @foreach($incident->evidence as $ev)
                             <div class="rounded-lg overflow-hidden border border-[#2A3440] bg-[#11161D]">
-                                <img src="{{ $ev->url }}" alt="{{ $ev->file_name }}" class="w-full h-24 object-cover">
+                                <img src="{{ $ev->url }}" alt="{{ $ev->file_name }}" class="w-full h-24 object-cover"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22 viewBox=%220 0 400 225%22><rect width=%22400%22 height=%22225%22 fill=%22%23151B23%22/><rect x=%2220%22 y=%2220%22 width=%22360%22 height=%22185%22 rx=%228%22 fill=%22%232A3440%22/><circle cx=%22200%22 cy=%22100%22 r=%2228%22 fill=%22none%22 stroke=%22%2394A3B8%22 stroke-width=%222%22/><path d=%22M186 100 l10-14 l8 10 l6-7 l14 11z%22 fill=%22%2394A3B8%22 opacity=%220.6%22/><rect x=%22188%22 y=%2285%22 width=%2224%22 height=%2218%22 rx=%223%22 fill=%22none%22 stroke=%22%2394A3B8%22 stroke-width=%221.5%22/><circle cx=%22200%22 cy=%2294%22 r=%224%22 fill=%22%2394A3B8%22 opacity=%220.5%22/><text x=%22200%22 y=%22148%22 text-anchor=%22middle%22 font-family=%22monospace%22 font-size=%2211%22 fill=%22%2394A3B8%22 opacity=%220.7%22>Attached Evidence</text></svg>';">
+
                                 <div class="p-2 text-[10px] font-mono text-[#9CA3AF] truncate">
                                     {{ $ev->file_name }}
                                 </div>

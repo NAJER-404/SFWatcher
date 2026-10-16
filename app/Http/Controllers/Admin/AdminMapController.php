@@ -57,6 +57,49 @@ class AdminMapController extends Controller
             \Illuminate\Support\Facades\Log::warning('AdminMapController safeZones query failed: ' . $e->getMessage());
         }
 
+        if (empty($safeZones)) {
+            $safeZones = [
+                [
+                    'id'                    => null,
+                    'code'                  => 'SZ-001',
+                    'name'                  => 'San Francisco Municipal Gymnasium Sanctuary',
+                    'description'           => 'Primary designated municipal emergency sanctuary and safe zone.',
+                    'lat'                   => 8.5098,
+                    'lng'                   => 125.9780,
+                    'radius'                => 450.0,
+                    'status'                => 'active',
+                    'barangay'              => 'Barangay 1',
+                    'address'               => 'Brgy. Barangay 1, San Francisco, Agusan del Sur',
+                    'protection_expires_at' => null,
+                    'protection_active'     => true,
+                    'protection_time'       => null,
+                    'relief_food'           => 'available',
+                    'relief_water'          => 'available',
+                    'relief_first_aid'      => 'available',
+                    'assistance_services'   => ['Emergency Shelter', 'First Aid', 'Relief Goods'],
+                ],
+                [
+                    'id'                    => null,
+                    'code'                  => 'SZ-002',
+                    'name'                  => 'Hubang Transport Safe Haven',
+                    'description'           => 'Perimeter-secured transport and evacuation depot safe zone.',
+                    'lat'                   => 8.5310,
+                    'lng'                   => 125.9730,
+                    'radius'                => 550.0,
+                    'status'                => 'active',
+                    'barangay'              => 'Hubang',
+                    'address'               => 'Brgy. Hubang, San Francisco, Agusan del Sur',
+                    'protection_expires_at' => null,
+                    'protection_active'     => true,
+                    'protection_time'       => null,
+                    'relief_food'           => 'available',
+                    'relief_water'          => 'available',
+                    'relief_first_aid'      => 'available',
+                    'assistance_services'   => ['Evacuation Transport', 'Supply Depot', 'Medical Station'],
+                ],
+            ];
+        }
+
         $wardStations = WardStation::with('barangay')->get();
         $resources    = Resource::with('barangay')->get();
         $barangays    = Barangay::orderBy('name')->get();

@@ -288,8 +288,48 @@ class SpectralSeeder extends Seeder
             }
         }
 
-        // 4. Seed Spirit Ward Stations
+        // 4. Seed Spirit Ward Stations & Official Safe Zones
         $wardData = [
+            [
+                'code'                    => 'SZ-001',
+                'name'                    => 'San Francisco Municipal Gymnasium Sanctuary',
+                'description'             => 'Primary designated municipal emergency sanctuary and safe zone.',
+                'barangay_id'             => $barangayMap['Barangay 1'] ?? $barangayMap['Barangay 2'] ?? null,
+                'latitude'                => 8.5098,
+                'longitude'               => 125.9780,
+                'status'                  => 'active',
+                'is_safe_zone'            => true,
+                'safe_zone_radius_meters' => 450,
+                'shield_level'            => 100,
+                'energy_level'            => 100,
+                'frequency'               => '432.8 THz',
+                'radius_meters'           => 450,
+                'last_recalibrated'       => now(),
+                'relief_food'             => 'available',
+                'relief_water'            => 'available',
+                'relief_first_aid'        => 'available',
+                'assistance_services'     => ['Emergency Shelter', 'First Aid', 'Relief Goods'],
+            ],
+            [
+                'code'                    => 'SZ-002',
+                'name'                    => 'Hubang Transport Safe Haven',
+                'description'             => 'Perimeter-secured transport and evacuation depot safe zone.',
+                'barangay_id'             => $barangayMap['Hubang'] ?? null,
+                'latitude'                => 8.5310,
+                'longitude'               => 125.9730,
+                'status'                  => 'active',
+                'is_safe_zone'            => true,
+                'safe_zone_radius_meters' => 550,
+                'shield_level'            => 98,
+                'energy_level'            => 96,
+                'frequency'               => '432.8 THz',
+                'radius_meters'           => 550,
+                'last_recalibrated'       => now(),
+                'relief_food'             => 'available',
+                'relief_water'            => 'available',
+                'relief_first_aid'        => 'available',
+                'assistance_services'     => ['Evacuation Transport', 'Supply Depot', 'Medical Station'],
+            ],
             [
                 'code'              => 'WS-001',
                 'name'              => 'Hubang Master Spirit Ward Station',
@@ -297,6 +337,7 @@ class SpectralSeeder extends Seeder
                 'latitude'          => 8.5310,
                 'longitude'         => 125.9730,
                 'status'            => 'active',
+                'is_safe_zone'      => false,
                 'shield_level'      => 96,
                 'energy_level'      => 94,
                 'frequency'         => '432.8 THz',

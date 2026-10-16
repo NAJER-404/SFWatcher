@@ -17,38 +17,45 @@ class AdminMapController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $safeZones = WardStation::with('barangay')
-            ->where('status', 'active')
-            ->where('is_safe_zone', true)
-            ->get()
-            ->map(function ($ws) {
-                $radius = $ws->safe_zone_radius_meters ?? $ws->radius_meters ?? 450;
+        $safeZones = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('ward_stations', 'is_safe_zone')) {
+                $safeZones = WardStation::with('barangay')
+                    ->where('status', 'active')
+                    ->where('is_safe_zone', true)
+                    ->get()
+                    ->map(function ($ws) {
+                        $radius = $ws->safe_zone_radius_meters ?? $ws->radius_meters ?? 450;
 
-                return [
-                    'id'          => $ws->id,
-                    'code'        => $ws->code,
-                    'name'        => $ws->name,
-                    'description' => $ws->description,
-                    'lat'         => (float) $ws->latitude,
-                    'lng'         => (float) $ws->longitude,
-                    'radius'      => (float) $radius,
-                    'status'      => 'active',
-                    'barangay'    => $ws->barangay?->name ?? 'San Francisco',
-                    'address'     => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
+                        return [
+                            'id'          => $ws->id,
+                            'code'        => $ws->code,
+                            'name'        => $ws->name,
+                            'description' => $ws->description,
+                            'lat'         => (float) $ws->latitude,
+                            'lng'         => (float) $ws->longitude,
+                            'radius'      => (float) $radius,
+                            'status'      => 'active',
+                            'barangay'    => $ws->barangay?->name ?? 'San Francisco',
+                            'address'     => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
 
-                    // 🆕 Safe zone details
-                    'protection_expires_at' => $ws->ward_protection_expires_at
-                        ? $ws->ward_protection_expires_at->toIso8601String()
-                        : null,
-                    'protection_active'     => $ws->isProtectionActive(),
-                    'protection_time'       => $ws->protectionTimeRemaining(),
-                    'relief_food'           => $ws->relief_food ?? 'available',
-                    'relief_water'          => $ws->relief_water ?? 'available',
-                    'relief_first_aid'      => $ws->relief_first_aid ?? 'available',
-                    'assistance_services'   => $ws->assistance_services ?? [],
-                ];
-            })
-            ->all();
+                            // 🆕 Safe zone details
+                            'protection_expires_at' => $ws->ward_protection_expires_at
+                                ? $ws->ward_protection_expires_at->toIso8601String()
+                                : null,
+                            'protection_active'     => $ws->isProtectionActive(),
+                            'protection_time'       => $ws->protectionTimeRemaining(),
+                            'relief_food'           => $ws->relief_food ?? 'available',
+                            'relief_water'          => $ws->relief_water ?? 'available',
+                            'relief_first_aid'      => $ws->relief_first_aid ?? 'available',
+                            'assistance_services'   => $ws->assistance_services ?? [],
+                        ];
+                    })
+                    ->all();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('AdminMapController safeZones query failed: ' . $e->getMessage());
+        }
 
         $wardStations = WardStation::with('barangay')->get();
         $resources    = Resource::with('barangay')->get();

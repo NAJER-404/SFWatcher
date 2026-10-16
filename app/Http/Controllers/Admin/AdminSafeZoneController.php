@@ -12,7 +12,14 @@ class AdminSafeZoneController extends Controller
 {
     public function index()
     {
-        $zones = WardStation::with('barangay')->where('is_safe_zone', true)->orderBy('name')->get();
+        $zones = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('ward_stations', 'is_safe_zone')) {
+                $zones = WardStation::with('barangay')->where('is_safe_zone', true)->orderBy('name')->get();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('AdminSafeZoneController::index safe zones query failed: ' . $e->getMessage());
+        }
         return view('admin.safe-zones.index', compact('zones'));
     }
 

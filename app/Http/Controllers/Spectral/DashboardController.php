@@ -33,40 +33,47 @@ class DashboardController extends Controller
             ->get();
 
         // 🌐 Read safe zones from the ward_stations DB table (is_safe_zone = true)
-        $safeWardStations = WardStation::with('barangay')
-            ->where('status', 'active')
-            ->where('is_safe_zone', true)
-            ->get()
-            ->map(function ($ws) {
-                $radius = $ws->safe_zone_radius_meters
-                    ?? $ws->radius_meters
-                    ?? 450;
+        $safeWardStations = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('ward_stations', 'is_safe_zone')) {
+                $safeWardStations = WardStation::with('barangay')
+                    ->where('status', 'active')
+                    ->where('is_safe_zone', true)
+                    ->get()
+                    ->map(function ($ws) {
+                        $radius = $ws->safe_zone_radius_meters
+                            ?? $ws->radius_meters
+                            ?? 450;
 
-                return (object) [
-                    'id'                    => $ws->id,
-                    'code'                  => $ws->code,
-                    'name'                  => $ws->name,
-                    'description'           => $ws->description,
-                    'lat'                   => (float) $ws->latitude,
-                    'lng'                   => (float) $ws->longitude,
-                    'radius'                => (float) $radius,
-                    'status'                => 'active',
-                    'barangay'              => $ws->barangay?->name ?? 'San Francisco',
-                    'address'               => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
+                        return (object) [
+                            'id'                    => $ws->id,
+                            'code'                  => $ws->code,
+                            'name'                  => $ws->name,
+                            'description'           => $ws->description,
+                            'lat'                   => (float) $ws->latitude,
+                            'lng'                   => (float) $ws->longitude,
+                            'radius'                => (float) $radius,
+                            'status'                => 'active',
+                            'barangay'              => $ws->barangay?->name ?? 'San Francisco',
+                            'address'               => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
 
-                    // 🆕 Safe zone details for Reporter Map popup
-                    'protection_expires_at' => $ws->ward_protection_expires_at
-                        ? $ws->ward_protection_expires_at->toIso8601String()
-                        : null,
-                    'protection_active'     => $ws->isProtectionActive(),
-                    'protection_time'       => $ws->protectionTimeRemaining(),
-                    'relief_food'           => $ws->relief_food ?? 'available',
-                    'relief_water'          => $ws->relief_water ?? 'available',
-                    'relief_first_aid'      => $ws->relief_first_aid ?? 'available',
-                    'assistance_services'   => $ws->assistance_services ?? [],
-                ];
-            })
-            ->all();
+                            // 🆕 Safe zone details for Reporter Map popup
+                            'protection_expires_at' => $ws->ward_protection_expires_at
+                                ? $ws->ward_protection_expires_at->toIso8601String()
+                                : null,
+                            'protection_active'     => $ws->isProtectionActive(),
+                            'protection_time'       => $ws->protectionTimeRemaining(),
+                            'relief_food'           => $ws->relief_food ?? 'available',
+                            'relief_water'          => $ws->relief_water ?? 'available',
+                            'relief_first_aid'      => $ws->relief_first_aid ?? 'available',
+                            'assistance_services'   => $ws->assistance_services ?? [],
+                        ];
+                    })
+                    ->all();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Dashboard safe ward stations load failed: ' . $e->getMessage());
+        }
 
         // 🛡️ Safety fallback — if the DB has no safe zones yet, keep the legacy pair
         if (empty($safeWardStations)) {

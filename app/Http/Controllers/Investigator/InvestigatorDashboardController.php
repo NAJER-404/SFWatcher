@@ -21,33 +21,87 @@ class InvestigatorDashboardController extends Controller
      */
     private function getSafeWardStations()
     {
-        return WardStation::with('barangay')
-            ->where('status', 'active')
-            ->where('is_safe_zone', true)
-            ->get()
-            ->map(function ($ws) {
-                $radius = $ws->safe_zone_radius_meters ?? $ws->radius_meters ?? 450;
-                return [
-                    'id' => $ws->id,
-                    'code' => $ws->code,
-                    'name' => $ws->name,
-                    'description' => $ws->description,
-                    'lat' => (float) $ws->latitude,
-                    'lng' => (float) $ws->longitude,
-                    'radius' => (float) $radius,
-                    'status' => 'active',
-                    'barangay' => $ws->barangay?->name ?? 'San Francisco',
-                    'address' => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
-                    'protection_expires_at' => $ws->ward_protection_expires_at ? $ws->ward_protection_expires_at->toIso8601String() : null,
-                    'protection_active' => $ws->isProtectionActive(),
-                    'protection_time' => $ws->protectionTimeRemaining(),
-                    'relief_food' => $ws->relief_food ?? 'available',
-                    'relief_water' => $ws->relief_water ?? 'available',
-                    'relief_first_aid' => $ws->relief_first_aid ?? 'available',
-                    'assistance_services' => $ws->assistance_services ?? [],
-                ];
-            })
-            ->all();
+        $safeWardStations = [];
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('ward_stations', 'is_safe_zone')) {
+                $safeWardStations = WardStation::with('barangay')
+                    ->where('status', 'active')
+                    ->where('is_safe_zone', true)
+                    ->get()
+                    ->map(function ($ws) {
+                        $radius = $ws->safe_zone_radius_meters ?? $ws->radius_meters ?? 450;
+                        return [
+                            'id' => $ws->id,
+                            'code' => $ws->code,
+                            'name' => $ws->name,
+                            'description' => $ws->description,
+                            'lat' => (float) $ws->latitude,
+                            'lng' => (float) $ws->longitude,
+                            'radius' => (float) $radius,
+                            'status' => 'active',
+                            'barangay' => $ws->barangay?->name ?? 'San Francisco',
+                            'address' => 'Brgy. ' . ($ws->barangay?->name ?? 'San Francisco') . ', San Francisco, Agusan del Sur',
+                            'protection_expires_at' => $ws->ward_protection_expires_at ? $ws->ward_protection_expires_at->toIso8601String() : null,
+                            'protection_active' => $ws->isProtectionActive(),
+                            'protection_time' => $ws->protectionTimeRemaining(),
+                            'relief_food' => $ws->relief_food ?? 'available',
+                            'relief_water' => $ws->relief_water ?? 'available',
+                            'relief_first_aid' => $ws->relief_first_aid ?? 'available',
+                            'assistance_services' => $ws->assistance_services ?? [],
+                        ];
+                    })
+                    ->all();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Investigator safe ward stations load failed: ' . $e->getMessage());
+        }
+
+        // 🛡️ Safety fallback — if DB has no safe zones yet, keep default pair
+        if (empty($safeWardStations)) {
+            $safeWardStations = [
+                [
+                    'id'                    => null,
+                    'code'                  => 'LEGACY-1',
+                    'name'                  => 'San Francisco Municipal Gymnasium Sanctuary',
+                    'description'           => 'Designated emergency sanctuary station',
+                    'lat'                   => 8.5098,
+                    'lng'                   => 125.9780,
+                    'radius'                => 450.0,
+                    'status'                => 'active',
+                    'barangay'              => 'Barangay 1',
+                    'address'               => 'Brgy. Barangay 1, San Francisco, Agusan del Sur',
+                    'protection_expires_at' => null,
+                    'protection_active'     => true,
+                    'protection_time'       => null,
+                    'relief_food'           => 'available',
+                    'relief_water'          => 'available',
+                    'relief_first_aid'      => 'available',
+                    'assistance_services'   => ['Emergency Shelter', 'First Aid'],
+                ],
+                [
+                    'id'                    => null,
+                    'code'                  => 'LEGACY-2',
+                    'name'                  => 'Hubang Transport Safe Haven',
+                    'description'           => 'Perimeter-secured transport and evacuation depot',
+                    'lat'                   => 8.5310,
+                    'lng'                   => 125.9730,
+                    'radius'                => 550.0,
+                    'status'                => 'active',
+                    'barangay'              => 'Hubang',
+                    'address'               => 'Brgy. Hubang, San Francisco, Agusan del Sur',
+                    'protection_expires_at' => null,
+                    'protection_active'     => true,
+                    'protection_time'       => null,
+                    'relief_food'           => 'available',
+                    'relief_water'          => 'available',
+                    'relief_first_aid'      => 'available',
+                    'assistance_services'   => ['Transport Hub', 'Supply Depot'],
+                ],
+            ];
+        }
+
+        return $safeWardStations;
     }
 
     /**

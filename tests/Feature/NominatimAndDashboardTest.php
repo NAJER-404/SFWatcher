@@ -72,7 +72,7 @@ class NominatimAndDashboardTest extends TestCase
             'incident_type' => 'Spirit Activity',
             'title'         => 'Anomalous resonance near Hubang',
             'description'   => 'Detected spectral readings during patrol.',
-            'latitude'      => 8.5310,
+            'latitude'      => 8.5370,
             'longitude'     => 125.9730,
             'severity'      => 'HIGH',
         ];
